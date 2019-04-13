@@ -1,0 +1,58 @@
+server:
+  port: 8080
+
+logging:
+  level:
+    learning: trace
+  config: classpath:logback-spring.xml
+  path:
+spring:
+  redis:
+    database: 1
+    host: 127.0.0.1
+    port: 6379
+    password:
+    timeout: 2000
+    jedis:
+      pool:
+        # 最大空闲连接数
+        max-idle: 500
+        # 最小空闲连接数
+        min-idle: 50
+        # 等待可用连接的最大时间，负数为不限制
+        max-wait:  -1s
+        # 最大活跃连接数，负数为不限制
+        max-active: -1
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driverClassName: org.mariadb.jdbc.Driver
+    platform: mariadb
+    url: jdbc:mysql://127.0.0.1:3306/thorn?useUnicode=true&characterEncoding=utf-8&useSSL=false
+    username: root
+    password:
+    initialSize: 5
+    minIdle: 5
+    maxActive: 20
+    maxWait: 60000
+    timeBetweenEvictionRunsMillis: 60000
+    minEvictableIdleTimeMillis: 300000
+    validationQuery: SELECT 1
+    testWhileIdle: true
+    testOnBorrow: false
+    testOnReturn: false
+    filters: stat,slf4j
+    logSlowSql: true
+  thymeleaf:
+    mode: HTML
+    encoding: utf-8
+    cache: false
+  http:
+    encoding:
+      force: true
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 100MB
+  aop:
+    proxy-target-class: true

@@ -1,0 +1,15 @@
+system:
+  path:
+    replyimg: /run/media/thorn/Thorn Passport/毕设/img/replyImg/
+    avator:  /run/media/thorn/Thorn Passport/毕设/img/
+    replyImg: /run/media/thorn/Thorn Passport/毕设/img/replyImg/
+  page:
+    post: 8
+    message: 5
+    mypost: 10
+
+shiro:
+  static: /res/**,/favicon.ico,/img/**
+  monitor: /actuator/**,/druid/**
+  permissive: /
+  noUser: /user/login,/user/reg

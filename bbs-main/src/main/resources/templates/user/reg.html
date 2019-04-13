@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>注册</title>
+    <link href="/res/layui/css/layui.css" rel="stylesheet">
+    <link href="/res/css/global.css" rel="stylesheet">
+    <link href="/res/css/my.css" rel="stylesheet">
+    <script src="/res/js/jquery-3.3.1.min.js" type="text/javascript"></script>
+</head>
+<body>
+
+<div class="fly-header layui-bg-black">
+    <div class="layui-container">
+        <a class="fly-logo" href="/">
+            <img alt="layui" src="/res/images/logo.png">
+        </a>
+    </div>
+</div>
+
+<div class="layui-container fly-marginTop">
+    <div class="fly-panel fly-panel-user" pad20>
+        <div class="layui-tab layui-tab-brief" lay-filter="user">
+            <ul class="layui-tab-title">
+                <li><a href="/user/login">登入</a></li>
+                <li class="layui-this">注册</li>
+            </ul>
+            <div class="layui-form layui-tab-content" id="LAY_ucm" style="padding: 20px 0;">
+                <div class="layui-tab-item layui-show">
+                    <div class="layui-form layui-form-pane">
+                        <form action="/user/reg" method="post">
+                            <span th:text="${errorMsg}"/>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label" for="L_email">邮箱</label>
+                                <div class="layui-input-inline">
+                                    <input autocomplete="off" class="layui-input" id="L_email"
+                                           lay-verify="email" name="email" required type="text">
+                                </div>
+                                <div class="layui-form-mid layui-word-aux">将会成为您唯一的登入名</div>
+                                <span class="layui-form-mid layui-word-aux tip"
+                                      th:text="${usernameError}"/>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label" for="L_username">昵称</label>
+                                <div class="layui-input-inline">
+                                    <input autocomplete="off" class="layui-input" id="L_username"
+                                           lay-verify="required" name="nickname"
+                                           required type="text">
+                                </div>
+                                <span class="layui-form-mid layui-word-aux tip"
+                                      th:text="${nnError}"/>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label" for="L_pass">密码</label>
+                                <div class="layui-input-inline">
+                                    <input autocomplete="off" class="layui-input" id="L_pass"
+                                           lay-verify="required" name="password"
+                                           required type="password">
+                                </div>
+
+                                <div class="layui-form-mid layui-word-aux">3到18个字符</div>
+                                <span class="layui-form-mid layui-word-aux tip"
+                                      th:text="${passwordError}"/>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label" for="L_repass">确认密码</label>
+                                <div class="layui-input-inline">
+                                    <input autocomplete="off" class="layui-input" id="L_repass"
+                                           lay-verify="required" name="repass" required
+                                           type="password">
+                                </div>
+                                <span class="tip layui-form-mid layui-word-aux "
+                                      th:text="${repassError}"/>
+                            </div>
+                            <!--              <div class="layui-form-item">
+                                            <label for="L_vercode" class="layui-form-label">人类验证</label>
+                                            <div class="layui-input-inline">
+                                              <input type="text" id="L_vercode" name="vercode" required lay-verify="required" placeholder="请回答后面的问题" autocomplete="off" class="layui-input">
+                                            </div>
+                                            <div class="layui-form-mid">
+                                              <span style="color: #c00;">{{d.vercode}}</span>
+                                            </div>
+                                          </div>-->
+                            <div class="layui-form-item">
+                                <input class="layui-btn" lay-filter="*" lay-submit
+                                       th:type="submit" th:value="立即注册"/>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="/res/layui/layui.js"></script>
+<script>
+    layui.config({
+        version: "3.0.0"
+        , base: '/res/mods/'
+    }).extend({
+        fly: 'index'
+    }).use('fly');
+</script>
+
+</body>
+</html>

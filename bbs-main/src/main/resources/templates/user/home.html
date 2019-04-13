@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html xmlns:shiro="http://www.pollix.at/thymeleaf/shiro"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>用户主页</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1" name="viewport">
+    <link href="/res/layui/css/layui.css" rel="stylesheet">
+    <link href="/res/css/global.css" rel="stylesheet">
+</head>
+<body style="margin-top: 65px;">
+
+<div class="fly-header layui-bg-black">
+    <div class="layui-container">
+        <a class="fly-logo" href="/">
+            <img alt="layui" src="/res/images/logo.png">
+        </a>
+        <shiro:authenticated>
+            <ul class="layui-nav fly-nav-user">
+                <li class="layui-nav-item">
+                    <a class="fly-nav-avatar" href="javascript:">
+                        <cite class="layui-hide-xs"
+                              th:each="cookie :${#httpServletRequest.getCookies()}"
+                              th:if="${cookie.getName().equals('nickname')}"
+                              th:text="${cookie.getValue()}"/>
+                        <i class="iconfont icon-renzheng layui-hide-xs" title="认证信息"></i>
+                        <i class="layui-badge fly-badge-vip layui-hide-xs"
+                        >vip3</i>
+
+                        <img th:each="cookie :${#httpServletRequest.getCookies()}"
+                             th:if="${cookie.getName().equals('img')}"
+                             th:src="${cookie.getValue()}">
+                    </a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="/info/setting"><i class="layui-icon">&#xe620;</i>基本设置</a></dd>
+                        <dd><a href="/info/message"><i class="iconfont icon-tongzhi"
+                                                       style="top: 4px;"></i>我的消息</a></dd>
+                        <dd><a href="/user/home"><i class="layui-icon"
+                                                    style="margin-left: 2px; font-size: 22px;">&#xe68e;</i>我的主页</a>
+                        </dd>
+                        <hr style="margin: 5px 0;">
+                        <dd><a href="/user/logout" style="text-align: center;">退出</a></dd>
+                    </dl>
+                </li>
+            </ul>
+        </shiro:authenticated>
+    </div>
+</div>
+
+<div class="fly-home fly-panel">
+    <h1 th:text="${userInfo.nickname}">
+        <i class="iconfont icon-nan" th:if="${userinfo.gender=='男'}"></i>
+        <i class="iconfont icon-nv" th:if="${userinfo.gender=='女'}"></i>
+    </h1>
+
+    <p class="fly-home-info">
+        <i class="iconfont icon-shijian"></i><span
+            th:text="${#dates.format(userInfo.regdate,'yyyy-MM-dd hh:mm')+'注册'}"></span>
+    </p>
+    <shiro:authenticated>
+        <div class="fly-sns" data-user="" id="isFan" th:if="${myself==0}">
+            <a class="layui-btn layui-btn-normal fly-imActive" href="javascript:"
+               th:if="${fan!=true}" th:onclick="|fan(${userInfo.uid})|">关注</a>
+            <a class="layui-btn layui-btn-primary fly-imActive" href="javascript:"
+               th:if="${fan==true}" th:onclick="|cancelFan(${userInfo.uid})|">已关注</a>
+        </div>
+    </shiro:authenticated>
+</div>
+
+<div class="layui-container">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md6 fly-home-jie">
+            <div class="fly-panel">
+                <h3 class="fly-panel-title" th:text="${userInfo.nickname+' 最近的帖子'}"></h3>
+                <ul class="jie-row" th:if="${posts!=null && posts.size()!=0}">
+                    <li th:each="post:${posts}">
+                        <span class="fly-jing" th:if="${post.grade==1 || post.grade==3}">精</span>
+                        <span class="fly-jing" th:if="${post.grade>=2}">置顶</span>
+                        <a class="jie-title" th:href="${'/post/'+post.pid}"
+                           th:text="${post.title}"/>
+                        <i th:text="${#dates.format(post.postTime,'yyyy-MM-dd hh:mm:ss')}"></i>
+                        <em class="layui-hide-xs"
+                            th:text="${post.views+'阅/'+post.replyNum+'答'}"/>
+                    </li>
+                </ul>
+                <div class="fly-none" style="min-height: 50px; padding:30px 0;
+                    height:auto;" th:if="${posts==null || posts.size()==0}">
+                    <i style="font-size:14px;">没有发表任何帖子</i>
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-col-md6 fly-home-da">
+            <div class="fly-panel">
+                <h3 class="fly-panel-title" th:text="${userInfo.nickname+' 最近的回复'}"></h3>
+                <ul class="home-jieda" th:if="${replys!=null && replys.size()>0}">
+                    <li th:each="reply:${replys}">
+                        <p>
+                            <span
+                                    th:text="${#dates.format(reply.replyTime,'yyyy-MM-dd hh:mm:ss')}">
+                            </span>
+                            在<a target="_blank"
+                                th:href="${'/post/'+reply.postid+'?floor='+reply.floor}"
+                                th:text="${reply.title}"></a>中回复：
+                        </p>
+                        <div class="home-dacontent">
+                            <th:block th:if="${reply.contentEx!=null}">
+                                引用：
+                                <a target="_blank"
+                                   th:href="${'/user/home/'+reply.replyToId}"
+                                   th:text="${reply.replyToNickname}"/>
+                                的回复
+                                <pre th:utext="${reply.contentEx}">
+                            </pre>
+                            </th:block>
+                            <th:block th:utext="${reply.content_show}"/>
+                        </div>
+                    </li>
+                </ul>
+                <div class="fly-none" style="min-height: 50px; padding:30px 0; height:auto;"
+                     th:if="${replys==null || replys.size()==0}"><span>没有任何回复
+                     </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/res/layui/layui.js"></script>
+<script src="/res/js/jquery-3.3.1.min.js"></script>
+<script src="/res/js/my.js"></script>
+<script>
+    layui.cache.page = 'user';
+    layui.cache.user = {
+        username: '游客'
+        , uid: -1
+        , avatar: '/res/images/avatar/00.jpg'
+        , experience: 83
+        , sex: '男'
+    };
+    layui.config({
+        version: "3.0.0"
+        , base: '/res/mods/'
+    }).extend({
+        fly: 'index'
+    }).use('fly');
+</script>
+
+</body>
+</html>

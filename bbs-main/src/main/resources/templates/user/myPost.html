@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>用户中心</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1" name="viewport">
+    <link href="/res/layui/css/layui.css" rel="stylesheet">
+    <link href="/res/css/global.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="fly-header layui-bg-black">
+    <div class="layui-container">
+
+        <ul class="layui-nav fly-nav-user">
+            <!-- 登入后的状态 -->
+            <li class="layui-nav-item">
+                <a class="fly-nav-avatar" href="javascript:">
+                    <cite class="layui-hide-xs">贤心</cite>
+                    <i class="iconfont icon-renzheng layui-hide-xs" title="认证信息：layui 作者"></i>
+                    <i class="layui-badge fly-badge-vip layui-hide-xs">VIP3</i>
+                    <img src="https://tva1.sinaimg.cn/crop.0.0.118.118.180/5db11ff4gw1e77d3nqrv8j203b03cweg.jpg">
+                </a>
+                <dl class="layui-nav-child">
+                    <dd><a href="/info/setting"><i class="layui-icon">&#xe620;</i>基本设置</a></dd>
+                    <dd><a href="/info/message"><i class="iconfont icon-tongzhi"
+                                                   style="top: 4px;"></i>我的消息</a></dd>
+                    <dd><a href="/user/home"><i class="layui-icon"
+                                                style="margin-left: 2px; font-size: 22px;">&#xe68e;</i>我的主页</a>
+                    </dd>
+                    <hr style="margin: 5px 0;">
+                    <dd><a href="/user/logout" style="text-align: center;">退出</a></dd>
+                </dl>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<div class="layui-container fly-marginTop fly-user-main">
+    <ul class="layui-nav layui-nav-tree layui-inline" lay-filter="user">
+        <li class="layui-nav-item">
+            <a href="/user/home">
+                <i class="layui-icon">&#xe609;</i>
+                我的主页
+            </a>
+        </li>
+        <li class="layui-nav-item layui-this">
+            <a href="/info/myPost">
+                <i class="layui-icon">&#xe612;</i>
+                用户中心
+            </a>
+        </li>
+        <li class="layui-nav-item ">
+            <a href="/info/setting">
+                <i class="layui-icon">&#xe620;</i>
+                基本设置
+            </a>
+        </li>
+        <li class="layui-nav-item">
+            <a href="/info/message">
+                <i class="layui-icon">&#xe611;</i>
+                我的消息
+            </a>
+        </li>
+    </ul>
+
+    <div class="site-tree-mobile layui-hide">
+        <i class="layui-icon">&#xe602;</i>
+    </div>
+    <div class="site-mobile-shade"></div>
+
+    <div class="site-tree-mobile layui-hide">
+        <i class="layui-icon">&#xe602;</i>
+    </div>
+    <div class="site-mobile-shade"></div>
+
+
+    <div class="fly-panel fly-panel-user" pad20>
+        <!--
+        <div class="fly-msg" style="margin-top: 15px;">
+          您的邮箱尚未验证，这比较影响您的帐号安全，<a href="activate.html">立即去激活？</a>
+        </div>
+        -->
+        <div class="layui-tab layui-tab-brief" lay-filter="user">
+            <ul class="layui-tab-title" id="LAY_mine">
+                <li class="layui-this" data-type="mine-jie" lay-id="index">我发的帖（<span
+                        th:text="${mypostsNum==null?0:mypostsNum}"></span>）
+                </li>
+                <li data-type="collection" data-url="/collection/find/" lay-id="collection">
+                    我收藏的帖（<span th:text="${collectionsNum==null?0:collectionsNum}"></span>）
+                </li>
+            </ul>
+            <div class="layui-tab-content" style="padding: 20px 0;">
+                <div class="layui-tab-item layui-show">
+                    <div class="fly-none" th:if="${myposts==null||myposts.size()==0}">没有相关数据
+                    </div>
+                    <ul class="mine-view jie-row" th:each="mypost:${myposts}">
+                        <li>
+                            <a class="jie-title" target="_blank" th:href="'/post/'+${mypost.pid}"
+                               th:text="${mypost.title}"/>
+                            <i th:text="${#dates.format(mypost.postTime,'yyyy-MM-dd hh:mm:ss')}"/>
+                            <em th:text="${mypost.views}+'阅/'+${mypost.replyNum}+'答'"></em>
+                        </li>
+                    </ul>
+                    <br/>
+
+                    <div style="text-align:center" th:if="${myposts!=null}">
+                        <a class="layui-btn layui-btn-primary layui-btn-sm"
+                           th:href="${'/info/myPost?page='+(currentPage -1)+'&cpage='+currentCpage}"
+                           th:if="${currentPage>1}">
+                            <i class="layui-icon"></i></a>
+                        <a class="layui-btn layui-btn-primary layui-btn-sm"
+                           th:href="${'/info/myPost?page='+(currentPage+1)+'&cpage='+currentCpage}"
+                           th:if="${currentPage<mypostsNum/10+1}">
+                            <i class="layui-icon"></i>
+                        </a>
+                    </div>
+
+                </div>
+                <div class="layui-tab-item">
+                    <div class="fly-none" th:if="${collections==null||collections.size()==0}">没有相关数据
+                    </div>
+                    <ul class="mine-view jie-row" th:each="collect:${collections}">
+                        <li>
+                            <a class="jie-title" target="_blank" th:href="'/post/'+${collect.pid}"
+                               th:text="${collect.title}"/>
+                            <i
+                                    th:text="'收藏于'+${#dates.format(collect.time,'yyyy-MM-dd hh:mm:ss')}"></i>
+                        </li>
+                    </ul>
+                    <br/>
+                    <div style="text-align:center" th:if="${collections!=null}">
+                        <a class="layui-btn layui-btn-primary layui-btn-sm"
+                           th:href="${'/info/myCollection?page='+currentPage+'&cpage='+(currentCpage -1)}"
+                           th:if="${currentCpage>1}">
+                            <i class="layui-icon"></i></a>
+                        <a class="layui-btn layui-btn-primary layui-btn-sm"
+                           th:href="${'/info/myCollection?page='+currentPage+'&cpage='+(currentCpage)}"
+                           th:if="${currentCpage<collectionsNum/10+1}">
+                            <i class="layui-icon"></i></a>
+                    </div>
+                    <div id="LAY_page1"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/res/layui/layui.js"></script>
+<script>
+    layui.cache.page = 'user';
+    layui.cache.user = {
+        username: '游客'
+        , uid: -1
+        , avatar: '/res/images/avatar/00.jpg'
+        , experience: 83
+        , sex: '男'
+    };
+    layui.config({
+        version: "3.0.0"
+        , base: '/res/mods/'
+    }).extend({
+        fly: 'index'
+    }).use('fly');
+</script>
+<script>
+    window.location.hash = "[[${loc}]]";
+</script>
+</body>
+</html>

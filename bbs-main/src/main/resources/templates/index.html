@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html xmlns:shiro="http://www.pollix.at/thymeleaf/shiro"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>BBS</title>
+    <link href="/res/layui/css/layui.css" media="all" rel="stylesheet">
+    <link href="/res/css/global.css" rel="stylesheet">
+</head>
+<body style="overflow: hidden">
+
+<div class="fly-header layui-bg-black">
+    <div class="layui-container">
+        <a class="fly-logo" href="/">
+            <img alt="layui" src="/res/images/logo.png">
+        </a>
+        <ul class="layui-nav fly-nav-user">
+            <shiro:guest>
+                <!-- 未登入的状态 -->
+                <li class="layui-nav-item">
+                    <a class="iconfont icon-touxiang layui-hide-xs" href="/user/login"></a>
+                </li>
+                <li class="layui-nav-item">
+                    <a href="/user/login">登入</a>
+                </li>
+                <li class="layui-nav-item">
+                    <a href="/user/reg">注册</a>
+                </li>
+            </shiro:guest>
+            <shiro:authenticated>
+                <li class="layui-nav-item">
+                    <a class="fly-nav-avatar" href="javascript:;">
+                        <cite class="layui-hide-xs"
+                              th:each="cookie :${#httpServletRequest.getCookies()}"
+                              th:if="${cookie.getName().equals('nickname')}"
+                              th:text="${cookie.getValue()}"/>
+                        <img th:each="cookie :${#httpServletRequest.getCookies()}"
+                             th:if="${cookie.getName().equals('img')}"
+                             th:src="${cookie.getValue()}">
+                    </a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="/info/setting"><i class="layui-icon">&#xe620;</i>基本设置</a></dd>
+                        <dd><a href="/info/message"><i class="iconfont icon-tongzhi"
+                                                       style="top: 4px;"></i>我的消息
+                            <span class="layui-badge-dot" style="float:right"
+                                  th:if="${hasMessage==true}"></span></a></dd>
+                        <dd><a href="/user/home"><i class="layui-icon"
+                                                    style="margin-left: 2px; font-size: 22px;">&#xe68e;</i>我的主页</a>
+                        </dd>
+                        <hr style="margin: 5px 0;">
+                        <dd><a href="/user/logout" style="text-align: center;">退出</a></dd>
+                    </dl>
+                </li>
+            </shiro:authenticated>
+        </ul>
+    </div>
+</div>
+
+<div class="fly-panel fly-column">
+    <div class="layui-container">
+        <div class="fly-column-right layui-hide-xs">
+            <span class="fly-search"><i class="layui-icon"></i></span>
+            <shiro:authenticated>
+                <a class="layui-btn layui-btn-radius" href="/post/newPost">发表新帖</a>
+            </shiro:authenticated>
+        </div>
+
+    </div>
+</div>
+
+<div class="layui-container">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md8">
+            <!--置顶块-->
+            <div class="fly-panel">
+                <div class="fly-panel-title fly-filter">
+                    <a>置顶</a>
+                </div>
+                <th:block th:each="topPost:${topPosts}">
+                    <ul class="fly-list">
+                        <li>
+                            <a class="fly-avatar" th:href="${'/user/home/'+topPost.uid}">
+                                <img
+                                        th:src="${topPost.img}">
+                            </a>
+                            <h2 th:switch="${topPost.type}">
+                                <a class="layui-badge" th:case="1">
+                                    提问
+                                </a>
+                                <a class="layui-badge" th:case="2">
+                                    分享
+                                </a>
+                                <a class="layui-badge" th:case="3">
+                                    讨论
+                                </a>
+                                <a class="layui-badge" th:case="4">
+                                    公告
+                                </a>
+                                <a class="layui-badge" th:case="0">
+                                    动态
+                                </a>
+                                <a th:href="${'/post/'+topPost.pid}"
+                                   th:text="${topPost.title}"></a>
+                            </h2>
+                            <div class="fly-list-info">
+                                <a link th:href="${'/user/home/'+topPost.uid}">
+                                    <cite th:text="${topPost.nickname}"></cite>
+                                    <!--
+                                    <i class="iconfont icon-renzheng" title="认证信息：XXX"></i>
+                                    <i class="layui-badge fly-badge-vip">VIP3</i>
+                                    -->
+                                </a>
+                                <span th:text="${#dates.format(topPost.postTime, 'yyyy-MM-dd')}"></span>
+
+                                <!--                                <span class="fly-list-kiss layui-hide-xs" title="悬赏飞吻"><i
+                                                                        class="iconfont icon-kiss"></i> 60</span>
+                                                                <span class="layui-badge fly-badge-accept layui-hide-xs">已结</span>-->
+                                <span class="fly-list-nums">
+                                    <i class="iconfont icon-pinglun1" th:text="${topPost.replyNum}"
+                                       title="回答"></i>
+                                 </span>
+                            </div>
+                        </li>
+                    </ul>
+                </th:block>
+            </div>
+
+            <!--主帖子块-->
+
+            <div class="fly-panel" style="margin-bottom: 0;">
+                <div class="fly-panel-title fly-filter" th:if="${target =='' || target==null}">
+                    <a href="/" th:classappend="${type==0}?'layui-this':''">综合
+                    </a>
+                    <span class="fly-mid"></span>
+                    <a href="/?type=1" th:classappend="${type==1}?'layui-this':''">精华</a>
+                    <span class="fly-filter-right layui-hide-xs"/>
+                </div>
+
+                <!--主帖子 body-->
+                <ul class="fly-list" th:each="post:${posts}">
+                    <li>
+                        <a class="fly-avatar" th:href="${'/user/home/'+post.uid}">
+                            <img
+                                    th:src="${post.img}">
+                        </a>
+                        <h2 th:switch="${post.type}">
+                            <a class="layui-badge" th:case="1">
+                                提问
+                            </a>
+                            <a class="layui-badge" th:case="2">
+                                分享
+                            </a>
+                            <a class="layui-badge" th:case="3">
+                                讨论
+                            </a>
+                            <a class="layui-badge" th:case="4">
+                                公告
+                            </a>
+                            <a class="layui-badge" th:case="0">
+                                动态
+                            </a>
+                            <a th:href="${'/post/'+post.pid}" th:text="${post.title}"></a>
+                        </h2>
+                        <div class="fly-list-info">
+                            <a link th:href="${'/user/home/'+post.uid}">
+                                <cite th:text="${post.nickname}"></cite>
+                            </a>
+                            <span
+                                    th:text="'最后回复:'+${#dates.format(post.lastReplyTime, 'yyyy-MM-dd hh:mm:ss')}"></span>
+                            <span class="fly-list-nums">
+                <i class="iconfont icon-pinglun1" th:text="${post.replyNum}" title="回答"></i>
+              </span>
+                        </div>
+                        <div class="fly-list-badge" th:if="${post.grade==1 || post.grade==3}">
+                            <span class="layui-badge layui-bg-red">精帖</span>
+                        </div>
+                    </li>
+                </ul>
+                <div class="fly-main-none" th:if="${posts==null}">没有相关数据
+                </div>
+
+                <!--页码-->
+                <div style="text-align: center" th:if="${posts!=null && posts.size()>0}">
+                    <!--增强分页-->
+                    <!--<div id="LAY_page"></div>-->
+                    <div class="laypage-main">
+                        <th:block th:with="current=${page}">
+                            <th:block
+                                    th:each="index:${#numbers.sequence((page>2?page -2:(page>1?page -1:page)),
+                                (pageNum -current>2?current +2:pageNum))}">
+                                <span class="laypage-curr" th:if="${index==current}"
+                                      th:text="${index}"></span>
+                                <a th:href="'/?type='+${type}+'&target='+${target}+'&page='+${index}"
+                                   th:if="${index!=page}"
+                                   th:text="${index}"></a>
+                            </th:block>
+                            <th:block th:if="${page!=pageNum}">
+                                <a class="laypage-last"
+                                   th:href="'/?type='+${type}+'&target='+${target}+'&page='+${pageNum}"
+                                   title="尾页">尾页</a>
+                                <a class="laypage-next"
+                                   th:href="'/?type='+${type}+'&target='+${target}+'&page='+${page+1}">下一页
+                                </a>
+                            </th:block>
+                        </th:block>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div class="layui-col-md4">
+
+            <div class="fly-panel">
+                <h3 class="fly-panel-title">公告栏</h3>
+                <ul class="fly-panel-main fly-list-static">
+                    <th:block th:each="announcement:${announcements}">
+                        <li>
+                            <a th:href="${'/post/'+announcement.pid}"
+                               th:text="${announcement.title}"></a>
+                        </li>
+                    </th:block>
+                </ul>
+            </div>
+
+            <dl class="fly-panel fly-list-one">
+                <dt class="fly-panel-title">本日热议</dt>
+                <dd>
+                    <a href="jie/detail.html">基于 layui 的极简社区页面模版</a>
+                    <span><i class="iconfont icon-pinglun1"></i> 16</span>
+                </dd>
+                <!-- 无数据时 -->
+                <!--
+                <div class="fly-none">没有相关数据</div>
+                -->
+            </dl>
+        </div>
+    </div>
+</div>
+
+<div class="fly-footer">
+    <p><a href="" target="_blank">Fly社区</a> 2019 &copy; <a
+            href="" target="_blank">Thorn 出品</a></p>
+</div>
+
+<script src="/res/layui/layui.js"></script>
+<script src="/res/js/my.js"></script>
+<script>
+    //引入ui的模块，删除可能使部分模块出问题
+    layui.config({
+        version: "3.0.0"
+        , base: '/res/mods/'
+    }).extend({
+        fly: 'index'
+    }).use('fly');
+</script>
+
+<script>
+    if ("[[${#request.getParameter('errorMsg')}]]" != "") {
+        alert("[[${#request.getParameter('errorMsg')}]]");
+        window.location.href = "/";
+    }
+</script>
+
+<!--增强分页-->
+<!--<script>
+    layui.use(['laypage', 'layer'], function() {
+        var laypage = layui.laypage
+            , layer = layui.layer;
+        laypage.render({
+            elem: 'demo1'
+            , count: 70 //数据总数
+            ,layout: ['count', 'prev', 'page', 'next', 'limit', 'refresh', 'skip']
+            , jump: function (obj) {
+                console.log(obj)
+            }
+        });
+    });
+</script>-->
+</body>
+</html>

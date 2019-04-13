@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>我的消息</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1" name="viewport">
+    <link href="/res/layui/css/layui.css" rel="stylesheet">
+    <link href="/res/css/global.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="fly-header layui-bg-black">
+    <div class="layui-container">
+
+
+        <ul class="layui-nav fly-nav-user">
+            <li class="layui-nav-item">
+                <a class="fly-nav-avatar" href="javascript:">
+                    <cite class="layui-hide-xs"
+                          th:each="cookie :${#httpServletRequest.getCookies()}"
+                          th:if="${cookie.getName().equals('nickname')}"
+                          th:text="${cookie.getValue()}"/>
+                    <i class="iconfont icon-renzheng layui-hide-xs" title="认证信息"></i>
+                    <i class="layui-badge fly-badge-vip layui-hide-xs"
+                    >vip3</i>
+
+                    <img th:each="cookie :${#httpServletRequest.getCookies()}"
+                         th:if="${cookie.getName().equals('img')}"
+                         th:src="${cookie.getValue()}">
+                </a>
+                <dl class="layui-nav-child">
+                    <dd><a href="/info/setting"><i class="layui-icon">&#xe620;</i>基本设置</a></dd>
+                    <dd><a href="/info/message"><i class="iconfont icon-tongzhi"
+                                                   style="top: 4px;"></i>我的消息</a></dd>
+                    <dd><a href="/user/home"><i class="layui-icon"
+                                                style="margin-left: 2px; font-size: 22px;">&#xe68e;</i>我的主页</a>
+                    </dd>
+                    <hr style="margin: 5px 0;">
+                    <dd><a href="/user/logout" style="text-align: center;">退出</a></dd>
+                </dl>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<div class="layui-container fly-marginTop fly-user-main">
+    <ul class="layui-nav layui-nav-tree layui-inline" lay-filter="user">
+        <li class="layui-nav-item">
+            <a href="/user/home">
+                <i class="layui-icon">&#xe609;</i>
+                我的主页
+            </a>
+        </li>
+        <li class="layui-nav-item ">
+            <a href="/info/myPost">
+                <i class="layui-icon">&#xe612;</i>
+                用户中心
+            </a>
+        </li>
+        <li class="layui-nav-item ">
+            <a href="/info/setting">
+                <i class="layui-icon">&#xe620;</i>
+                基本设置
+            </a>
+        </li>
+        <li class="layui-nav-item layui-this">
+            <a href="/info/message">
+                <i class="layui-icon">&#xe611;</i>
+                我的消息
+            </a>
+        </li>
+    </ul>
+
+    <div class="site-tree-mobile layui-hide">
+        <i class="layui-icon">&#xe602;</i>
+    </div>
+    <div class="site-mobile-shade"></div>
+
+    <div class="site-tree-mobile layui-hide">
+        <i class="layui-icon">&#xe602;</i>
+    </div>
+    <div class="site-mobile-shade"></div>
+
+
+    <div class="fly-panel fly-panel-user" pad20>
+        <div class="layui-tab layui-tab-brief" id="LAY_msg" lay-filter="user"
+             style="margin-top: 15px;">
+            <div id="LAY_minemsg" style="margin-top: 10px;">
+                <div class="fly-none" th:if="${messages==null ||messages.size()==0}">您暂时没有最新消息</div>
+                <ul class="mine-msg" th:each="message:${messages}">
+                    <li data-id="123" th:if="${message.type==2}">
+                        <blockquote class="layui-elem-quote" th:text="${'系统消息:'+message.content}">
+                        </blockquote>
+                        <p><span
+                                th:text="${#dates.format(message.createTime, 'yyyy-MM-dd hh:mm:ss')}"></span>
+                        </p>
+                    </li>
+                    <li data-id="123" th:if="${message.type!=2}">
+                        <blockquote class="layui-elem-quote">
+                            <a target="_blank"
+                               th:href="${'/user/home/'+message.fromUser}"><cite
+                                    th:text="${message.nickname}"></cite>
+                            </a>
+                            <th:block th:if="${message.type==0}">点赞了你在</th:block>
+                            <th:block th:if="${message.type==1}">回复了你在</th:block>
+                            <a target="_blank"
+                               th:href="${'/post/'+message.pid+'?floor='+message.floor}"><cite
+                                    th:text="${message.postTitle}"></cite></a>
+                            的回复：
+                            <br/>
+                            <div class="home-dacontent" th:utext="${message.content}">
+                            </div>
+                        </blockquote>
+                        <p><span
+                                th:text="${#dates.format(message.createTime, 'yyyy-MM-dd hh:mm:ss')}"></span>
+                        </p>
+                    </li>
+                </ul>
+                <div style="text-align:center" th:if="${messages!=null}">
+                    <a class="layui-btn layui-btn-primary layui-btn-sm"
+                       th:href="${'/info/message?page='+(page -1)}"
+                       th:if="${page>1}">
+                        <i class="layui-icon"></i></a>
+                    <a class="layui-btn layui-btn-primary layui-btn-sm"
+                       th:href="${'/info/message?page='+(page +1)}"
+                       th:if="${page<messages.size()/2+1}">
+                        <i class="layui-icon"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+<script src="/res/layui/layui.js"></script>
+<script>
+    layui.cache.page = 'user';
+    layui.cache.user = {
+        username: '游客'
+        , uid: -1
+        , avatar: '/res/images/avatar/00.jpg'
+        , experience: 83
+        , sex: '男'
+    };
+    layui.config({
+        version: "3.0.0"
+        , base: '/res/mods/'
+    }).extend({
+        fly: 'index'
+    }).use('fly');
+</script>
+
+</body>
+</html>
