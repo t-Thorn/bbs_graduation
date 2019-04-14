@@ -80,6 +80,7 @@
                     <version>1.0.1.RELEASE</version>
                 </dependency>-->
 
+        <!--性能测试-->
         <dependency>
             <groupId>org.databene</groupId>
             <artifactId>contiperf</artifactId>

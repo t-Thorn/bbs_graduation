@@ -1,12 +1,5 @@
 package com.thorn.bbsmain.confugurations;
 
-import com.thorn.bbsmain.mapper.PostMapper;
-import com.thorn.bbsmain.mapper.entity.Post;
-import impl.DefaultHotPointCache;
-import impl.DefaultViewCache;
-import impl.HotPostHandler;
-import interfaces.Fetcher;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,8 +7,6 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * 新的实现会造成资源文件mapping错误
@@ -51,27 +42,6 @@ public class ApplicationConfig extends WebMvcConfigurerAdapter {
         super.addResourceHandlers(registry);
     }
 
-    @Bean
-    public HotPostHandler<Post> getHopPostHandler(Fetcher fetcher) {
-        HotPostHandler handler = new HotPostHandler<Post>(new DefaultViewCache(),
-                new DefaultHotPointCache(), fetcher);
-        handler.addTask(1, TimeUnit.DAYS);
-        return handler;
-    }
 
-    @Bean
-    public Fetcher<Post> getFetch(@Autowired PostMapper postMapper) {
-        return new Fetcher<Post>() {
-            @Override
-            public Post getInfo(int pid) {
-                return postMapper.getPost(pid);
-            }
-
-            @Override
-            public Integer getID(Post post) {
-                return post.getPid();
-            }
-        };
-    }
 }
 

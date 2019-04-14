@@ -44,5 +44,22 @@
             <artifactId>cglib</artifactId>
             <version>2.1_3</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.shiro</groupId>
+            <artifactId>shiro-spring</artifactId>
+            <version>1.4.0</version>
+        </dependency>
+        <!--性能测试-->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+        </dependency>
+        <dependency>
+            <groupId>org.databene</groupId>
+            <artifactId>contiperf</artifactId>
+            <version>2.3.4</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

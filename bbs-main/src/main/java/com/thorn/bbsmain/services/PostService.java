@@ -4,6 +4,7 @@ package com.thorn.bbsmain.services;
 import annotation.RefreshHotPost;
 import com.thorn.bbsmain.exceptions.PageException;
 import com.thorn.bbsmain.exceptions.PostException;
+import com.thorn.bbsmain.exceptions.PostNotFoundException;
 import com.thorn.bbsmain.mapper.PostMapper;
 import com.thorn.bbsmain.mapper.entity.Post;
 import com.thorn.bbsmain.mapper.entity.Reply;
@@ -122,7 +123,7 @@ public class PostService {
      * @param post    帖子
      * @param result  错误信息
      * @param reply   回复
-     * @param request
+     * @param response
      * @return
      */
     @Transactional
@@ -205,9 +206,8 @@ public class PostService {
      * @return
      */
     @RefreshHotPost(1)
-    public ModelAndView viewPost(Integer pid, int floor) {
+    public ModelAndView viewPost(Integer pid, int floor) throws PostNotFoundException {
         MsgBuilder builder = new MsgBuilder();
-        //todo 浏览量计算
         /**
          * 帖子信息获取
          */

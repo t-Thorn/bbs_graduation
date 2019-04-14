@@ -2,6 +2,7 @@ package com.thorn.bbsmain.controller;
 
 
 import com.thorn.bbsmain.exceptions.PostException;
+import com.thorn.bbsmain.exceptions.PostNotFoundException;
 import com.thorn.bbsmain.mapper.entity.Post;
 import com.thorn.bbsmain.mapper.entity.Reply;
 import com.thorn.bbsmain.services.PostService;
@@ -43,7 +44,7 @@ public class PostController {
 
     @RequestMapping("/{pid}")
     public ModelAndView viewPost(@PathVariable("pid") int pid, @RequestParam(value = "floor",
-            required = false, defaultValue = "0") int floor, HttpServletRequest request) {
+            required = false, defaultValue = "0") int floor, HttpServletRequest request) throws PostNotFoundException {
         return postService.viewPost(pid, floor);
     }
 

@@ -6,5 +6,5 @@ package interfaces;
 public interface Fetcher<E> {
     E getInfo(int pid);
 
-    Integer getID(E e);
+    Integer getUID(Object object);
 }

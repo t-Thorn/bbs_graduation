@@ -5,6 +5,7 @@ import com.thorn.bbsmain.mapper.entity.Post;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Options;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
 import java.util.List;
 
@@ -79,4 +80,13 @@ public interface PostMapper {
 
     @Select("select * from post where pid=#{pid}")
     Post getPost(int pid);
+
+    /**
+     * 更新浏览量和回复数
+     *
+     * @param view  增量
+     * @param reply 增量
+     */
+    @Update("update post set views=#{view} ,replyNum=#{reply} where pid=#{pid}")
+    void updateViewAndReplyNum(int pid, int view, int reply);
 }

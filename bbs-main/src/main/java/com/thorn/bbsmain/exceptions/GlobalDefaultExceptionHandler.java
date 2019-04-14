@@ -145,6 +145,14 @@ public class GlobalDefaultExceptionHandler {
         return defualtHandler(request, response, ex);
     }
 
+    @ExceptionHandler(PostNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public String postNotFoundExceptionHandler(HttpServletRequest request,
+                                               HttpServletResponse response,
+                                               Throwable ex) {
+        return "";
+    }
+
     /**
      * 捕捉其他所有异常
      */
@@ -174,5 +182,4 @@ public class GlobalDefaultExceptionHandler {
         }
         return null;
     }
-
 }

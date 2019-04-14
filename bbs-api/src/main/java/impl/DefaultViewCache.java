@@ -1,31 +1,30 @@
 package impl;
 
-import interfaces.HotPostCache;
 import interfaces.ViewCache;
 
+import java.util.concurrent.ConcurrentHashMap;
+
 public class DefaultViewCache implements ViewCache {
+    private static final ConcurrentHashMap CACHE = new ConcurrentHashMap();
+
     @Override
-    public Integer get(Integer integer) {
-        return null;
+    public Object get(Integer integer) {
+        return CACHE.get(integer);
     }
 
     @Override
-    public void set(Integer integer, Integer integer2) {
-
+    public ViewCache refresh() {
+        CACHE.clear();
+        return this;
     }
 
     @Override
-    public boolean exist(Integer integer) {
-        return false;
+    public void remove(Integer integer) {
+        CACHE.remove(integer);
     }
 
     @Override
-    public HotPostCache refresh() {
-        return null;
-    }
-
-    @Override
-    public void mark(Integer uid, Integer pid) {
-
+    public Object putIfAbsent(Integer integer, Object o) {
+        return CACHE.putIfAbsent(integer, o);
     }
 }

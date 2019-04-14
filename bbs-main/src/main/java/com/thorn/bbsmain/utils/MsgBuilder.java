@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Scope;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -26,6 +27,8 @@ import java.util.Map;
 public class MsgBuilder {
 
     private final JSONObject json = new JSONObject();
+
+    private ResponseEntity entity;
 
     /**
      * 添加数据到消息中
@@ -98,26 +101,6 @@ public class MsgBuilder {
         return mv;
     }
 
-    /**
-     * 将消息写入request
-     *
-     * @param request
-     */
-    public void writeMsg(HttpServletRequest request) {
-        json.forEach(request::setAttribute);
-    }
-
-    public void writeMsg(HttpServletResponse response) {
-        json.forEach((key, value) ->
-                {
-                    try {
-                        response.getWriter().write(key + ":" + value + "/n");
-                    } catch (IOException e) {
-                        log.error("写回信息错误：data:{} error:{}", json, e.getMessage());
-                    }
-                }
-        );
-    }
 
     public void addCookie(HttpServletResponse response, String key, String value, String scope) {
         Cookie cookie = new Cookie(key, value);

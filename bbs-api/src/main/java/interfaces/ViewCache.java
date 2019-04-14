@@ -1,5 +1,5 @@
 package interfaces;
 
-public interface ViewCache extends HotPostCache<Integer, Integer> {
-    void mark(Integer uid, Integer pid);
+public interface ViewCache extends HotPostCache<Integer, Object> {
+    ViewCache refresh();
 }
