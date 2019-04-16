@@ -9,11 +9,13 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 
 @Aspect
 public abstract class AbstractHotPostHandler<E> implements ViewCounter {
@@ -82,7 +84,13 @@ public abstract class AbstractHotPostHandler<E> implements ViewCounter {
     @AfterReturning("aopIntercept()")
     protected abstract void process(JoinPoint point);
 
-    protected abstract void computeViewNum(int pid);
+    /**
+     * 计算浏览量
+     *
+     * @param pid
+     * @param object 保留参数，默认实现是request请求来获取IP地址
+     */
+    protected abstract void computeViewNum(int pid, Object object);
 
     protected abstract void addReplyNum(int pid);
 
@@ -92,9 +100,16 @@ public abstract class AbstractHotPostHandler<E> implements ViewCounter {
 
     public abstract List<E> getTopPost();
 
-    public abstract void addTask(int period, TimeUnit unit);
+    public abstract Map<Integer, Long> getTopPostHotPoint();
 
-    public abstract class Refresh implements Runnable {
+    public abstract void addReFreshTask(int period, TimeUnit unit);
+
+    /*//todo 添加定时保存任务 但不刷新缓存，可能需要重新设定结构（增加增量）
+    public abstract void addSaveTask(int period, TimeUnit unit);*/
+
+    public abstract long getHotPoint(int pid);
+
+    protected abstract class Refresh implements Runnable {
 
     }
 }

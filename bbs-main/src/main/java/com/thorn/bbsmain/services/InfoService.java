@@ -127,7 +127,7 @@ public class InfoService {
         userService.logout(response);
         //重新登录shiro
         currentUser.setPassword(user.getPassword());
-        userService.userLogin(currentUser, response, builder);
+        userService.userLogin(currentUser, null, response, builder);
         builder.addData("errorMsg", "密码修改成功");
         builder.addDatas(getInfo(currentUser.getEmail()));
         builder.addData("loc", "password");
@@ -157,6 +157,7 @@ public class InfoService {
         cpage = cpage > 0 ? cpage : 1;
         List<Post> myPost = getMyPost(user.getUid());
         if (!Objects.equals(myPost, null) && myPost.size() > 0) {
+            builder.addData("currentPage", page);
             builder.addData("myposts", PageUtil.subList(myPost, page, ONE_PAGE_POST_NUM));
             builder.addData("mypostsNum", myPost.size());
 

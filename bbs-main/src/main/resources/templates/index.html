@@ -18,13 +18,13 @@
             <shiro:guest>
                 <!-- 未登入的状态 -->
                 <li class="layui-nav-item">
-                    <a class="iconfont icon-touxiang layui-hide-xs" href="/user/login"></a>
+                    <a class="iconfont icon-touxiang layui-hide-xs" href="/user/login/home"></a>
                 </li>
                 <li class="layui-nav-item">
-                    <a href="/user/login">登入</a>
+                    <a href="/user/login/home">登入</a>
                 </li>
                 <li class="layui-nav-item">
-                    <a href="/user/reg">注册</a>
+                    <a href="/user/reg/home">注册</a>
                 </li>
             </shiro:guest>
             <shiro:authenticated>
@@ -224,14 +224,13 @@
 
             <dl class="fly-panel fly-list-one">
                 <dt class="fly-panel-title">本日热议</dt>
-                <dd>
-                    <a href="jie/detail.html">基于 layui 的极简社区页面模版</a>
-                    <span><i class="iconfont icon-pinglun1"></i> 16</span>
+                <dd th:each="hotPost:${hotPosts}">
+                    <a th:href="${'/post/'+hotPost.pid}" th:text="${hotPost.title}"></a>
+                    <span style="float: right;"><i class="iconfont icon-renshu"
+                                                   th:text="${hotPost.hotPoint}"></i>
+                    </span>
                 </dd>
-                <!-- 无数据时 -->
-                <!--
-                <div class="fly-none">没有相关数据</div>
-                -->
+                <div class="fly-none" th:if="${hotPosts==null ||hotPosts.size()==0}">没有相关数据</div>
             </dl>
         </div>
     </div>

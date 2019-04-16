@@ -58,7 +58,7 @@
             th:text="${#dates.format(userInfo.regdate,'yyyy-MM-dd hh:mm')+'注册'}"></span>
     </p>
     <shiro:authenticated>
-        <div class="fly-sns" data-user="" id="isFan" th:if="${myself==0}">
+        <div class="fly-sns" id="isFan" th:if="${myself==0}">
             <a class="layui-btn layui-btn-normal fly-imActive" href="javascript:"
                th:if="${fan!=true}" th:onclick="|fan(${userInfo.uid})|">关注</a>
             <a class="layui-btn layui-btn-primary fly-imActive" href="javascript:"

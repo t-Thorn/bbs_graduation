@@ -3,13 +3,14 @@ package com.thorn.bbsmain.services;
 
 import annotation.RefreshHotPost;
 import com.thorn.bbsmain.exceptions.PageException;
-import com.thorn.bbsmain.exceptions.PostException;
 import com.thorn.bbsmain.exceptions.PostNotFoundException;
 import com.thorn.bbsmain.mapper.PostMapper;
 import com.thorn.bbsmain.mapper.entity.Post;
 import com.thorn.bbsmain.mapper.entity.Reply;
+import com.thorn.bbsmain.mapper.entity.User;
 import com.thorn.bbsmain.utils.MsgBuilder;
 import com.thorn.bbsmain.utils.PageUtil;
+import impl.HotPointManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -18,9 +19,9 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.servlet.ModelAndView;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class PostService {
@@ -33,11 +34,14 @@ public class PostService {
 
     private UserService userService;
 
+    private HotPointManager manager;
+
     public PostService(@Autowired PostMapper postMapper, @Autowired ReplyService replyService,
-                       @Autowired UserService userService) {
+                       @Autowired UserService userService, HotPointManager manager) {
         this.postMapper = postMapper;
         this.replyService = replyService;
         this.userService = userService;
+        this.manager = manager;
     }
 
     /**
@@ -69,11 +73,14 @@ public class PostService {
     }
 
     /**
-     * 获取热帖，后期实现 todo 热帖实现
+     * 获取热帖
      */
 //    @Cacheable(value = "posts", key = "'hotposts'", unless = "#result==null")
-    public void getHotPosts() {
-
+    private void getHotPosts(MsgBuilder builder) {
+        List<Post> hotPostList = manager.getTopPost();
+        Map<Integer, Long> hotPoints = manager.getHotPoint();
+        hotPostList.forEach(element -> element.setHotPoint(hotPoints.get(element.getPid())));
+        builder.addData("hotPosts", hotPostList);
     }
 
     /**
@@ -128,7 +135,7 @@ public class PostService {
      */
     @Transactional
     public ModelAndView createPost(Post post, BindingResult result, Reply reply,
-                                   HttpServletResponse response) throws PostException {
+                                   HttpServletResponse response) {
         MsgBuilder builder = new MsgBuilder();
         //错误处理
         if (result.hasErrors()) {
@@ -195,6 +202,8 @@ public class PostService {
                     PageUtil.getPage(postList, ONE_PAGE_POST_NUM));
         }
         builder.addData("posts", PageUtil.subList(postList, page, ONE_PAGE_POST_NUM));
+
+        getHotPosts(builder);
         return builder.getMsg("index");
     }
 
@@ -205,43 +214,41 @@ public class PostService {
      * @param floor 偏移楼层
      * @return
      */
-    @RefreshHotPost(1)
-    public ModelAndView viewPost(Integer pid, int floor) throws PostNotFoundException {
+    @RefreshHotPost()
+    public ModelAndView viewPost(Integer pid, int floor, int page) throws PostNotFoundException {
         MsgBuilder builder = new MsgBuilder();
         /**
          * 帖子信息获取
          */
+        Post post = postMapper.getPost(pid);
+        if (post == null) {
+            System.out.println("未找到页面");
+            throw new PostNotFoundException("未找到页面");
+        }
+        builder.addData("post", post);
+        List<Reply> replyList = replyService.getReplyByPid(pid);
+
+        //获取帖子内容
+        builder.addData("topReply", replyList.get(0));
+        replyList.remove(0);
+
+        //获取点赞列表
+        User user = userService.getCurrentUser();
+        if (user != null) {
+            List<Integer> likeList = replyService.getLikesByPID(pid, user.getUid());
+            replyList.forEach(r -> {
+                if (likeList.contains(r.getFloor())) {
+                    r.setZan(true);
+                }
+            });
+            builder.addData("user", user);
+        }
+        builder.addData("hotPoint", manager.getHotPoint(pid));
+        builder.addData("replys", replyList);
+        builder.addData("floor", floor);
+        getHotPosts(builder);
         return builder.getMsg("/jie/detail");
     }
 
-    private void computeView(HttpServletRequest request) {
-        String ip = getIpAddress(request);
-    }
-
-    /**
-     * 获取真实ip，可以避免代理
-     *
-     * @param request
-     * @return
-     */
-    private String getIpAddress(HttpServletRequest request) {
-        String ip = request.getHeader("x-forwarded-for");
-        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("Proxy-Client-IP");
-        }
-        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("WL-Proxy-Client-IP");
-        }
-        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("HTTP_CLIENT_IP");
-        }
-        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("HTTP_X_FORWARDED_FOR");
-        }
-        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getRemoteAddr();
-        }
-        return ip;
-    }
 
 }

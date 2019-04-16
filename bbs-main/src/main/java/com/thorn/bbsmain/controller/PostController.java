@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
@@ -33,25 +32,23 @@ public class PostController {
 
     private ReplyService replyService;
 
-    private UserService userService;
 
     public PostController(@Autowired PostService postService, @Autowired ReplyService replyService,
                           @Autowired UserService userService) {
         this.postService = postService;
         this.replyService = replyService;
-        this.userService = userService;
     }
 
     @RequestMapping("/{pid}")
     public ModelAndView viewPost(@PathVariable("pid") int pid, @RequestParam(value = "floor",
-            required = false, defaultValue = "0") int floor, HttpServletRequest request) throws PostNotFoundException {
-        return postService.viewPost(pid, floor);
+            required = false, defaultValue = "0") int floor,
+                                 @RequestParam(value = "page", defaultValue = "0") int page) throws PostNotFoundException {
+        return postService.viewPost(pid, floor, page);
     }
 
     @RequiresPermissions("createPost")
     @GetMapping("newPost")
     public ModelAndView newPost(@Autowired MsgBuilder builder) {
-
         return builder.getMsg("/jie/add");
     }
 

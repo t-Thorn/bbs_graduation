@@ -35,7 +35,7 @@ public class UserService {
         this.userMapper = userMapper;
     }
 
-    public ModelAndView userReg(User user, BindingResult result, String repass,
+    public ModelAndView userReg(User user, BindingResult result, String uri, String repass,
                                 HttpServletResponse response) throws UserException {
         MsgBuilder builder = new MsgBuilder();
         user.setNickname(user.getNickname().replace(" ", ""));
@@ -55,8 +55,7 @@ public class UserService {
 
 
         createNewUser(user);
-        userLogin(user, response, builder);
-        return builder.getMsg("redirect:/");
+        return userLogin(user, uri, response, builder);
     }
 
     /**
@@ -118,7 +117,8 @@ public class UserService {
         }
     }
 
-    public void userLogin(User user, HttpServletResponse response, MsgBuilder builder) {
+    public ModelAndView userLogin(User user, String uri, HttpServletResponse response,
+                                  MsgBuilder builder) {
         Subject currentUser = SecurityUtils.getSubject();
         String token = verifyTokenByShiro(currentUser, user);
         //向客户端cookie中加入token
@@ -126,6 +126,17 @@ public class UserService {
         builder.addCookie(response, "nickname", ((User) currentUser.getPrincipal()).getNickname());
         builder.addCookie(response, "img",
                 ((User) currentUser.getPrincipal()).getImg());
+        if (uri != null) {
+            System.out.println("uri:" + uri);
+            uri = uri.split(",")[0];
+            if ("home".equals(uri)) {
+                uri = "/";
+            } else {
+                uri = "/post/" + uri;
+            }
+            return builder.getMsg("redirect:" + uri);
+        }
+        return null;
     }
 
     public void getErrors(BindingResult result, MsgBuilder builder) {
@@ -154,9 +165,6 @@ public class UserService {
      */
     public User getCurrentUser() {
         Subject currentUser = SecurityUtils.getSubject();
-
-
-        System.out.println();
         return (User) currentUser.getPrincipal();
     }
 

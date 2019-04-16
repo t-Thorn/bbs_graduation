@@ -17,6 +17,7 @@ public class BasicController {
 
     private PostService postService;
 
+
     public BasicController(@Autowired PostService postService) {
         this.postService = postService;
     }
@@ -44,7 +45,7 @@ public class BasicController {
         return mv;
     }
 
-    //重定向都得带参数，则这个很多余
+    //fixme 重定向都得带参数，则这个很多余
 
     /**
      * @param uri    跳转到哪个页面

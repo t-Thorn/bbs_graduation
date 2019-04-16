@@ -33,39 +33,40 @@ public class UserController {
 
 
     @RequiresGuest
-    @GetMapping("login")
-    public ModelAndView turnToLogin(HttpServletRequest request, @Autowired MsgBuilder builder) {
+    @GetMapping("login/{uri}")
+    public ModelAndView turnToLogin(@Autowired MsgBuilder builder,
+                                    @PathVariable("uri") String uri) {
         System.out.println("login");
-        builder.addData("uri", request.getRequestURI());
+        builder.addData("uri", uri);
         return builder.getMsg("/user/login");
     }
 
     @RequiresGuest
     @PostMapping("login")
     public ModelAndView login(@Valid User user, BindingResult result,
-                              @RequestParam(value = "uri") String uri,
+                              String uri,
                               HttpServletResponse response, @Autowired MsgBuilder builder) {
         if (result.hasErrors()) {
             userService.getErrors(result, builder);
             return builder.getMsg("/user/login");
         }
-        userService.userLogin(user, response, builder);
-        return builder.getMsg("redirect:" + uri);
+        return userService.userLogin(user, uri, response, builder);
     }
 
 
     @RequiresGuest
-    @GetMapping("reg")
-    public String turnToReg() {
+    @GetMapping("reg/{uri}")
+    public String turnToReg(@PathVariable("uri") String uri, MsgBuilder builder) {
         System.out.println("reg");
+        builder.addData("uri", uri);
         return "/user/reg";
     }
 
     @RequiresGuest
     @PostMapping("reg")
-    public ModelAndView reg(@Valid User user, BindingResult result, @RequestParam String repass,
+    public ModelAndView reg(@Valid User user, BindingResult result, String uri, @RequestParam String repass,
                             HttpServletResponse response) throws UserException {
-        return userService.userReg(user, result, repass, response);
+        return userService.userReg(user, result, uri, repass, response);
     }
 
 
@@ -85,7 +86,7 @@ public class UserController {
 
     @RequiresUser
     @GetMapping("logout")
-    public String logout(HttpServletResponse response) {
+    public String logout(HttpServletRequest request, HttpServletResponse response) {
         //单点登录需要在redis中缓存最新ip
         userService.logout(response);
         return "redirect:/";

@@ -12,4 +12,6 @@ public interface HotPostCache<K, V> {
     HotPostCache refresh();
 
     void remove(K k);
+
+
 }

@@ -21,25 +21,22 @@ public class DefaultHotPointCache implements HotPointCache {
          */
         return Optional.ofNullable(CACHE.compute(key, (k, v) -> {
             if (v != null) {
-                if (hotPoint == 5l) {
-                    v.setReply(v.getReply() + 1);
-                    v.setTotal(v.getTotal() + 5);
-                } else {
-                    v.setView(v.getView() + 1);
-                    v.setTotal(v.getTotal() + 1);
-                }
-                return v;
+                return computeHotPoint(hotPoint, v);
             }
             HotPoint tmp = new HotPoint();
-            if (hotPoint == 5l) {
-                tmp.setReply(tmp.getReply() + 1);
-                tmp.setTotal(tmp.getTotal() + 5);
-            } else {
-                tmp.setView(tmp.getView() + 1);
-                tmp.setTotal(tmp.getTotal() + 1);
-            }
-            return tmp;
-        })).orElse(new HotPoint()).getTotal() + hotPoint;
+            return computeHotPoint(hotPoint, tmp);
+        })).orElse(new HotPoint(hotPoint)).getTotal();
+    }
+
+    private HotPoint computeHotPoint(Long hotPoint, HotPoint v) {
+        if (hotPoint == 5l) {
+            v.setReply(v.getReply() + 1);
+            v.setTotal(v.getTotal() + 5);
+        } else {
+            v.setView(v.getView() + 1);
+            v.setTotal(v.getTotal() + 1);
+        }
+        return v;
     }
 
     @Override

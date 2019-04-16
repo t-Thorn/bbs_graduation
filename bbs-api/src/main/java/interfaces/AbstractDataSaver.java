@@ -2,7 +2,7 @@ package interfaces;
 
 public abstract class AbstractDataSaver {
     /**
-     * 保存到数据库 fixme 未解决一致性问题   可以用锁，但可能效率底下
+     * 保存到数据库
      *
      * @param record pid：热度 集合
      */

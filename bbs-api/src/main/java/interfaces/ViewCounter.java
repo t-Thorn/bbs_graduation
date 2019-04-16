@@ -1,5 +1,5 @@
 package interfaces;
 
 public interface ViewCounter {
-    Object getID();
+    Object getID(int pid);
 }

@@ -78,9 +78,18 @@ public interface PostMapper {
     @Options(useGeneratedKeys = true, keyProperty = "pid", keyColumn = "pid")
     void createPost(Post post);
 
-    @Select("select * from post where pid=#{pid}")
-    Post getPost(int pid);
+    /**
+     * 获取热帖信息
+     *
+     * @param pid
+     * @return 热帖缓存中保存的简单信息
+     */
+    @Select("select pid,title from post where pid=#{pid}")
+    Post getPostForHotPost(int pid);
 
+    @Select("select post.*,img,nickname from post left join user on user.uid=post.uid where " +
+            "pid=#{pid}")
+    Post getPost(int pid);
     /**
      * 更新浏览量和回复数
      *

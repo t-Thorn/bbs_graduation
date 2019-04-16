@@ -5,11 +5,11 @@ import interfaces.ViewCache;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DefaultViewCache implements ViewCache {
-    private static final ConcurrentHashMap CACHE = new ConcurrentHashMap();
+    private static final ConcurrentHashMap<String, Integer> CACHE = new ConcurrentHashMap();
 
     @Override
-    public Object get(Integer integer) {
-        return CACHE.get(integer);
+    public Integer get(String key) {
+        return CACHE.get(key);
     }
 
     @Override
@@ -19,12 +19,24 @@ public class DefaultViewCache implements ViewCache {
     }
 
     @Override
-    public void remove(Integer integer) {
-        CACHE.remove(integer);
+    public void remove(String key) {
+        CACHE.remove(key);
     }
 
+    /**
+     * 根据帖子id模糊删除 有待优化
+     *
+     * @param pid
+     */
+    public void removeLike(int pid) {
+        CACHE.forEachKey(3, k -> {
+            if (k.endsWith(":" + pid)) {
+                CACHE.remove(pid);
+            }
+        });
+    }
     @Override
-    public Object putIfAbsent(Integer integer, Object o) {
-        return CACHE.putIfAbsent(integer, o);
+    public Object putIfAbsent(String key, Integer flag) {
+        return CACHE.putIfAbsent(key, flag);
     }
 }

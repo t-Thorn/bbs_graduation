@@ -12,7 +12,10 @@ public abstract class DefaultDataSaver extends AbstractDataSaver {
         }
         ConcurrentHashMap map = (ConcurrentHashMap) hotPointCache.getMap();
         map.forEach((k, v) -> {
-            save(k, map.compute(k, null));
+            map.computeIfPresent(k, (x, y) -> {
+                save(k, y);
+                return null;
+            });
         });
     }
 

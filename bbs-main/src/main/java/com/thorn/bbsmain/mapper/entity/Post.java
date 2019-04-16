@@ -39,4 +39,6 @@ public class Post implements Serializable {
     Boolean avaliable;
 
     String img;
+
+    Long hotPoint;
 }

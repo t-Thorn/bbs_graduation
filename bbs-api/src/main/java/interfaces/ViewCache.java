@@ -1,5 +1,7 @@
 package interfaces;
 
-public interface ViewCache extends HotPostCache<Integer, Object> {
+public interface ViewCache extends HotPostCache<String, Integer> {
     ViewCache refresh();
+
+    void removeLike(int pid);
 }

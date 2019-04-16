@@ -74,22 +74,27 @@ public class GlobalDefaultExceptionHandler {
         System.out.println("认证错误:" + msg.getMessage());
         MsgBuilder builder = new MsgBuilder();
         builder.addData("errorMsg", msg.getMessage());
-
+//fixme  错误信息优化
         if (msg instanceof AuthorizationException) {
             //用户访问只有游客才能访问的页面时则返回主页面，并且不提示
-            if (uris.stream().anyMatch(uri -> request.getRequestURI().contains(uri.toString()))) {
+            if (uris.stream().anyMatch(uri -> request.getRequestURI().contains(uri))) {
+                System.out.println("游客界面");
                 builder.clear();
             } else {
                 builder.addData("errorMsg", "权限不足");
             }
             //权限不够则跳转到主页
             if (!isAjax(request)) {
+                if (msg.getMessage().contains("user")) {
+                    System.out.println("需要的是用户，而不是缺乏权限时跳转登录");
+                    builder.redirectAndSendMsgByJump(request, response, "/user/login");
+                }
                 builder.redirectAndSendMsgByJump(request, response, "/");
             } else {
                 return builder.getMsg();
             }
         } else {
-            System.out.println("身份认证");
+            System.out.println("身份认证错误");
             //返回请求页面，并附上参数
             //用户访问只有游客才能访问的页面时则返回主页面，并且不提示
             if (!isAjax(request)) {
@@ -150,7 +155,8 @@ public class GlobalDefaultExceptionHandler {
     public String postNotFoundExceptionHandler(HttpServletRequest request,
                                                HttpServletResponse response,
                                                Throwable ex) {
-        return "";
+        request.setAttribute("errorMsg", ex.getMessage());
+        return "/other/404";
     }
 
     /**
@@ -178,6 +184,7 @@ public class GlobalDefaultExceptionHandler {
         if (isAjax(request)) {
             return builder.getMsg();
         } else {
+            //
             builder.redirectAndSendMsg(response, request.getRequestURI(), "errorMsg");
         }
         return null;

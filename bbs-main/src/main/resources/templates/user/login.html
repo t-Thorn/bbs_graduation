@@ -5,8 +5,6 @@
     <meta charset="utf-8">
     <title>登入</title>
     <meta content="width=device-width, initial-scale=1, maximum-scale=1" name="viewport">
-    <meta content="fly,layui,前端社区" name="keywords">
-    <meta content="Fly社区是模块化前端UI框架Layui的官网社区，致力于为web开发提供强劲动力" name="description">
     <link href="/res/layui/css/layui.css" rel="stylesheet">
     <link href="/res/css/global.css" rel="stylesheet">
 </head>
@@ -53,6 +51,7 @@
                                 <span class="layui-form-mid layui-word-aux tip"
                                       th:text="${passwordError}"/>
                             </div>
+                            <input name="uri" th:value="${uri}" type="hidden"/>
                             <div class="layui-form-item">
                                 <input class="layui-btn" lay-filter="*" lay-submit
                                        th:type="submit"

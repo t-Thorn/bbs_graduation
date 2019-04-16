@@ -31,4 +31,10 @@ public class Reply {
     int replyToId;
 
     String replyToNickname;
+
+    String img;
+
+    String nickname;
+
+    boolean zan;
 }

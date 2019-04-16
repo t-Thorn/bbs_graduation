@@ -1,37 +1,78 @@
 package impl;
 
 import annotation.RefreshHotPost;
-import interfaces.AbstractHotPostHandler;
-import interfaces.Fetcher;
-import interfaces.HotPointCache;
-import interfaces.ViewCache;
+import interfaces.*;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.SecurityUtils;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.Signature;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
+import javax.servlet.http.HttpServletRequest;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 
+@Slf4j
 public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
+    @Override
+    public long getHotPoint(int pid) {
+        HotPoint hotPoint = hotPointCache.get(pid);
+        return hotPoint == null ? 0 : hotPoint.getTotal();
+    }
 
     public DefaultHotPostHandler(ViewCache viewCache, HotPointCache hotPointCache, Fetcher fetcher) {
         super(viewCache, hotPointCache, fetcher);
     }
 
-    public Object getID() {
-        return fetcher.getUID(SecurityUtils.getSubject().getPrincipal());
+    public Object getID(int pid) {
+        Object user = SecurityUtils.getSubject().getPrincipal();
+        if (user != null) {
+            return fetcher.getUID(user) + ":" + pid;
+        }
+        //利用ip地址的负数作为id
+        RequestAttributes ra = RequestContextHolder.getRequestAttributes();
+        ServletRequestAttributes sra = ((ServletRequestAttributes) ra);
+        HttpServletRequest request = sra.getRequest();
+        return Math.negateExact(Integer.valueOf(getIpAddress((request)).replace(".",
+                "").replace(":", ""))) + ":" + pid;
     }
 
-    protected void computeViewNum(int pid) {
-        if (viewCache.putIfAbsent((int) getID(), pid) == null) {
+
+    /**
+     * 获取真实ip，可以避免代理
+     *
+     * @param request
+     * @return
+     */
+    private String getIpAddress(HttpServletRequest request) {
+        String ip = request.getHeader("x-forwarded-for");
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("Proxy-Client-IP");
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("WL-Proxy-Client-IP");
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_CLIENT_IP");
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_X_FORWARDED_FOR");
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+        return ip;
+    }
+
+    protected void computeViewNum(int pid, Object object) {
+        if (viewCache.putIfAbsent((String) getID(pid), 1) == null) {
             //需要计算浏览量
-            /**
-             * 默认热度
-             */
             updateTopPost(pid, hotPointCache.createOrUpdate(pid, 1l));
         }
     }
@@ -62,9 +103,10 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
             pid = (int) args[index];
         }
         if (pid != -1) {
+            log.info("准备计算热度：type：{} pid:{}", type, pid);
             switch (type) {
                 case 0:
-                    computeViewNum(pid);
+                    computeViewNum(pid, null);
                     break;
                 case 1:
                     addReplyNum(pid);
@@ -83,18 +125,24 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
      *
      * @param pid
      */
-    protected void del(int pid) {
+    protected synchronized void del(int pid) {
         topPost.remove(pid);
         index.remove(pid);
-
+        //重置门槛，仅当热帖量超出10时再计算
+        lowestHotpoint = 0;
+        //筛选当前热度第十名：性能消耗可能更大，因为遍历的是当时全部的帖子集合
 
         if (dataSaver != null) {
             dataSaver.save(pid, hotPointCache.get(pid));
         }
         hotPointCache.remove(pid);
-        viewCache.remove(pid);
+        viewCache.removeLike(pid);
     }
 
+    /**
+     * @param pid
+     * @param hotpoint
+     */
     protected void updateTopPost(int pid, long hotpoint) {
         //实时淘汰
         if (lowestHotpoint < hotpoint) {
@@ -104,45 +152,45 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
                 lock.readLock().unlock();
                 return;
             }
+            log.info("正在更新TopPost,pid:{}-hotpoint:{}", pid, hotpoint);
             if (index.size() == 0) {
                 index.put(pid, hotpoint);
                 topPost.put(pid, fetcher.getInfo(pid));
-                lowestHotpoint = hotpoint;
                 lock.readLock().unlock();
+
                 return;
             }
-            if (index.containsValue(pid)) {
-                //如果存在则更新热度
+            /**
+             * compute()无论在不在都更新，返回最新值
+             * computeifabsent 仅在不在是时候创建，创建后返回创建时指定的值
+             * computeifPresent 仅在在的时候更新，没有的话不创建，返回null，有的话返回最新的值
+             */
+            if (index.computeIfPresent(pid, (k, v) -> hotpoint) == null) {
+                //新晋热帖
+                //没超出
+                log.info("新晋热帖");
+                index.put(pid, hotpoint);
+                if (index.size() <= 10) {
+                    topPost.put(pid, fetcher.getInfo(pid));
+                    lock.readLock().unlock();
+                    return;
+                }
+                //超出了
                 Iterator<Map.Entry<Integer, Long>> entries = index.entrySet().iterator();
                 while (entries.hasNext()) {
                     {
                         Map.Entry<Integer, Long> entry = entries.next();
-                        if (entry.getKey() == pid) {
+                        if (entry.getValue() == lowestHotpoint) {
                             //删除原有的
+                            topPost.remove(entry.getKey());
                             index.remove(entry.getKey());
+                        } else if (lowestHotpoint > entry.getValue()) {
+                            //更新门槛
+                            lowestHotpoint = entry.getValue();
                         }
                     }
                 }
-                index.put(pid, hotpoint);
-                lowestHotpoint = hotpoint;
-                lock.readLock().unlock();
-                return;
             }
-            //不存在，则直接删除最开始的那个；
-            Iterator<Map.Entry<Integer, Long>> entries = index.entrySet().iterator();
-            while (entries.hasNext()) {
-                {
-                    Map.Entry<Integer, Long> entry = entries.next();
-                    if (entry.getValue() == lowestHotpoint) {
-                        //删除原有的
-                        index.remove(entry.getKey());
-                        topPost.remove(entry.getKey());
-                    }
-                }
-            }
-            index.put(pid, hotpoint);
-            topPost.put(pid, fetcher.getInfo(pid));
-            lowestHotpoint = hotpoint;
             lock.readLock().unlock();
         }
 
@@ -154,7 +202,12 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
         return list;
     }
 
-    public void addTask(int period, TimeUnit unit) {
+    @Override
+    public Map<Integer, Long> getTopPostHotPoint() {
+        return index;
+    }
+
+    public void addReFreshTask(int period, TimeUnit unit) {
         if (hasTask == true) {
             return;
         }
@@ -180,8 +233,11 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
              */
             lock.writeLock().lock();
             index.forEach((k, v) -> index.compute(k, (x, y) -> defaultHotpoint));
+            //重置门槛，仅当热帖量超出10时再计算
+            lowestHotpoint = 0;
             lock.writeLock().unlock();
         }
     }
+
 
 }
