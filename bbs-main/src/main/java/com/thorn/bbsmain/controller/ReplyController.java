@@ -1,5 +1,7 @@
 package com.thorn.bbsmain.controller;
 
+import com.thorn.bbsmain.exceptions.PostException;
+import com.thorn.bbsmain.mapper.entity.Reply;
 import com.thorn.bbsmain.services.PostService;
 import com.thorn.bbsmain.services.ReplyService;
 import com.thorn.bbsmain.services.UserService;
@@ -7,7 +9,11 @@ import com.thorn.bbsmain.utils.MsgBuilder;
 import org.apache.shiro.authz.annotation.RequiresUser;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
+
+import javax.validation.Valid;
 
 @RequiresUser
 @RequestMapping("reply")
@@ -32,5 +38,17 @@ public class ReplyController {
         builder.addData("no", replyService.zan(floor, pid,
                 userService.getCurrentUser().getUid(), to));
         return builder.getMsg();
+    }
+
+
+    @PostMapping("addReply")
+    public ModelAndView addReply(@Valid Reply reply, BindingResult result) throws PostException {
+        return replyService.addReply(reply, result);
+    }
+
+    @DeleteMapping("del/{pid}/{floor}")
+    public ModelAndView delReply(@PathVariable("pid") int pid,
+                                 @PathVariable("floor") int floor) throws PostException {
+        return replyService.delReply(pid, floor);
     }
 }

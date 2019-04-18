@@ -8,6 +8,7 @@ import org.apache.shiro.cache.Cache;
 import org.apache.shiro.cache.CacheException;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 
 /**
@@ -25,9 +26,10 @@ public class CustomCache<K, V> implements Cache<K, V> {
     private final static String PREFIX_SHIRO_CACHE_AUTHORIZATION = "shiro:cache:";
 
     /**
-     * 过期时间-5分钟 jedis的单位是秒
+     * 过期时间5小时+10s内随机数 jedis的单位是秒
      */
-    private static final Integer EXPIRE_TIME = 5 * 60;
+    private static final Integer EXPIRE_TIME =
+            5 * 60 * 60 + ThreadLocalRandom.current().nextInt(10);
 
     private String midName;
 

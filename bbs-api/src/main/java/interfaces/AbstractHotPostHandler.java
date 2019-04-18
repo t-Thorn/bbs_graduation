@@ -1,12 +1,11 @@
 package interfaces;
 
-import impl.DefaultHotPointCache;
-import impl.DefaultHotPostHandler;
-import impl.DefaultViewCache;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 
 import java.util.List;
 import java.util.Map;
@@ -16,9 +15,13 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-
+/**
+ * fixme 暂时仅作为defaultHotPostHandler的抽象，需要优化
+ *
+ * @param <E> 帖子类型
+ */
 @Aspect
-public abstract class AbstractHotPostHandler<E> implements ViewCounter {
+public abstract class AbstractHotPostHandler<E> {
     public static final int VIEW = 0;
 
     public static final int REPLY = 1;
@@ -30,13 +33,13 @@ public abstract class AbstractHotPostHandler<E> implements ViewCounter {
      */
     protected long defaultHotpoint = 100;
     protected ScheduledExecutorService scheduledExecutorService =
-            Executors.newScheduledThreadPool(1);
+            Executors.newScheduledThreadPool(2);
+
     protected AbstractDataSaver dataSaver = null;
     /**
      * 使用读写锁，加快非刷新时的计算速度
      */
     protected ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-    protected boolean hasTask = false;
     protected ViewCache viewCache;
     protected HotPointCache hotPointCache;
     protected Fetcher<E> fetcher;
@@ -62,10 +65,6 @@ public abstract class AbstractHotPostHandler<E> implements ViewCounter {
         this.viewCache = viewCache;
         this.hotPointCache = hotPointCache;
         this.fetcher = fetcher;
-    }
-
-    public static DefaultHotPostHandler getSimpleHandler(Fetcher fetcher) {
-        return new DefaultHotPostHandler(new DefaultViewCache(), new DefaultHotPointCache(), fetcher);
     }
 
     public void setDefaultHotpoint(int defaultHotpoint) {
@@ -94,6 +93,8 @@ public abstract class AbstractHotPostHandler<E> implements ViewCounter {
 
     protected abstract void addReplyNum(int pid);
 
+    @Retryable(value = Exception.class, maxAttempts = 3, backoff = @Backoff(delay = 100,
+            multiplier = 1.5))
     protected abstract void del(int pid);
 
     protected abstract void updateTopPost(int pid, long hotpoint);
@@ -102,14 +103,9 @@ public abstract class AbstractHotPostHandler<E> implements ViewCounter {
 
     public abstract Map<Integer, Long> getTopPostHotPoint();
 
-    public abstract void addReFreshTask(int period, TimeUnit unit);
-
-    /*//todo 添加定时保存任务 但不刷新缓存，可能需要重新设定结构（增加增量）
-    public abstract void addSaveTask(int period, TimeUnit unit);*/
+    //增加定期保存任务，
+    public abstract void addCycleSaveTask(int period, TimeUnit unit) ;
 
     public abstract long getHotPoint(int pid);
 
-    protected abstract class Refresh implements Runnable {
-
-    }
 }

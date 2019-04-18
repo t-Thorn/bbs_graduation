@@ -155,6 +155,7 @@ public class GlobalDefaultExceptionHandler {
     public String postNotFoundExceptionHandler(HttpServletRequest request,
                                                HttpServletResponse response,
                                                Throwable ex) {
+        System.out.println("postnotfound");
         request.setAttribute("errorMsg", ex.getMessage());
         return "/other/404";
     }

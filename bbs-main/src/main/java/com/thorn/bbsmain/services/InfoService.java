@@ -85,6 +85,9 @@ public class InfoService {
     }
 
     public ModelAndView getMyMessages(int page) throws PageException {
+        if (page < 1) {
+            throw new PageException("非法参数");
+        }
         MsgBuilder builder = new MsgBuilder();
         User user = userService.getCurrentUser();
         builder.addData("page", page);
@@ -151,6 +154,9 @@ public class InfoService {
     }
 
     public ModelAndView getMyPosts(Integer page, Integer cpage) throws Exception {
+        if (page < 1 || cpage < 1) {
+            throw new Exception("非法参数");
+        }
         MsgBuilder builder = new MsgBuilder();
         User user = userService.getCurrentUser();
         page = page > 0 ? page : 1;

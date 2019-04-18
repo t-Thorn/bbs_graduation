@@ -181,8 +181,6 @@
 
                 <!--页码-->
                 <div style="text-align: center" th:if="${posts!=null && posts.size()>0}">
-                    <!--增强分页-->
-                    <!--<div id="LAY_page"></div>-->
                     <div class="laypage-main">
                         <th:block th:with="current=${page}">
                             <th:block
@@ -260,20 +258,5 @@
     }
 </script>
 
-<!--增强分页-->
-<!--<script>
-    layui.use(['laypage', 'layer'], function() {
-        var laypage = layui.laypage
-            , layer = layui.layer;
-        laypage.render({
-            elem: 'demo1'
-            , count: 70 //数据总数
-            ,layout: ['count', 'prev', 'page', 'next', 'limit', 'refresh', 'skip']
-            , jump: function (obj) {
-                console.log(obj)
-            }
-        });
-    });
-</script>-->
 </body>
 </html>

@@ -1,7 +1,7 @@
 package com.thorn.bbsmain.controller;
 
 
-import com.thorn.bbsmain.exceptions.PostException;
+import com.thorn.bbsmain.exceptions.PageException;
 import com.thorn.bbsmain.exceptions.PostNotFoundException;
 import com.thorn.bbsmain.mapper.entity.Post;
 import com.thorn.bbsmain.mapper.entity.Reply;
@@ -39,11 +39,18 @@ public class PostController {
         this.replyService = replyService;
     }
 
+    @RequestMapping("/{pid}/{page}")
+    public ModelAndView viewPost(@PathVariable("pid") int pid,
+                                 @RequestAttribute(value = "floor", required = false) Integer floor,
+                                 @PathVariable(value = "page") int page,
+                                 @RequestAttribute(value = "errorMsg", required = false) String errorMsg)
+            throws PostNotFoundException, PageException {
+        return postService.viewPost(pid, floor, page, errorMsg);
+    }
+
     @RequestMapping("/{pid}")
-    public ModelAndView viewPost(@PathVariable("pid") int pid, @RequestParam(value = "floor",
-            required = false, defaultValue = "0") int floor,
-                                 @RequestParam(value = "page", defaultValue = "0") int page) throws PostNotFoundException {
-        return postService.viewPost(pid, floor, page);
+    public ModelAndView viewPostDefault(@PathVariable("pid") int pid, MsgBuilder builder) {
+        return builder.getMsg("forward:/post/" + pid + "/" + 1);
     }
 
     @RequiresPermissions("createPost")
@@ -55,7 +62,7 @@ public class PostController {
     @RequiresPermissions("createPost")
     @PostMapping("createPost")
     public ModelAndView createPost(@Valid Post post, BindingResult result, Reply reply,
-                                   HttpServletResponse response) throws PostException {
+                                   HttpServletResponse response) {
         return postService.createPost(post, result, reply, response);
     }
 

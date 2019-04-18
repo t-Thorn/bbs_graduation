@@ -131,7 +131,8 @@
                                 th:text="${#dates.format(post.postTime,'yyyy-MM-dd hh:mm:ss')}"></span>
                     </div>
                     <div class="detail-hits" data-id="123" id="LAY_jieAdmin">
-                        <span style="padding-right: 10px; color: #FF7200">热度：60</span>
+                        <span style="padding-right: 10px; color: #FF7200"
+                              th:text="${'热度：'+hotPoint}"></span>
                     </div>
                 </div>
                 <div class="detail-body photos" th:utext="${topReply.content_show}">
@@ -214,7 +215,8 @@
                                     </a>
                                 </shiro:lacksRole>
                                 <shiro:hasRole name="admin">
-                                    <a type="del">删除
+                                    <a th:href="${'/reply/del/'+reply.postid+'/'+reply.floor}"
+                                       type="del">删除
                                     </a>
                                 </shiro:hasRole>
                             </div>
@@ -222,8 +224,31 @@
                     </li>
                     <li class="fly-none" th:if="${replys==null ||replys.size()==0}">消灭零回复</li>
                 </ul>
-                <!--增强分页-->
-                <div id="LAY_page"></div>
+                <!--页码-->
+                <div style="text-align: center" th:if="${replys!=null && replys.size()>0}">
+                    <div class="laypage-main">
+                        <th:block th:with="current=${page}">
+                            <th:block
+                                    th:each="index:${#numbers.sequence((page>2?page -2:(page>1?page -1:page)),
+                                (pageNum -current>2?current +2:pageNum))}">
+                                <span class="laypage-curr" th:if="${index==current}"
+                                      th:text="${index}"></span>
+                                <a
+                                        th:href="'/post/'+${post.pid}+'/'+${index}"
+                                        th:if="${index!=page}"
+                                        th:text="${index}"></a>
+                            </th:block>
+                            <th:block th:if="${page!=pageNum}">
+                                <a class="laypage-last"
+                                   th:href="'/post/'+${post.pid}+'/'+${pageNum}"
+                                   title="尾页">尾页</a>
+                                <a class="laypage-next"
+                                   th:href="'/post/'+${post.pid}+'/'+${page+1}">下一页
+                                </a>
+                            </th:block>
+                        </th:block>
+                    </div>
+                </div>
                 <shiro:user>
                     <fieldset class="layui-elem-field layui-field-title"
                               style="text-align: center;">
@@ -232,7 +257,7 @@
 
                     <!--新增回复-->
                     <div class="layui-form layui-form-pane">
-                        <form action="/jie/reply/" method="post">
+                        <form action="/reply/addReply" id="addReply" method="post">
                             <div id="yinyong" style="display: none;">
                                 <div class="layui-collapse">
                                     <div class="layui-colla-item">
@@ -247,14 +272,17 @@
                                 </div>
                             </div>
                             <input id="replyTo" name="replyTo" type="hidden"/>
-                            <input id="floor" name="floor" type="hidden"/>
+                            <input id="postid" name="postid" th:value="${post.pid}" type="hidden">
+                            <input id="content" name="content" type="hidden"/>
+                            <input id="content_show" name="content_show" type="hidden"/>
                             <br>
                             <div id="editor" style="height: 340px">
 
                             </div>
                             <div class="layui-form-item">
-                                <input name="jid" type="hidden" value="123">
-                                <button class="layui-btn" lay-filter="*" lay-submit>提交回复</button>
+                                <button class="layui-btn"
+                                        lay-filter="*" onclick="submitReply()" type="button">提交回复
+                                </button>
                             </div>
                         </form>
                     </div>
@@ -302,21 +330,6 @@
         window.location.hash = "floor" + "[[${floor}]]";
     }
     var editor = createEditor();
-</script>
-<!--增强分页-->
-<script>
-    layui.use(['laypage', 'layer'], function () {
-        var laypage = layui.laypage
-            , layer = layui.layer;
-        laypage.render({
-            elem: 'demo1'
-            , count: 70 //数据总数
-            , layout: ['count', 'prev', 'page', 'next', 'limit', 'refresh', 'skip']
-            , jump: function (obj) {
-                console.log(obj)
-            }
-        });
-    });
 </script>
 </body>
 </html>

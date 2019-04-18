@@ -14,17 +14,21 @@ public class PageUtil {
      * @param list 待分页列表
      * @param page
      * @param step 每页显示多少
-     * @return 一页的部分
+     * @return 一页的部分//可能不需要返回
      */
     public static List subList(List list, int page, int step) throws PageException {
         if (list == null || list.size() == 0) {
-            return null;
+            return list;
+        }
+
+        if (page < 1) {
+            throw new PageException("非法参数");
         }
         int beginIndex = --page * step;
         int endIndex = beginIndex + step;
         endIndex = endIndex > list.size() ? list.size() : endIndex;
         if (endIndex <= beginIndex) {
-            throw new PageException("获取消息：非法参数");
+            throw new PageException("非法参数");
         }
         return list.subList(beginIndex, endIndex);
     }

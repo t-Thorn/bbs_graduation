@@ -96,6 +96,9 @@ public interface PostMapper {
      * @param view  增量
      * @param reply 增量
      */
-    @Update("update post set views=#{view} ,replyNum=#{reply} where pid=#{pid}")
+    @Update("update post set views=views+#{view} ,replyNum=replyNum+#{reply} where pid=#{pid}")
     void updateViewAndReplyNum(int pid, int view, int reply);
+
+    @Update("update post set replyNum=replyNUm where pid=#{postid}")
+    void increaseReplyNum(int postid);
 }

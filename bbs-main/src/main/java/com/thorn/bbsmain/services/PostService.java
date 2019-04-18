@@ -7,7 +7,6 @@ import com.thorn.bbsmain.exceptions.PostNotFoundException;
 import com.thorn.bbsmain.mapper.PostMapper;
 import com.thorn.bbsmain.mapper.entity.Post;
 import com.thorn.bbsmain.mapper.entity.Reply;
-import com.thorn.bbsmain.mapper.entity.User;
 import com.thorn.bbsmain.utils.MsgBuilder;
 import com.thorn.bbsmain.utils.PageUtil;
 import impl.HotPointManager;
@@ -20,6 +19,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -27,6 +27,7 @@ import java.util.Map;
 public class PostService {
     @Value("${system.page.post}")
     private int ONE_PAGE_POST_NUM;
+
 
     private PostMapper postMapper;
 
@@ -80,7 +81,7 @@ public class PostService {
         List<Post> hotPostList = manager.getTopPost();
         Map<Integer, Long> hotPoints = manager.getHotPoint();
         hotPostList.forEach(element -> element.setHotPoint(hotPoints.get(element.getPid())));
-        builder.addData("hotPosts", hotPostList);
+        builder.addData("hotPosts", Collections.unmodifiableList(hotPostList));
     }
 
     /**
@@ -115,16 +116,6 @@ public class PostService {
     }
 
     /**
-     * 获取帖子列表按回复时间倒序
-     *
-     * @param offset 页码
-     * @return 帖子×8
-     */
-    public List<Post> getPostsOrderByLastReplyTime(int offset) {
-        return null;
-    }
-
-    /**
      * 创建新帖子
      *
      * @param post    帖子
@@ -141,6 +132,7 @@ public class PostService {
         if (result.hasErrors()) {
             StringBuilder stringBuilder = new StringBuilder();
             FieldError titleError = result.getFieldError("title");
+            //todo errormsg用layer.msg显示
             if (titleError != null) {
                 stringBuilder.append(titleError.getDefaultMessage());
             }
@@ -163,6 +155,7 @@ public class PostService {
 
         //reply表新增
         reply.setPostid(post.getPid());
+        reply.setReplyer(userService.getCurrentUser().getUid());
         replyService.createPostTopReply(reply);
 
         //todo 消息处理（get：关注表 set：队列+数据库）
@@ -179,6 +172,9 @@ public class PostService {
      * @throws PageException
      */
     public ModelAndView buildHome(Integer type, Integer page, String target) throws PageException {
+        if (page < 1) {
+            throw new PageException("非法参数");
+        }
         MsgBuilder builder = new MsgBuilder();
         List<Post> postList;
         builder.addData("announcements", getAnnouncements());
@@ -212,10 +208,15 @@ public class PostService {
      *
      * @param pid   帖子id
      * @param floor 偏移楼层
+     * @param errorMsg
      * @return
      */
     @RefreshHotPost()
-    public ModelAndView viewPost(Integer pid, int floor, int page) throws PostNotFoundException {
+    public ModelAndView viewPost(Integer pid, Integer floor, int page, String errorMsg) throws PostNotFoundException,
+            PageException {
+        if (page == 0) {
+            throw new PageException("页数参数错误");
+        }
         MsgBuilder builder = new MsgBuilder();
         /**
          * 帖子信息获取
@@ -225,27 +226,13 @@ public class PostService {
             System.out.println("未找到页面");
             throw new PostNotFoundException("未找到页面");
         }
-        builder.addData("post", post);
-        List<Reply> replyList = replyService.getReplyByPid(pid);
-
-        //获取帖子内容
-        builder.addData("topReply", replyList.get(0));
-        replyList.remove(0);
-
-        //获取点赞列表
-        User user = userService.getCurrentUser();
-        if (user != null) {
-            List<Integer> likeList = replyService.getLikesByPID(pid, user.getUid());
-            replyList.forEach(r -> {
-                if (likeList.contains(r.getFloor())) {
-                    r.setZan(true);
-                }
-            });
-            builder.addData("user", user);
-        }
+        //构建帖子头信息
         builder.addData("hotPoint", manager.getHotPoint(pid));
-        builder.addData("replys", replyList);
+        builder.addData("post", post);
+
+        builder.addData("replys", replyService.getReplies(pid, builder, page));
         builder.addData("floor", floor);
+        builder.addData("errorMsg", errorMsg);
         getHotPosts(builder);
         return builder.getMsg("/jie/detail");
     }

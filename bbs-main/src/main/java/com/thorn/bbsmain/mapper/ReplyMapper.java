@@ -2,10 +2,7 @@ package com.thorn.bbsmain.mapper;
 
 
 import com.thorn.bbsmain.mapper.entity.Reply;
-import org.apache.ibatis.annotations.Delete;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Select;
-import org.apache.ibatis.annotations.Update;
+import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 
@@ -54,4 +51,21 @@ public interface ReplyMapper {
 
     @Select("select likesNum from reply where postid=#{pid} and floor=#{floor}")
     int getLikesNum(int pid, int floor);
+
+
+    @Select({"<script>",
+            "select count(1) from reply",
+            "where postid=#{postid} and avaliable=true",
+            "<if test='replyTo!=null and replyTo!=0'>",
+            "AND floor = #{replyTo}",
+            "</if>",
+            "</script>"
+    })
+    int isLegal(Integer postid, Integer replyTo);
+
+    @Options(useGeneratedKeys = true, keyProperty = "floor", keyColumn = "floor")
+    @Insert("insert into reply (postid,content,content_show,replyer,replyTo) values(" +
+            "#{postid},#{content}," +
+            "#{content_show},#{replyer},#{replyTo})")
+    void addReply(Reply reply);
 }

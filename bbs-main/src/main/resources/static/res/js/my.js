@@ -85,7 +85,7 @@ function fan(uid) {
             $("#isFan").append(element);
         },
         error: function () {
-            alert("失败");
+            layer.msg("失败");
         }
     })
 }
@@ -242,8 +242,7 @@ function yinyong(floor) {
     var replyTo = $("#jieda li:eq(" + floor + ") .source").data("replyer");
     var nickname = $("#jieda li:eq(" + floor + ") .source").data("nickname");
     var reply = $("#jieda li:eq(" + floor + ") .content");
-    $("#replyTo").val(replyTo);
-    $("#floor").val(floor);
+    $("#replyTo").val(floor);
     $("#yinyongcontent").html(reply.html());
     $("#yinyonglink").attr("href", "/user/home/" + replyTo).text(nickname);
     $("#yinyong").show();
@@ -260,8 +259,8 @@ function dianzan(index) {
             url: '/reply/zan',
             type: 'post',
             dataType: 'json',
-            data: {"toUser": uid, "floor": floor, "pid": pid},
-            success: function (data) {
+            data: {"toUser": uid, "floor": floor, "postid": pid},
+            success: function () {
                 $("#jieda li:eq(" + index + ") .jieda-zan em").text(data.no);
                 if (zan.hasClass("zanok")) {
                     zan.removeClass("zanok");
@@ -278,4 +277,17 @@ function dianzan(index) {
     } else {
         layer.msg('请先登录');
     }
+}
+
+/**
+ * 新增回复
+ */
+function submitReply() {
+    if (editor.txt.text() == "") {
+        layer.msg("请输入回复内容");
+        return false;
+    }
+    $("#content").val(editor.txt.text());
+    $("#content_show").val(editor.txt.html());
+    $("#addReply").submit();
 }

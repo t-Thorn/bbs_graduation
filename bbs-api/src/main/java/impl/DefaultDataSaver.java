@@ -2,22 +2,8 @@ package impl;
 
 import interfaces.AbstractDataSaver;
 
-import java.util.concurrent.ConcurrentHashMap;
-
 
 public abstract class DefaultDataSaver extends AbstractDataSaver {
-    public void saveAll() {
-        if (hotPointCache == null) {
-            throw new NullPointerException();
-        }
-        ConcurrentHashMap map = (ConcurrentHashMap) hotPointCache.getMap();
-        map.forEach((k, v) -> {
-            map.computeIfPresent(k, (x, y) -> {
-                save(k, y);
-                return null;
-            });
-        });
-    }
 
     /**
      * 必须利用compute方法实现动态更新

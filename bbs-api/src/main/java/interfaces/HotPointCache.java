@@ -1,5 +1,7 @@
 package interfaces;
 
+import java.util.Map;
+
 public interface HotPointCache extends HotPostCache<Integer, HotPoint> {
     /**
      * 需要达成原子化更新
@@ -10,7 +12,12 @@ public interface HotPointCache extends HotPostCache<Integer, HotPoint> {
      */
     Long createOrUpdate(Integer key, Long hotPoint);
 
-    Object getMap();
+    Map<Integer, HotPoint> getMap();
 
     HotPointCache refresh();
+
+    void delReply(int pid);
+
+    //重置热度增量
+    void reset(int pid);
 }

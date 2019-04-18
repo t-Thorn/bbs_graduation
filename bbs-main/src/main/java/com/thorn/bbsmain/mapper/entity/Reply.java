@@ -1,34 +1,41 @@
 package com.thorn.bbsmain.mapper.entity;
 
 import lombok.Data;
+import org.hibernate.validator.constraints.Length;
+import org.hibernate.validator.constraints.Range;
 
 import java.util.Date;
 
 @Data
 public class Reply {
-    int postid;
+    @Range(min = 1, max = Integer.MAX_VALUE, message = "参数错误")
+    Integer postid;
 
     String title;
+
 
     String contentEx;
 
     String content_show;
 
+    @Length(min = 1, max = 65535, message = "内容太长")
     String content;
 
-    int floor;
+    @Range(min = 1, max = Integer.MAX_VALUE, message = "参数错误")
+    Integer floor;
 
-    int replyer;
+    Integer replyer;
 
     Date replyTime;
 
-    int replyto;
+    @Range(min = 1, max = Integer.MAX_VALUE, message = "参数错误")
+    Integer replyTo;
 
-    int likesNum;
+    Integer likesNum;
 
-    boolean avaliable;
+    Boolean avaliable;
 
-    int replyToId;
+    Integer replyToId;
 
     String replyToNickname;
 

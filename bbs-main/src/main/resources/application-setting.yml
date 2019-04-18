@@ -3,10 +3,14 @@ system:
     replyimg: /run/media/thorn/Thorn Passport/毕设/img/replyImg/
     avator:  /run/media/thorn/Thorn Passport/毕设/img/
     replyImg: /run/media/thorn/Thorn Passport/毕设/img/replyImg/
+    reloadPath: /run/media/thorn/Thorn Passport/毕设/reload/
   page:
     post: 8
     message: 5
     mypost: 10
+    reply: 8
+  period:
+    reload: 1
 
 shiro:
   static: /res/**,/favicon.ico,/img/**
