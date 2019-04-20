@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
-    <title>用户中心</title>
+    <title>浏览历史</title>
     <meta content="width=device-width, initial-scale=1, maximum-scale=1" name="viewport">
     <link href="/res/layui/css/layui.css" rel="stylesheet">
     <link href="/res/css/global.css" rel="stylesheet">
@@ -11,7 +11,9 @@
 
 <div class="fly-header layui-bg-black">
     <div class="layui-container">
-
+        <a class="fly-logo" href="/">
+            <img alt="layui" src="/res/images/logo.png">
+        </a>
         <ul class="layui-nav fly-nav-user">
             <!-- 登入后的状态 -->
             <li class="layui-nav-item">
@@ -55,7 +57,7 @@
                 我的主页
             </a>
         </li>
-        <li class="layui-nav-item layui-this">
+        <li class="layui-nav-item ">
             <a href="/info/myPost">
                 <i class="layui-icon">&#xe612;</i>
                 用户中心
@@ -73,7 +75,7 @@
                 我的消息
             </a>
         </li>
-        <li class="layui-nav-item">
+        <li class="layui-nav-item layui-this">
             <a href="/info/history">
                 <i class="layui-icon">&#xe610;</i>
                 浏览记录
@@ -93,70 +95,30 @@
 
 
     <div class="fly-panel fly-panel-user" pad20>
-        <!--
-        <div class="fly-msg" style="margin-top: 15px;">
-          您的邮箱尚未验证，这比较影响您的帐号安全，<a href="activate.html">立即去激活？</a>
-        </div>
-        -->
         <div class="layui-tab layui-tab-brief" lay-filter="user">
-            <ul class="layui-tab-title" id="LAY_mine">
-                <li class="layui-this" data-type="mine-jie" lay-id="index">我发的帖（<span
-                        th:text="${mypostsNum==null?0:mypostsNum}"></span>）
-                </li>
-                <li data-type="collection" data-url="/collection/find/" lay-id="collection">
-                    我收藏的帖（<span th:text="${collectionsNum==null?0:collectionsNum}"></span>）
-                </li>
-            </ul>
             <div class="layui-tab-content" style="padding: 20px 0;">
                 <div class="layui-tab-item layui-show">
-                    <div class="fly-none" th:if="${myposts==null||myposts.size()==0}">没有相关数据
+                    <div class="fly-none" th:if="${histories==null||histories.size()==0}">没有相关数据
                     </div>
-                    <ul class="mine-view jie-row" th:each="mypost:${myposts}">
+                    <ul class="mine-view jie-row" th:each="history:${histories}">
                         <li>
-                            <a class="jie-title" target="_blank" th:href="'/post/'+${mypost.pid}"
-                               th:text="${mypost.title}"/>
-                            <i th:text="${#dates.format(mypost.postTime,'yyyy-MM-dd hh:mm:ss')}"/>
-                            <em th:text="${mypost.views}+'阅/'+${mypost.replyNum}+'答'"></em>
+                            <a class="jie-title" target="_blank" th:href="'/post/'+${history.pid}"
+                               th:text="${history.title}"/>
+                            <i th:text="${#dates.format(history.time,'yyyy-MM-dd hh:mm:ss')}"/>
                         </li>
                     </ul>
                     <br/>
-
-                    <div style="text-align:center" th:if="${myposts!=null}">
+                    <div style="text-align:center" th:if="${histories!=null}">
                         <a class="layui-btn layui-btn-primary layui-btn-sm"
-                           th:href="${'/info/myPost/'+(currentPage -1)+'/'+currentCpage}"
+                           th:href="${'/info/history/'+(currentPage -1)}"
                            th:if="${currentPage>1}">
                             <i class="layui-icon"></i></a>
                         <a class="layui-btn layui-btn-primary layui-btn-sm"
-                           th:href="${'/info/myPost/'+(currentPage+1)+'/'+currentCpage}"
-                           th:if="${currentPage<mypostsNum/10+1}">
+                           th:href="${'/info/history/'+(currentPage+1)}"
+                           th:if="${currentPage<pageNum}">
                             <i class="layui-icon"></i>
                         </a>
                     </div>
-
-                </div>
-                <div class="layui-tab-item">
-                    <div class="fly-none" th:if="${collections==null||collections.size()==0}">没有相关数据
-                    </div>
-                    <ul class="mine-view jie-row" th:each="collect:${collections}">
-                        <li>
-                            <a class="jie-title" target="_blank" th:href="'/post/'+${collect.pid}"
-                               th:text="${collect.title}"/>
-                            <i
-                                    th:text="'收藏于'+${#dates.format(collect.time,'yyyy-MM-dd hh:mm:ss')}"></i>
-                        </li>
-                    </ul>
-                    <br/>
-                    <div style="text-align:center" th:if="${collections!=null}">
-                        <a class="layui-btn layui-btn-primary layui-btn-sm"
-                           th:href="${'/info/myCollection/'+currentPage+'/'+(currentCpage -1)}"
-                           th:if="${currentCpage>1}">
-                            <i class="layui-icon"></i></a>
-                        <a class="layui-btn layui-btn-primary layui-btn-sm"
-                           th:href="${'/info/myCollection/'+currentPage+'/'+(currentCpage)}"
-                           th:if="${currentCpage<collectionsNum/10+1}">
-                            <i class="layui-icon"></i></a>
-                    </div>
-                    <div id="LAY_page1"></div>
                 </div>
             </div>
         </div>
@@ -179,9 +141,6 @@
     }).extend({
         fly: 'index'
     }).use('fly');
-</script>
-<script>
-    window.location.hash = "[[${loc}]]";
 </script>
 </body>
 </html>

@@ -9,7 +9,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class DefaultHotPointCache implements HotPointCache {
 
-    private static final ConcurrentHashMap<Integer, HotPoint> CACHE = new ConcurrentHashMap<Integer, HotPoint>();
+    private final ConcurrentHashMap<Integer, HotPoint> CACHE = new ConcurrentHashMap<Integer,
+            HotPoint>();
 
     @Override
     public void delReply(int pid) {

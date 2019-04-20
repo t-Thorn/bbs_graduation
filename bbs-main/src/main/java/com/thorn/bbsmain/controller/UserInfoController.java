@@ -65,27 +65,30 @@ public class UserInfoController {
         return infoService.updateUserPassword(nowpass, user, result, repass, response);
     }
 
-    @GetMapping("myPost")
+    @GetMapping(value = {"myPost/{page}/{cpage}", "myPost"})
     public ModelAndView getMyPost(
-            @RequestParam(value = "page", required = false, defaultValue = "1") Integer page,
-            @RequestParam(value = "cpage", required = false, defaultValue = "1") Integer cpage) throws Exception {
-        return infoService.getMyPosts(page, cpage);
+            @PathVariable(value = "page", required = false) Integer page,
+            @PathVariable(value = "cpage", required = false) Integer cpage) throws Exception {
+        return infoService.getMyPosts(page == null ? 1 : page, cpage == null ? 1 : cpage);
     }
 
-    @GetMapping("myCollection")
+    @GetMapping(value = {"myCollection/{page}/{cpage}", "myCollection"})
     public ModelAndView getMyCollection(
-            @RequestParam(value = "page", required = false, defaultValue = "1") Integer page,
-            @RequestParam(value = "cpage", required = false, defaultValue = "1") Integer cpage) {
+            @PathVariable(value = "page", required = false) Integer page,
+            @PathVariable(value = "cpage", required = false) Integer cpage) {
         MsgBuilder builder = new MsgBuilder();
         //加入锚点
         builder.addData("loc", "#collection");
-        builder.addData("cpage", cpage);
-        builder.addData("page", page);
-        return builder.getMsg("forward:myPost");
+        return builder.getMsg("forward:myPost/" + (page == null ? 1 : page) + "/" + (cpage == null ? 1 : cpage));
     }
 
     @GetMapping("message")
     public ModelAndView getMessage(@RequestParam(value = "page", defaultValue = "1") Integer page) throws Exception {
         return infoService.getMyMessages(page);
+    }
+
+    @GetMapping(value = {"history/{page}", "history"})
+    public ModelAndView getHistory(@PathVariable(value = "page", required = false) Integer page) throws Exception {
+        return infoService.getMyHistory(page == null ? 1 : page);
     }
 }

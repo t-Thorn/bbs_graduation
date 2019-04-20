@@ -3,9 +3,7 @@ package com.thorn.bbsmain.confugurations;
 import com.thorn.bbsmain.mapper.PostMapper;
 import com.thorn.bbsmain.mapper.entity.Post;
 import com.thorn.bbsmain.mapper.entity.User;
-import impl.DefaultDataSaver;
-import impl.HotPointManager;
-import impl.LoadRecord;
+import impl.*;
 import interfaces.Fetcher;
 import interfaces.HotPoint;
 import org.springframework.beans.factory.annotation.Value;
@@ -63,13 +61,21 @@ public class HotPointManagerFactory {
     }
 
     @Bean
-    public impl.HotPointManager getHotPointManager(DefaultDataSaver saver, Fetcher fetcher) {
-        LoadRecord.reloadRecord(reloadPath);
-        HotPointManager manager = new impl.HotPointManager<Post>(LoadRecord.getViewCache(),
-                LoadRecord.getHotPointCache(), fetcher);
+    public HotPointManager getHotPointManager(DefaultDataSaver saver, DefaultHotPostHandler hotPostHandler) {
+        HotPointManager manager = new HotPointManager<Post>(hotPostHandler);
         manager.addCycleSaveForReloadTask(reload, TimeUnit.SECONDS, reloadPath);
         manager.addDataSavor(saver);
         manager.addRefreshTask(1, TimeUnit.DAYS);
         return manager;
+    }
+
+    @Bean
+    public DefaultHotPostHandler getHotPointHandler(Fetcher fetcher) {
+        if (LoadRecord.reloadRecord(reloadPath)) {
+            return new DefaultHotPostHandler<Post>(LoadRecord.getViewCache(),
+                    LoadRecord.getHotPointCache(), fetcher, LoadRecord.getIndexCache(),
+                    LoadRecord.getHotPostCache());
+        }
+        return new DefaultHotPostHandler(new DefaultViewCache(), new DefaultHotPointCache(), fetcher);
     }
 }

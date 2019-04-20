@@ -40,6 +40,10 @@
                     </a>
                     <dl class="layui-nav-child">
                         <dd><a href="/info/setting"><i class="layui-icon">&#xe620;</i>基本设置</a></dd>
+                        <dd><a href="/info/history"><i class="iconfont icon-shichang"
+                                                       style="top: 4px;"></i>浏览历史
+                            <span class="layui-badge-dot" style="float:right"
+                                  th:if="${hasMessage==true}"></span></a></dd>
                         <dd><a href="/info/message"><i class="iconfont icon-tongzhi"
                                                        style="top: 4px;"></i>我的消息
                             <span class="layui-badge-dot" style="float:right"
@@ -132,7 +136,7 @@
                     <a href="/" th:classappend="${type==0}?'layui-this':''">综合
                     </a>
                     <span class="fly-mid"></span>
-                    <a href="/?type=1" th:classappend="${type==1}?'layui-this':''">精华</a>
+                    <a href="/1/1/" th:classappend="${type==1}?'layui-this':''">精华</a>
                     <span class="fly-filter-right layui-hide-xs"/>
                 </div>
 
@@ -183,6 +187,14 @@
                 <div style="text-align: center" th:if="${posts!=null && posts.size()>0}">
                     <div class="laypage-main">
                         <th:block th:with="current=${page}">
+                            <th:block th:if="${page>1}">
+                                <a class="laypage-last"
+                                   th:href="'index/'+${type}+'/1/'+${target}"
+                                   title="首页">首页</a>
+                                <a class="laypage-next"
+                                   th:href="'index/'+${type}+'/'+${page -1}+'/'+${target}">上一页
+                                </a>
+                            </th:block>
                             <th:block
                                     th:each="index:${#numbers.sequence((page>2?page -2:(page>1?page -1:page)),
                                 (pageNum -current>2?current +2:pageNum))}">
@@ -194,10 +206,10 @@
                             </th:block>
                             <th:block th:if="${page!=pageNum}">
                                 <a class="laypage-last"
-                                   th:href="'/?type='+${type}+'&target='+${target}+'&page='+${pageNum}"
+                                   th:href="'index/'+${type}+'/'+${pageNum}+'/'+${target}"
                                    title="尾页">尾页</a>
                                 <a class="laypage-next"
-                                   th:href="'/?type='+${type}+'&target='+${target}+'&page='+${page+1}">下一页
+                                   th:href="'index/'+${type}+'/'+${page+1}+'/'+${target}">下一页
                                 </a>
                             </th:block>
                         </th:block>
@@ -253,7 +265,7 @@
 
 <script>
     if ("[[${#request.getParameter('errorMsg')}]]" != "") {
-        alert("[[${#request.getParameter('errorMsg')}]]");
+        layer.msg("[[${#request.getParameter('errorMsg')}]]");
         window.location.href = "/";
     }
 </script>

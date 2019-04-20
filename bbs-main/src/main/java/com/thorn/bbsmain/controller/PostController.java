@@ -2,6 +2,7 @@ package com.thorn.bbsmain.controller;
 
 
 import com.thorn.bbsmain.exceptions.PageException;
+import com.thorn.bbsmain.exceptions.PostException;
 import com.thorn.bbsmain.exceptions.PostNotFoundException;
 import com.thorn.bbsmain.mapper.entity.Post;
 import com.thorn.bbsmain.mapper.entity.Reply;
@@ -10,6 +11,7 @@ import com.thorn.bbsmain.services.ReplyService;
 import com.thorn.bbsmain.services.UserService;
 import com.thorn.bbsmain.utils.MsgBuilder;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.apache.shiro.authz.annotation.RequiresUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -39,18 +41,13 @@ public class PostController {
         this.replyService = replyService;
     }
 
-    @RequestMapping("/{pid}/{page}")
+    @RequestMapping(value = {"/{pid}/{page}", "/{pid}"})
     public ModelAndView viewPost(@PathVariable("pid") int pid,
                                  @RequestAttribute(value = "floor", required = false) Integer floor,
-                                 @PathVariable(value = "page") int page,
+                                 @PathVariable(value = "page", required = false) Integer page,
                                  @RequestAttribute(value = "errorMsg", required = false) String errorMsg)
             throws PostNotFoundException, PageException {
-        return postService.viewPost(pid, floor, page, errorMsg);
-    }
-
-    @RequestMapping("/{pid}")
-    public ModelAndView viewPostDefault(@PathVariable("pid") int pid, MsgBuilder builder) {
-        return builder.getMsg("forward:/post/" + pid + "/" + 1);
+        return postService.viewPost(pid, floor, page == null ? 1 : page, errorMsg);
     }
 
     @RequiresPermissions("createPost")
@@ -72,5 +69,25 @@ public class PostController {
     @ResponseBody
     public String imgUpload(@RequestParam("img") MultipartFile[] imgs) {
         return replyService.imgUpload(imgs);
+    }
+
+
+    @RequiresUser
+    @PostMapping("collect")
+    @ResponseBody
+    public String createRelationship(@RequestParam("pid") Integer to,
+                                     @Autowired MsgBuilder builder) throws PostException {
+        postService.collect(to);
+        builder.addData("msg", "成功");
+        return builder.getMsg();
+    }
+
+    @RequiresUser
+    @DeleteMapping("cancelCollect")
+    @ResponseBody
+    public String delRelationship(@RequestParam("pid") Integer to, @Autowired MsgBuilder builder) throws PostException {
+        postService.delCollect(to);
+        builder.addData("msg", "成功");
+        return builder.getMsg();
     }
 }

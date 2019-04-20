@@ -1,10 +1,7 @@
 package com.thorn.bbsmain.mapper;
 
 
-import com.thorn.bbsmain.mapper.entity.Message;
-import com.thorn.bbsmain.mapper.entity.Post;
-import com.thorn.bbsmain.mapper.entity.Reply;
-import com.thorn.bbsmain.mapper.entity.User;
+import com.thorn.bbsmain.mapper.entity.*;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
@@ -58,10 +55,9 @@ public interface UserMapper {
     @Select(" select message.*, user.nickname " +
             "from message " +
             "       left join user on uid = fromUser " +
-            "where owner = #{uid} " +
-            "order by pid " +
-            "  desc ")
-    List<Message> getMessages(int uid);
+            "where owner = #{uid} and id>=(select id from message where owner=#{uid} limit " +
+            "#{offset},1) order by pid  desc limit #{step}")
+    List<Message> getMessages(int uid, int offset, int step);
 
     @Select("select uid,nickname,regdate,gender from user where uid=#{uid} limit 1")
     User getUserInfoOfHome(@Param("uid") int uid);
@@ -81,7 +77,7 @@ public interface UserMapper {
     void delRelationship(int from, int to);
 
     @Select("select pid,title,postTime,grade,replyNum,views from post where uid=#{uid} and " +
-            " avaliable=1 order by pid desc limit 10")
+            " available=1 order by pid desc limit 10")
     List<Post> getUserPost(int uid);
 
     @Select("  select nickname replyToNickname, replyDetail.*" +
@@ -96,14 +92,28 @@ public interface UserMapper {
             "                  rex.postid = r.postid" +
             "                  and rex.floor = r.replyTo" +
             "              where r.replyer = #{uid}" +
-            "                and r.avaliable = 1" +
+            "                and r.available = 1" +
             "             ) r" +
             "               left join post on postid = pid" +
-            "        where avaliable = 1) replyDetail" +
+            "        where available = 1) replyDetail" +
             "         left join user on" +
-            "    replyToId = uid;")
+            "    replyToId = uid limit 5")
     List<Reply> getUserReply(int uid);
 
     @Update("update user set postNum=postNum+1 where uid=#{uid}")
     void addPostNum(int uid);
+
+
+    @Select("select count(1) from message where owner=1")
+    int getMessageNum(Integer uid);
+
+    @Select("select pid, title, time" +
+            " from history" +
+            " where uid = #{uid}" +
+            "  and id<=(select id from history where uid=#{uid} order by id desc limit #{offset}," +
+            "1) order by id desc limit #{step} ")
+    List<History> getHistories(Integer uid, int offset, int step);
+
+    @Select("select count(*) from history where uid=1")
+    int getHistoryNum(int uid);
 }

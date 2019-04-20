@@ -41,6 +41,10 @@
                     </a>
                     <dl class="layui-nav-child">
                         <dd><a href="/info/setting"><i class="layui-icon">&#xe620;</i>基本设置</a></dd>
+                        <dd><a href="/info/history"><i class="iconfont icon-shichang"
+                                                       style="top: 4px;"></i>浏览历史
+                            <span class="layui-badge-dot" style="float:right"
+                                  th:if="${hasMessage==true}"></span></a></dd>
                         <dd><a href="/info/message"><i class="iconfont icon-tongzhi"
                                                        style="top: 4px;"></i>我的消息
                             <span class="layui-badge-dot" style="float:right"
@@ -113,10 +117,10 @@
                           th:if="${post.grade==1 || post.grade==3}">精帖</span>
                     <span class="fly-list-nums">
             <a href="#comment"><i class="iconfont" title="回答">&#xe60c;
-            </i><th:block th:text="${post.replyNum}"></th:block>
+            </i><th:block th:text="${post.replyNum}"/>
             </a>
             <i class="iconfont" title="人气">&#xe60b;</i> <th:block
-                            th:text="${post.views}"></th:block>
+                            th:text="${post.views}"/>
           </span>
                 </div>
                 <div class="detail-about">
@@ -137,6 +141,17 @@
                 </div>
                 <div class="detail-body photos" th:utext="${topReply.content_show}">
                 </div>
+                <!--收藏-->
+                <shiro:authenticated>
+                    <div id="collect" style="text-align: center">
+                        <button class="layui-btn layui-btn-primary layui-btn-sm"
+                                th:if="${collect!=true}" th:onclick="|collect(${post.pid})|"><i
+                                class="layui-icon"></i></button>
+                        <button class="layui-btn layui-btn-normal layui-btn-sm"
+                                th:if="${collect!=true}" th:onclick="|collect(${post.pid})|"><i
+                                class="layui-icon"></i></button>
+                    </div>
+                </shiro:authenticated>
             </div>
             <div class="fly-panel detail-box" id="flyReply">
                 <fieldset class="layui-elem-field layui-field-title" style="text-align: center;">
@@ -162,11 +177,6 @@
                         </div>
                         <div class="detail-body jieda-body photos">
                             <th:block th:if="${reply.contentEx!=null}">
-                                <!--                                引用：<a target="_blank"
-                                                                      th:href="${'/user/home/'+reply.replyToId}"
-                                                                      th:text="${reply.replyToNickname}"/>的回复
-                                                                <pre th:utext="${reply.contentEx}">
-                                                            </pre>-->
                                 <div class="layui-collapse" lay-filter="test">
                                     <div class="layui-colla-item">
                                         <h2 class="layui-colla-title"> 引用：<a target="_blank"
@@ -182,7 +192,6 @@
                             <div class="content" th:utext="${reply.content_show}"></div>
                         </div>
                         <div class="jieda-reply">
-                            <!--后台需要检测是否已经点赞-->
                             <span class="jieda-zan"
                                   th:classappend="${reply.zan==true}?'zanok':'zan'"
                                   th:data-floor="${reply.floor}"
@@ -209,13 +218,19 @@
                             <div class="jieda-admin">
                                 <shiro:lacksRole name="admin">
                                     <!--显示删除按钮的条件：管理员，贴主，层主,后台照样也得认证 还得楼层判断是否是0（顶楼）-->
-                                    <a th:href="${'/reply/del/'+${reply.floor}}"
+                                    <a href=""
+                                       th:data-floor="${reply.floor}"
+                                       th:data-pid="${reply.postid}"
+                                       th:onclick="|delReply(${replyStat.index})|"
                                        th:if="${user!=null &&(user.uid==reply.replyer || user.uid==post.uid)}"
                                        type="del">删除
                                     </a>
                                 </shiro:lacksRole>
                                 <shiro:hasRole name="admin">
-                                    <a th:href="${'/reply/del/'+reply.postid+'/'+reply.floor}"
+                                    <a href=""
+                                       th:data-floor="${reply.floor}"
+                                       th:data-pid="${reply.postid}"
+                                       th:onclick="|delReply(${replyStat.index})|"
                                        type="del">删除
                                     </a>
                                 </shiro:hasRole>
@@ -228,6 +243,14 @@
                 <div style="text-align: center" th:if="${replys!=null && replys.size()>0}">
                     <div class="laypage-main">
                         <th:block th:with="current=${page}">
+                            <th:block th:if="${page>1}">
+                                <a class="laypage-last"
+                                   th:href="'/post/'+${post.pid}+'/'+'1'"
+                                   title="首页">首页</a>
+                                <a class="laypage-next"
+                                   th:href="'/post/'+${post.pid}+'/'+${page -1}">上一页
+                                </a>
+                            </th:block>
                             <th:block
                                     th:each="index:${#numbers.sequence((page>2?page -2:(page>1?page -1:page)),
                                 (pageNum -current>2?current +2:pageNum))}">

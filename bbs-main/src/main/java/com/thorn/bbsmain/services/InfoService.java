@@ -4,11 +4,7 @@ import com.thorn.bbsmain.exceptions.PageException;
 import com.thorn.bbsmain.exceptions.UserException;
 import com.thorn.bbsmain.exceptions.UserInfoException;
 import com.thorn.bbsmain.mapper.PostMapper;
-import com.thorn.bbsmain.mapper.UserMapper;
-import com.thorn.bbsmain.mapper.entity.Collect;
-import com.thorn.bbsmain.mapper.entity.Message;
-import com.thorn.bbsmain.mapper.entity.Post;
-import com.thorn.bbsmain.mapper.entity.User;
+import com.thorn.bbsmain.mapper.entity.*;
 import com.thorn.bbsmain.utils.MsgBuilder;
 import com.thorn.bbsmain.utils.PageUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -34,32 +30,35 @@ import java.util.UUID;
 @Service
 public class InfoService {
 
-    //todo 加入历史记录
+
     @Value("${system.page.message}")
     private int ONE_MESSAGE_PAGE_NUM;
 
     @Value("${system.page.mypost}")
     private int ONE_PAGE_POST_NUM;
 
+    @Value("${system.page.history}")
+    private int ONE_PAGE_HISTORY_NUM;
+
     @Value("${system.path.avator}")
     private String IMG;
-
-    private UserMapper userMapper;
 
     private PostMapper postMapper;
 
     private UserService userService;
 
-    public InfoService(@Autowired UserMapper userMapper, @Autowired PostMapper postMapper,
-                       @Autowired UserService userService) {
-        this.userMapper = userMapper;
+    private ReplyService replyService;
+
+    public InfoService(@Autowired PostMapper postMapper,
+                       @Autowired UserService userService, ReplyService replyService) {
         this.postMapper = postMapper;
         this.userService = userService;
+        this.replyService = replyService;
     }
 
     public void updateBasicInfo(User user) throws UserException {
         userService.isNicknameExist(user);
-        userMapper.updateBasicInfo(user);
+        userService.updateBasicInfo(user);
     }
 
     /**
@@ -91,8 +90,16 @@ public class InfoService {
         MsgBuilder builder = new MsgBuilder();
         User user = userService.getCurrentUser();
         builder.addData("page", page);
-        List<Message> messages = userMapper.getMessages(user.getUid());
-        builder.addData("messages", PageUtil.subList(messages, page, ONE_MESSAGE_PAGE_NUM));
+        List<Message> messages = userService.getMessages(user.getUid(),
+                (page - 1) * ONE_MESSAGE_PAGE_NUM, ONE_MESSAGE_PAGE_NUM);
+        messages.forEach(v -> {
+            if (v.getType() != 2 && !replyService.isExist(v.getPid(), v.getFloor())) {
+                v.setContent("<p>此回复已被删除</p>");
+            }
+        });
+        int pageNum = userService.getMessageNum(user.getUid());
+        builder.addData("messages", messages);
+        builder.addData("pageNum", PageUtil.getPage(pageNum, ONE_MESSAGE_PAGE_NUM));
         return builder.getMsg("/user/message");
     }
 
@@ -101,7 +108,6 @@ public class InfoService {
         User currentUser = userService.getCurrentUser();
         MsgBuilder builder = new MsgBuilder();
         boolean error = false;
-        System.out.println("更改密码");
         //加入锚点
         builder.addData("loc", "#pass");
         //检验合法性
@@ -159,8 +165,6 @@ public class InfoService {
         }
         MsgBuilder builder = new MsgBuilder();
         User user = userService.getCurrentUser();
-        page = page > 0 ? page : 1;
-        cpage = cpage > 0 ? cpage : 1;
         List<Post> myPost = getMyPost(user.getUid());
         if (!Objects.equals(myPost, null) && myPost.size() > 0) {
             builder.addData("currentPage", page);
@@ -173,7 +177,6 @@ public class InfoService {
             builder.addData("currentCpage", cpage);
             builder.addData("collections", PageUtil.subList(myCollection, cpage, ONE_PAGE_POST_NUM));
             builder.addData("collectionsNum", myCollection.size());
-            System.out.println(myCollection.size());
         }
 
         return builder.getMsg("/user/myPost");
@@ -186,7 +189,7 @@ public class InfoService {
      * @return
      */
     public User getInfo(String email) {
-        return userMapper.getInfo(email);
+        return userService.getInfo(email);
     }
 
     /**
@@ -230,7 +233,7 @@ public class InfoService {
 
 
         try {
-            userMapper.updateAvator(user.getEmail(), "/img/" + imgFile.getName());
+            userService.updateAvator(user.getEmail(), "/img/" + imgFile.getName());
         } catch (Exception e) {
             log.error("更新头像发生错误：{} params：email:{},path:{}", e.getMessage(), user.getEmail(),
                     "/img/" + imgFile.getName());
@@ -246,5 +249,20 @@ public class InfoService {
         msgBuilder.addCookie(response, "img", "/img/" + imgFile.getName());
         msgBuilder.addData("msg", "/img/" + imgFile.getName());
         return msgBuilder.getMsg();
+    }
+
+    public ModelAndView getMyHistory(int page) {
+
+        int pageNum = 0;
+        int uid = userService.getCurrentUser().getUid();
+        List<History> histories;
+        MsgBuilder builder = new MsgBuilder();
+        histories = userService.getHistories(uid, (page - 1) * ONE_PAGE_HISTORY_NUM, ONE_PAGE_HISTORY_NUM);
+        pageNum = userService.getHistoryNum(uid);
+
+        builder.addData("histories", histories);
+        builder.addData("currentPage", page);
+        builder.addData("pageNum", pageNum);
+        return builder.getMsg("/user/history");
     }
 }

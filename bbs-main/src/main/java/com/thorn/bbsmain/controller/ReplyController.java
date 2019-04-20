@@ -1,5 +1,6 @@
 package com.thorn.bbsmain.controller;
 
+import com.thorn.bbsmain.exceptions.DeleteReplyException;
 import com.thorn.bbsmain.exceptions.PostException;
 import com.thorn.bbsmain.mapper.entity.Reply;
 import com.thorn.bbsmain.services.PostService;
@@ -46,9 +47,10 @@ public class ReplyController {
         return replyService.addReply(reply, result);
     }
 
+    @ResponseBody
     @DeleteMapping("del/{pid}/{floor}")
-    public ModelAndView delReply(@PathVariable("pid") int pid,
-                                 @PathVariable("floor") int floor) throws PostException {
+    public String delReply(@PathVariable("pid") int pid,
+                           @PathVariable("floor") int floor) throws PostException, DeleteReplyException {
         return replyService.delReply(pid, floor);
     }
 }

@@ -5,10 +5,12 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
 
+@Slf4j
 public class JWTUtil {
 
     public static final int REFRESHLIMIT = 60 * 1000;
@@ -47,7 +49,7 @@ public class JWTUtil {
             DecodedJWT jwt = JWT.decode(token);
             return jwt.getClaim("email").asString();
         } catch (JWTDecodeException e) {
-            System.out.println("token解析失败:" + e.getMessage());
+            log.error("token解析失败:" + e.getMessage());
             return null;
         }
     }
@@ -70,7 +72,7 @@ public class JWTUtil {
                     .sign(algorithm);
 
         } catch (UnsupportedEncodingException e) {
-            System.out.println("不支持生成token" + e.getMessage());
+            log.error("不支持生成token" + e.getMessage());
             return null;
         }
     }

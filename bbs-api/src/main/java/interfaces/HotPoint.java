@@ -3,9 +3,11 @@ package interfaces;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 @NoArgsConstructor
 @Data
-public class HotPoint {
+public class HotPoint implements Serializable {
     int view;
     int reply;
     long total;

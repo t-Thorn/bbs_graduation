@@ -5,10 +5,7 @@ import com.thorn.bbsmain.exceptions.PageException;
 import com.thorn.bbsmain.services.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 @Controller
@@ -17,6 +14,9 @@ public class BasicController {
 
     private PostService postService;
 
+    /**
+     * @param postService
+     */
 
     public BasicController(@Autowired PostService postService) {
         this.postService = postService;
@@ -30,22 +30,21 @@ public class BasicController {
      * @param target 搜索内容，为空则默认
      * @return
      */
-    @GetMapping("/")
-    public ModelAndView home(@RequestParam(value = "type", required = false, defaultValue = "0") Integer type,
-                             @RequestParam(value = "page", required = false, defaultValue = "1") Integer page,
-                             @RequestParam(value = "target", required = false, defaultValue = "") String target)
-            throws PageException {
-        return postService.buildHome(type, page, target);
+    @GetMapping(value = {"index/{type}/{page}/{search}", "index/{type}/{page}", "/"})
+    public ModelAndView home(@PathVariable(value = "type", required = false) Integer type,
+                             @PathVariable(value = "page", required = false) Integer page,
+                             @PathVariable(value = "search", required = false) String search,
+                             @RequestParam(value = "target", required = false, defaultValue = "") String target) throws PageException {
+        return postService.buildHome(type == null ? 0 : type, page == null ? 1 : page, search == null ? target :
+                search);
     }
 
-    @GetMapping("/error_404")
+    @RequestMapping("/error_404")
     public ModelAndView error404() {
         ModelAndView mv = new ModelAndView();
         mv.setViewName("/other/404");
         return mv;
     }
-
-    //fixme 重定向都得带参数，则这个很多余
 
     /**
      * @param uri    跳转到哪个页面
@@ -56,7 +55,6 @@ public class BasicController {
     @RequestMapping("/Jump")
     public ModelAndView error(@RequestAttribute("uri") String uri,
                               @RequestAttribute("params") JSONObject params) {
-        System.out.println("中转中心" + params.toJSONString());
         ModelAndView mv = new ModelAndView();
         mv.addAllObjects(params);
         mv.setViewName("redirect:" + uri);

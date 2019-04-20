@@ -33,7 +33,10 @@ public class PageUtil {
         return list.subList(beginIndex, endIndex);
     }
 
-    public static int getPage(List list, int step) {
-        return list.size() / step + 1;
+    public static int getPage(int num, int step) {
+        if (num % step == 0) {
+            return num / step;
+        }
+        return num / step + 1;
     }
 }

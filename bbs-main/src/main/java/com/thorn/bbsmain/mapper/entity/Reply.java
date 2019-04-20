@@ -33,7 +33,7 @@ public class Reply {
 
     Integer likesNum;
 
-    Boolean avaliable;
+    Boolean available;
 
     Integer replyToId;
 
