@@ -36,7 +36,6 @@ public class UserController {
     @GetMapping("login/{uri}")
     public ModelAndView turnToLogin(@Autowired MsgBuilder builder,
                                     @PathVariable("uri") String uri) {
-        System.out.println("login");
         builder.addData("uri", uri);
         return builder.getMsg("/user/login");
     }
@@ -57,7 +56,6 @@ public class UserController {
     @RequiresGuest
     @GetMapping("reg/{uri}")
     public String turnToReg(@PathVariable("uri") String uri, MsgBuilder builder) {
-        System.out.println("reg");
         builder.addData("uri", uri);
         return "/user/reg";
     }
@@ -73,14 +71,14 @@ public class UserController {
     @RequiresGuest
     @GetMapping("forget")
     public String turnToForget() {
-        System.out.println("reg");
+
         return "/user/forget";
     }
 
     @RequiresGuest
     @PostMapping("forget")
     public String forget() {
-        System.out.println("reg");
+
         return "/user/forget";
     }
 
@@ -106,7 +104,7 @@ public class UserController {
     @RequiresUser
     @PostMapping("fan")
     @ResponseBody
-    public String createRelationship(@RequestParam("toUser") Integer to, @Autowired MsgBuilder builder) throws Exception {
+    public String createRelationship(@RequestParam("toUser") Integer to, @Autowired MsgBuilder builder) {
         userService.createRelationship(to);
         builder.addData("msg", "成功");
         return builder.getMsg();
@@ -115,7 +113,7 @@ public class UserController {
     @RequiresUser
     @DeleteMapping("cancelFan")
     @ResponseBody
-    public String delRelationship(@RequestParam("toUser") Integer to, @Autowired MsgBuilder builder) throws Exception {
+    public String delRelationship(@RequestParam("toUser") Integer to, @Autowired MsgBuilder builder) {
         userService.delRelationship(to);
         builder.addData("msg", "成功");
         return builder.getMsg();

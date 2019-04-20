@@ -15,7 +15,7 @@ public interface ReplyMapper {
             "from (select r1.*, contentEx, replyToId,replyToNickname" +
             "      from reply r1" +
             "             left join (select (case" +
-            "                               when avaliable=1 then content_show" +
+            "                               when available=1 then content_show" +
             "                                 else '回复已被删除'" +
             "                                   end ) contentEx," +
             "                               floor," +
@@ -24,11 +24,12 @@ public interface ReplyMapper {
             "                        from reply left join user on replyer=uid" +
             "                        where postid = 1) r2 on r1.replyTo = r2.floor" +
             "      where postid = #{pid}" +
-            "        and avaliable = 1) r" +
+            "        and available = 1) r" +
             "       left join" +
-            "     user u on uid = r.replyer " +
-            "order by floor asc")
-    List<Reply> getReplyByPID(int pid);
+            "     user u on uid = r.replyer and postid>=(select postid from post limit #{offset}," +
+            "1) " +
+            "order by floor asc limit #{step}")
+    List<Reply> getReplyByPID(int pid, int offset, int step);
 
 
     @Select("select floor from replyLike where pid=#{pid} and liker=#{uid}")
@@ -55,7 +56,7 @@ public interface ReplyMapper {
 
     @Select({"<script>",
             "select count(1) from reply",
-            "where postid=#{postid} and avaliable=true",
+            "where postid=#{postid} and available=true",
             "<if test='replyTo!=null and replyTo!=0'>",
             "AND floor = #{replyTo}",
             "</if>",
@@ -68,4 +69,26 @@ public interface ReplyMapper {
             "#{postid},#{content}," +
             "#{content_show},#{replyer},#{replyTo})")
     void addReply(Reply reply);
+
+    @Select("select count(1) from reply where postid=#{pid} and floor=#{floor} and available=1")
+    int isExist(int pid, int floor);
+
+    @Update("update reply set available=0 where postid=#{pid} and floor=#{floor} and available=1")
+    int invalidReply(int pid, int floor);
+
+    @Select("select (select count(1)" +
+            "        from reply " +
+            "        where replyer = #{uid}" +
+            "          and postid = #{pid}" +
+            "          and floor = #{floor}" +
+            "       ) + (" +
+            "         select count(1)" +
+            "         from post " +
+            "         where uid = #{uid}" +
+            "           and pid = #{pid}) " +
+            "from dual")
+    int hasPermission(Integer uid, int pid, int floor);
+
+    @Select("select count(*) from reply where postid=#{pid} and available=true")
+    int getReplyNum(Integer pid);
 }

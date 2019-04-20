@@ -7,6 +7,7 @@ import com.thorn.bbsmain.exceptions.PostNotFoundException;
 import com.thorn.bbsmain.mapper.PostMapper;
 import com.thorn.bbsmain.mapper.entity.Post;
 import com.thorn.bbsmain.mapper.entity.Reply;
+import com.thorn.bbsmain.mapper.entity.User;
 import com.thorn.bbsmain.utils.MsgBuilder;
 import com.thorn.bbsmain.utils.PageUtil;
 import impl.HotPointManager;
@@ -46,21 +47,9 @@ public class PostService {
     }
 
     /**
-     * 获取首页中显示的帖子信息
-     *
-     * @param builder
-     * @param page    帖子页数偏移
-     */
-
-    public void getIndexPost(Integer page, String target, Integer type, MsgBuilder builder) {
-
-
-    }
-
-    /**
      * 获取公告
      */
-//    @Cacheable(value = "posts", key = "'announcements'", unless = "#result==null")
+
     public List<Post> getAnnouncements() {
         return postMapper.getAnnouncements();
     }
@@ -68,7 +57,7 @@ public class PostService {
     /**
      * 获取置顶帖
      */
-//    @Cacheable(value = "posts", key = "'topposts'", unless = "#result==null")
+
     public List<Post> getTopPosts() {
         return postMapper.getTopPosts();
     }
@@ -90,8 +79,8 @@ public class PostService {
      * @return 帖子×8
      */
 
-    public List<Post> getGoodPosts() {
-        return postMapper.getGoodPosts();
+    public List<Post> getGoodPosts(int page) {
+        return postMapper.getGoodPosts(page * ONE_PAGE_POST_NUM, ONE_PAGE_POST_NUM);
     }
 
     /**
@@ -100,8 +89,8 @@ public class PostService {
      * @return 帖子×8
      */
 
-    public List<Post> getPosts() {
-        return postMapper.getPosts();
+    public List<Post> getPosts(int page) {
+        return postMapper.getPosts(page * ONE_PAGE_POST_NUM, ONE_PAGE_POST_NUM);
     }
 
     /**
@@ -110,17 +99,17 @@ public class PostService {
      * @param target 搜索的内容
      * @return 帖子×8
      */
-    //todo 加入回复内容模糊搜索
-    public List<Post> getPosts(String target) {
-        return postMapper.getPostsForTarget(target);
+
+    public List<Post> getPosts(String target, int page) {
+        return postMapper.getPostsForTarget(target, page * ONE_PAGE_POST_NUM, ONE_PAGE_POST_NUM);
     }
 
     /**
      * 创建新帖子
      *
-     * @param post    帖子
-     * @param result  错误信息
-     * @param reply   回复
+     * @param post     帖子
+     * @param result   错误信息
+     * @param reply    回复
      * @param response
      * @return
      */
@@ -132,7 +121,6 @@ public class PostService {
         if (result.hasErrors()) {
             StringBuilder stringBuilder = new StringBuilder();
             FieldError titleError = result.getFieldError("title");
-            //todo errormsg用layer.msg显示
             if (titleError != null) {
                 stringBuilder.append(titleError.getDefaultMessage());
             }
@@ -141,9 +129,8 @@ public class PostService {
                 stringBuilder.append(",").append(typeError.getDefaultMessage());
             }
             builder.addData("errorMsg", stringBuilder.toString());
-            //fixme 可能需要考虑是否会重置表单，导致体验降低
-            builder.redirectAndSendMsg(response, "/post/newPost", "errorMsg");
-            return null;
+
+            return builder.getMsg("/post/newPost");
         }
 
         //用户帖子数+1
@@ -181,23 +168,22 @@ public class PostService {
         builder.addData("topPosts", getTopPosts());
         if (target.equals("")) {
             if (type == 0) {
-                postList = getPosts();
+                postList = getPosts(page - 1);
+                builder.addData("pageNum", PageUtil.getPage(getPostNum(), ONE_PAGE_POST_NUM));
             } else {
-                postList = getGoodPosts();
+                postList = getGoodPosts(page - 1);
+                builder.addData("pageNum", PageUtil.getPage(getGoodPostNum(), ONE_PAGE_POST_NUM));
             }
-            builder.addData("type", type);
         } else {
-            postList = getPosts(target);
-
+            postList = getPosts(target, page - 1);
+            builder.addData("pageNum", PageUtil.getPage(getPostNum(target), ONE_PAGE_POST_NUM));
         }
+
         //需要返回搜索内容
+        builder.addData("type", type);
         builder.addData("page", page);
         builder.addData("target", target);
-        if (postList != null && postList.size() > 0) {
-            builder.addData("pageNum",
-                    PageUtil.getPage(postList, ONE_PAGE_POST_NUM));
-        }
-        builder.addData("posts", PageUtil.subList(postList, page, ONE_PAGE_POST_NUM));
+        builder.addData("posts", postList.size() == 0 ? null : postList);
 
         getHotPosts(builder);
         return builder.getMsg("index");
@@ -206,8 +192,8 @@ public class PostService {
     /**
      * 浏览帖子
      *
-     * @param pid   帖子id
-     * @param floor 偏移楼层
+     * @param pid      帖子id
+     * @param floor    偏移楼层
      * @param errorMsg
      * @return
      */
@@ -223,8 +209,22 @@ public class PostService {
          */
         Post post = postMapper.getPost(pid);
         if (post == null) {
-            System.out.println("未找到页面");
             throw new PostNotFoundException("未找到页面");
+        }
+        User currentUser = userService.getCurrentUser();
+        //检测是否收藏帖子
+        if (currentUser != null) {
+            if (post.getUid().equals(currentUser.getUid())) {
+                builder.addData("myself", true);
+            } else {
+                builder.addData("myself", false);
+                if (userService.collectRelationshipIsExist(currentUser.getUid(), pid)) {
+                    builder.addData("collect", true);
+                } else {
+                    builder.addData("collect", false);
+                }
+            }
+
         }
         //构建帖子头信息
         builder.addData("hotPoint", manager.getHotPoint(pid));
@@ -235,6 +235,18 @@ public class PostService {
         builder.addData("errorMsg", errorMsg);
         getHotPosts(builder);
         return builder.getMsg("/jie/detail");
+    }
+
+    public int getPostNum() {
+        return postMapper.getPostNum();
+    }
+
+    public int getPostNum(String target) {
+        return postMapper.getPostNumOfTarget(target);
+    }
+
+    public int getGoodPostNum() {
+        return postMapper.getGoodPostNum();
     }
 
 

@@ -28,7 +28,7 @@ public class JWTFilter extends BasicHttpAuthenticationFilter {
     @Override
     protected boolean isAccessAllowed(ServletRequest request, ServletResponse response, Object mappedValue) {
         HttpServletRequest servletRequest = (HttpServletRequest) request;
-        System.out.println("放行鉴定 uri：" + servletRequest.getRequestURI());
+        log.info("放行鉴定 uri：" + servletRequest.getRequestURI());
         if (this.isLoginRequest(request, response)) {
             return true;
         }
@@ -81,7 +81,7 @@ public class JWTFilter extends BasicHttpAuthenticationFilter {
      */
     @Override
     protected boolean onLoginSuccess(AuthenticationToken token, Subject subject, ServletRequest request, ServletResponse response) throws Exception {
-        System.out.println("认证成功");
+        log.info("认证成功");
         HttpServletResponse httpResponse = WebUtils.toHttp(response);
         String newToken = null;
         if (token instanceof JWTToken) {
@@ -96,7 +96,7 @@ public class JWTFilter extends BasicHttpAuthenticationFilter {
                     Cookie ctoken = new Cookie("token", newToken);
                     ctoken.setPath("/");
                     httpResponse.addCookie(ctoken);
-                    System.out.println("重新刷新shiro中的 token");
+                    log.info("重新刷新shiro中的 token");
                     //需要重新登录不然会出错
                     Subject currentUser = SecurityUtils.getSubject();
                     currentUser.logout();

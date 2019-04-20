@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
@@ -27,8 +28,6 @@ import java.util.List;
 @ControllerAdvice
 public class GlobalDefaultExceptionHandler {
 
-    @Autowired
-    MsgBuilder builder;
     /**
      * 禁止用户访问的uri
      */
@@ -48,7 +47,7 @@ public class GlobalDefaultExceptionHandler {
      */
     @ExceptionHandler(AuthenticationException.class)
     @ResponseBody
-    public String defaultAuthorizedExceptionHandler(HttpServletRequest request, HttpServletResponse response, Exception e) {
+    public ModelAndView defaultAuthorizedExceptionHandler(HttpServletRequest request, HttpServletResponse response, Exception e) {
         return defaultException(request, response, e);
     }
 
@@ -62,52 +61,47 @@ public class GlobalDefaultExceptionHandler {
      */
     @ExceptionHandler(AuthorizationException.class)
     @ResponseBody
-    public String defaultunAuthorizedExceptionHandler(HttpServletRequest request,
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ModelAndView defaultunAuthorizedExceptionHandler(HttpServletRequest request,
                                                       HttpServletResponse response, Exception e) {
         return defaultException(request, response, e);
     }
 
 
-    private String defaultException(HttpServletRequest request, HttpServletResponse response,
-                                    Exception msg) {
+    private ModelAndView defaultException(HttpServletRequest request, HttpServletResponse response,
+                                          Exception msg) {
 
-        System.out.println("认证错误:" + msg.getMessage());
+        log.warn("认证错误:" + msg.getMessage());
         MsgBuilder builder = new MsgBuilder();
         builder.addData("errorMsg", msg.getMessage());
-//fixme  错误信息优化
         if (msg instanceof AuthorizationException) {
             //用户访问只有游客才能访问的页面时则返回主页面，并且不提示
             if (uris.stream().anyMatch(uri -> request.getRequestURI().contains(uri))) {
-                System.out.println("游客界面");
+                log.info("游客界面");
                 builder.clear();
             } else {
                 builder.addData("errorMsg", "权限不足");
             }
             //权限不够则跳转到主页
+            if (msg.getMessage().contains("The current Subject is not a user")) {
+                builder.addData("errorMsg", "请登录后再试");
+            }
             if (!isAjax(request)) {
-                if (msg.getMessage().contains("user")) {
-                    System.out.println("需要的是用户，而不是缺乏权限时跳转登录");
-                    builder.redirectAndSendMsgByJump(request, response, "/user/login");
-                }
-                builder.redirectAndSendMsgByJump(request, response, "/");
+                return builder.getMsg("/user/login");
             } else {
-                return builder.getMsg();
+                return builder.getMsgForAjax();
             }
         } else {
-            System.out.println("身份认证错误");
+            log.info("身份认证错误");
             //返回请求页面，并附上参数
             //用户访问只有游客才能访问的页面时则返回主页面，并且不提示
             if (!isAjax(request)) {
                 userService.delUserCookie(response);
-                builder.redirectAndSendMsgByJump(request, response,
-                        request.getRequestURI());
+                return builder.getMsg(request.getRequestURI());
             } else {
-                return builder.getMsg();
+                return builder.getMsgForAjax();
             }
         }
-
-        //返回空，否则会造成二次使用response
-        return null;
     }
 
 
@@ -121,73 +115,74 @@ public class GlobalDefaultExceptionHandler {
 
     @ExceptionHandler(UserInfoException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public String userInfoExceptionHandler(HttpServletRequest request, HttpServletResponse response,
-                                           Throwable ex) {
+    public ModelAndView userInfoExceptionHandler(HttpServletRequest request, HttpServletResponse response,
+                                                 Throwable ex) {
         return defualtHandler(request, response, ex);
     }
 
     @ExceptionHandler(UserException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public String userExceptionHandler(HttpServletRequest request, HttpServletResponse response,
-                                       Throwable ex) {
+    public ModelAndView userExceptionHandler(HttpServletRequest request, HttpServletResponse response,
+                                             Throwable ex) {
 
         return defualtHandler(request, response, ex);
     }
 
     @ExceptionHandler(PageException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public String pageExceptionHandler(HttpServletRequest request, HttpServletResponse response,
-                                       Throwable ex) {
+    public ModelAndView pageExceptionHandler(HttpServletRequest request, HttpServletResponse response,
+                                             Throwable ex) {
 
         return defualtHandler(request, response, ex);
     }
 
     @ExceptionHandler(PostException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public String postExceptionHandler(HttpServletRequest request, HttpServletResponse response,
-                                       Throwable ex) {
-
+    public ModelAndView postExceptionHandler(HttpServletRequest request, HttpServletResponse response,
+                                             Throwable ex) {
         return defualtHandler(request, response, ex);
     }
 
     @ExceptionHandler(PostNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public String postNotFoundExceptionHandler(HttpServletRequest request,
-                                               HttpServletResponse response,
-                                               Throwable ex) {
-        System.out.println("postnotfound");
-        request.setAttribute("errorMsg", ex.getMessage());
-        return "/other/404";
+    public ModelAndView postNotFoundExceptionHandler(HttpServletRequest request,
+                                                     HttpServletResponse response,
+                                                     Throwable ex) {
+        return defualtHandler(request, response, ex);
     }
+
+    @ResponseBody
+    @ExceptionHandler(DeleteReplyException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ModelAndView delReplyExceptionHandler(HttpServletRequest request,
+                                                 HttpServletResponse response,
+                                                 Throwable ex) {
+        return defualtHandler(request, response, ex);
+    }
+
 
     /**
      * 捕捉其他所有异常
      */
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public void globalException(HttpServletRequest request, HttpServletResponse response,
-                                Throwable ex) {
-        if ("/error_404".equals(request.getRequestURI())) {
-            //防止过多重定向
-            return;
-        }
+    public ModelAndView globalException(HttpServletRequest request, HttpServletResponse response,
+                                        Throwable ex) {
+        MsgBuilder builder = new MsgBuilder();
         log.error("默认异常处理:" + ex.getMessage());
         builder.addData("errorMsg", "服务器内部错误");
-
-        builder.redirectAndSendMsg(response, "/error_404", "errorMsg");
+        return builder.getMsg("/other/404");
     }
 
 
-    private String defualtHandler(HttpServletRequest request, HttpServletResponse response, Throwable ex) {
+    private ModelAndView defualtHandler(HttpServletRequest request, HttpServletResponse response,
+                                        Throwable ex) {
         MsgBuilder builder = new MsgBuilder();
         builder.addData("errorMsg", ex.getMessage());
-        log.warn("出现异常：{}" + ex.getMessage());
+        log.warn("出现异常：{}", ex.getMessage());
         if (isAjax(request)) {
-            return builder.getMsg();
-        } else {
-            //
-            builder.redirectAndSendMsg(response, request.getRequestURI(), "errorMsg");
+            return builder.getMsgForAjax();
         }
-        return null;
+        return builder.getMsg(request.getRequestURI());
     }
 }

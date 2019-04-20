@@ -2,6 +2,7 @@ package com.thorn.bbsmain.services;
 
 
 import annotation.RefreshHotPost;
+import com.thorn.bbsmain.exceptions.DeleteReplyException;
 import com.thorn.bbsmain.exceptions.PageException;
 import com.thorn.bbsmain.exceptions.PostException;
 import com.thorn.bbsmain.mapper.PostMapper;
@@ -10,6 +11,7 @@ import com.thorn.bbsmain.mapper.entity.Reply;
 import com.thorn.bbsmain.mapper.entity.User;
 import com.thorn.bbsmain.utils.MsgBuilder;
 import com.thorn.bbsmain.utils.PageUtil;
+import impl.HotPointManager;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,7 +49,6 @@ public class ReplyService {
     }
 
     /**
-     * 回复列表框上传图片 todo 需要压缩图片
      *
      * @param imgList 图片合集
      * @return 消息字符串
@@ -107,8 +108,8 @@ public class ReplyService {
 
 
     //@cacheable
-    public List<Reply> getReplyByPid(int pid) {
-        return replyMapper.getReplyByPID(pid);
+    public List<Reply> getReplyByPid(int pid, int page) {
+        return replyMapper.getReplyByPID(pid, page * ONE_PAGE_REPLY_NUM, ONE_PAGE_REPLY_NUM);
     }
 
     public List<Integer> getLikesByPID(int pid, int uid) {
@@ -129,23 +130,22 @@ public class ReplyService {
     }
 
     public List<Reply> getReplies(Integer pid, MsgBuilder builder, int page) throws PageException {
-        List<Reply> replyList = getReplyByPid(pid);
+        List<Reply> replyList = getReplyByPid(pid, page - 1);
 
         //获取帖子内容
         builder.addData("topReply", replyList.get(0));
         replyList.remove(0);
 
         //分页
+        int replyNum;
+        replyNum = replyMapper.getReplyNum(pid);
         if (page == -1) {
             //提供给新增回复一个接口跳转到最后一页
-            page = PageUtil.getPage(replyList, ONE_PAGE_REPLY_NUM);
+            page = PageUtil.getPage(replyNum, ONE_PAGE_REPLY_NUM);
         }
-        replyList = PageUtil.subList(replyList, page, ONE_PAGE_REPLY_NUM);
         builder.addData("page", page);
         builder.addData("pageNum",
-                PageUtil.getPage(replyList, ONE_PAGE_REPLY_NUM));
-
-
+                PageUtil.getPage(replyNum, ONE_PAGE_REPLY_NUM));
         //获取点赞列表
         User user = userService.getCurrentUser();
         if (user != null) {
@@ -160,12 +160,11 @@ public class ReplyService {
         return replyList;
     }
 
-    @RefreshHotPost("reply")
+    @RefreshHotPost(HotPointManager.REPLY)
     @Transactional
     public ModelAndView addReply(Reply reply, BindingResult result) throws PostException {
         MsgBuilder builder = new MsgBuilder();
         if (result.hasErrors()) {
-            result.getModel().forEach((k, v) -> System.out.println(k + ":" + v));
             builder.addData("errorMsg", result.getModel());
             return builder.getMsg("forward:/post/" + reply.getPostid());
         }
@@ -188,10 +187,37 @@ public class ReplyService {
         return builder.getMsg("forward:/post/" + reply.getPostid() + "/-1");
     }
 
+    @RefreshHotPost(HotPointManager.DELREPLY)
     @Transactional
-    public ModelAndView delReply(int pid, int floor) {
-        MsgBuilder builder = new MsgBuilder();
+    public String delReply(int pid, int floor) throws PostException, DeleteReplyException {
+        if (floor == 0 || pid == 0) {
+            throw new PostException("删除帖子参数错误");
+        }
+        User user = userService.getCurrentUser();
+        if (user == null) {
+            throw new DeleteReplyException("请登录再试");
+        }
 
-        return builder.getMsg("redirect:/post/" + pid);
+        if (!userService.hasRole("admin") || replyMapper.hasPermission(user.getUid(), pid, floor) == 0) {
+            throw new DeleteReplyException("没有权限删除");
+        }
+        if (!isExist(pid, floor)) {
+            throw new DeleteReplyException("删除帖子参数错误");
+        }
+        MsgBuilder builder = new MsgBuilder();
+        //回复可用置0
+        if (replyMapper.invalidReply(pid, floor) > 0) {
+            postMapper.decreaseReplyNum(pid);
+        } else {
+            throw new DeleteReplyException("已被删除");
+        }
+        //帖子回复数-1
+
+        builder.addData("msg", "成功");
+        return builder.getMsg();
+    }
+
+    boolean isExist(int pid, int floor) {
+        return replyMapper.isExist(pid, floor) != 0;
     }
 }

@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.view.json.MappingJackson2JsonView;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
@@ -73,6 +74,18 @@ public class MsgBuilder {
         return this.json.toJSONString();
     }
 
+    /**
+     * 获取构建好的消息,适用与spring的ajax
+     *
+     * @return
+     */
+    public ModelAndView getMsgForAjax() {
+        ModelAndView mv = new ModelAndView();
+        MappingJackson2JsonView jsonView = new MappingJackson2JsonView();
+        jsonView.setAttributesMap(this.json);
+        mv.setView(jsonView);
+        return mv;
+    }
 
     /**
      * 获取构建好的消息,适用与web
@@ -125,7 +138,6 @@ public class MsgBuilder {
                                          String uri) {
         try {
             request.setAttribute("uri", uri);
-            System.out.println(json.toJSONString());
             request.setAttribute("params", json);
             request.getRequestDispatcher("/Jump").forward(request, response);
         } catch (ServletException | IOException e) {

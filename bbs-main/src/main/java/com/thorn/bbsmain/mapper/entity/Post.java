@@ -36,7 +36,7 @@ public class Post implements Serializable {
 
     Integer points;
 
-    Boolean avaliable;
+    Boolean available;
 
     String img;
 

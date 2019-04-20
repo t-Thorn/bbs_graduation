@@ -4,8 +4,7 @@ import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
+import org.springframework.core.annotation.Order;
 
 import java.util.List;
 import java.util.Map;
@@ -16,17 +15,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
- * fixme 暂时仅作为defaultHotPostHandler的抽象，需要优化
  *
  * @param <E> 帖子类型
  */
+
 @Aspect
 public abstract class AbstractHotPostHandler<E> {
-    public static final int VIEW = 0;
-
-    public static final int REPLY = 1;
-
-    public static final int REFRESH = 2;
 
     /**
      * 刷新后默认热度为1000
@@ -75,11 +69,7 @@ public abstract class AbstractHotPostHandler<E> {
         this.dataSaver = dataSaver;
     }
 
-    @Pointcut("@annotation(annotation.RefreshHotPost)")
-    private void aopIntercept() {
-
-    }
-
+    @Order(2)
     @AfterReturning("aopIntercept()")
     protected abstract void process(JoinPoint point);
 
@@ -93,8 +83,11 @@ public abstract class AbstractHotPostHandler<E> {
 
     protected abstract void addReplyNum(int pid);
 
-    @Retryable(value = Exception.class, maxAttempts = 3, backoff = @Backoff(delay = 100,
-            multiplier = 1.5))
+    @Pointcut("@annotation(annotation.RefreshHotPost)")
+    private void aopIntercept() {
+
+    }
+
     protected abstract void del(int pid);
 
     protected abstract void updateTopPost(int pid, long hotpoint);
@@ -108,4 +101,5 @@ public abstract class AbstractHotPostHandler<E> {
 
     public abstract long getHotPoint(int pid);
 
+    public abstract void addCycleSaveTaskForReload(int period, TimeUnit unit, String path);
 }

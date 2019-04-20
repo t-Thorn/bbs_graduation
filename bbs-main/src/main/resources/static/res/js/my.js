@@ -23,7 +23,7 @@ function upload() {
             $("#avator").attr('src', data.msg);
         },
         error: function (data) {
-            alert(data.errorMsg);
+            layer.msg(data.errorMsg);
         }
     })
 }
@@ -36,7 +36,7 @@ function upload() {
 function checkImg(file) {
     var fileType = document.getElementById("file").value;
     if (!/\.(gif|jpg|jpeg|png|GIF|JPG|JPEG|PNG)$/.test(fileType)) {
-        alert("图片类型必须是.gif,jpeg,jpg,png中的一种");
+        layer.msg("图片类型必须是.gif,jpeg,jpg,png中的一种");
         return false;
     }
     var reader = new FileReader();
@@ -44,7 +44,7 @@ function checkImg(file) {
     reader.onload = function (e) {
         var dx = e.total / 1024;
         if (dx >= 50) {
-            alert("文件大小大于50k");
+            layer.msg("文件过大")
             return false;
         }
     }
@@ -69,84 +69,70 @@ function getObjectURL(file) {
 }
 
 /**
- * ajax关注用户 fixme 需要优化，仅需要一个方法
+ * 关注
+ * @param uid
  */
 function fan(uid) {
+    var fanBtn = $("#isFan a");
+    if (!fanBtn.hasClass('layui-btn-primary')) {
+        url = '/user/fan';
+        type = 'post';
+    } else {
+        url = '/user/cancelFan';
+        type = 'delete';
+    }
     $.ajax({
-        url: '/user/fan',
-        type: 'post',
+        url: url,
+        type: type,
         dataType: 'json',
         data: {"toUser": uid},
         success: function () {
-            $("#isFan a").remove();
-            var element = $("<a></a>").text("已关注")
-                .addClass("layui-btn").addClass("layui-btn-primary").addClass("fly-imActive")
-                .on("click", {uid: uid}, cancelFan);
-            $("#isFan").append(element);
+            if (!fanBtn.hasClass('layui-btn-primary')) {
+                fanBtn.removeClass('layui-btn-normal').text("已关注").addClass("layui-btn-primary");
+                layer.msg("关注成功")
+            } else {
+                fanBtn.removeClass("layui-btn-primary").text("关注").addClass("layui-btn-normal");
+                layer.msg("取关成功")
+            }
         },
-        error: function () {
-            layer.msg("失败");
+        error: function (data) {
+            layer.msg("失败:" + JSON.parse(data.responseText).errorMsg);
         }
     })
 }
 
-function fan_(event) {
+/**
+ * 收藏
+ * @param pid
+ */
+function collect(pid) {
+    var collectBtn = $("#collect button");
+    if (collectBtn.hasClass('layui-btn-primary')) {
+        url = '/info/collect';
+        type = 'post';
+    } else {
+        url = '/info/cancelCollect';
+        type = 'delete';
+    }
     $.ajax({
-        url: '/user/fan',
-        type: 'post',
+        url: url,
+        type: type,
         dataType: 'json',
-        data: {"toUser": event.data.uid},
+        data: {"pid": pid},
         success: function () {
-            $("#isFan a").remove();
-            var element = $("<a></a>").text("已关注")
-                .addClass("layui-btn").addClass("layui-btn-primary").addClass("fly-imActive")
-                .on("click", {uid: event.data.uid}, cancelFan_);
-            $("#isFan").append(element);
+            if (!collectBtn.hasClass('layui-btn-primary')) {
+                collectBtn.removeClass('layui-btn-normal').addClass("layui-btn-primary");
+                layer.msg("取消收藏成功")
+            } else {
+                collectBtn.removeClass("layui-btn-primary").addClass("layui-btn-normal");
+                layer.msg("收藏成功")
+            }
         },
-        error: function () {
-            alert("失败");
+        error: function (data) {
+            layer.msg("失败:" + JSON.parse(data.responseText).errorMsg);
         }
     })
 }
-
-function cancelFan(uid) {
-    $.ajax({
-        url: '/user/cancelFan',
-        type: 'delete',
-        dataType: 'json',
-        data: {"toUser": uid},
-        success: function () {
-            $("#isFan a").remove();
-            var element = $("<a></a>").text("关注")
-                .addClass("layui-btn").addClass("layui-btn-normal").addClass("fly-imActive")
-                .on("click", {uid: uid}, fan_);
-            $("#isFan").append(element);
-        },
-        error: function () {
-            alert("失败");
-        }
-    })
-}
-
-function cancelFan_(event) {
-    $.ajax({
-        url: '/user/cancelFan',
-        type: 'delete',
-        dataType: 'json',
-        data: {"toUser": event.data.uid},
-        success: function () {
-            $("#isFan a").remove();
-            var element = $("<a></a>").text("关注")
-                .addClass("layui-btn").addClass("layui-btn-normal").addClass("fly-imActive")
-                .on("click", {uid: event.data.uid}, fan_);
-            $("#isFan").append(element);
-        },
-        error: function () {
-            alert("失败");
-        }
-    })
-}
-
 /**
  * 消息框配置 todo 加入websocket
  * @type {NotificationFx}
@@ -167,7 +153,6 @@ var notification = new NotificationFx({
 
 // show the notification
 notification.show();*/
-//todo 分离js文件，加快速度
 var E = window.wangEditor;
 var editor = new E('#editor');
 
@@ -191,7 +176,7 @@ function createEditor() {
     editor.customConfig.uploadImgHooks = {
         success: function (xhr, editor, result) {
             if (result.errorNum > 0) {
-                alert("上传失败数：" + result.errorNum);
+                layer.msg("上传失败数：" + result.errorNum);
             }
             // 图片上传并返回结果，图片插入成功之后触发
             // xhr 是 XMLHttpRequst 对象，editor 是编辑器对象，result 是服务器端返回的结果
@@ -223,11 +208,11 @@ function createEditor() {
 
 function processForm() {
     if ($("#type").val() == "") {
-        alert("请选择帖子类型");
+        layer.msg("请选择帖子类型");
         return false;
     }
     if ($("#title").val() == "") {
-        alert("请输入帖子标题");
+        layer.msg("请输入帖子标题");
         return false;
     }
     $("#content").val(editor.txt.text());
@@ -270,8 +255,8 @@ function dianzan(index) {
                     zan.removeClass("zan");
                 }
             },
-            error: function () {
-                layer.msg('点赞失败');
+            error: function (data) {
+                layer.msg('点赞失败' + JSON.parse(data.responseText).errorMsg);
             }
         })
     } else {
@@ -290,4 +275,22 @@ function submitReply() {
     $("#content").val(editor.txt.text());
     $("#content_show").val(editor.txt.html());
     $("#addReply").submit();
+}
+
+function delReply(index) {
+    var reply = $("#jieda .jieda-admin:eq(" + index + ") a");
+    var uri = "/reply/del/" + reply.data("pid") + "/" + reply.data("floor");
+    $.ajax({
+        url: uri,
+        type: 'delete',
+        dataType: 'json',
+        data: "",
+        success: function () {
+            layer.msg("删除成功");
+            window.location.reload(true);
+        },
+        error: function (data) {
+            layer.msg('删除失败:' + JSON.parse(data.responseText).errorMsg);
+        }
+    })
 }

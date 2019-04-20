@@ -2,10 +2,16 @@ package impl;
 
 import interfaces.ViewCache;
 
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DefaultViewCache implements ViewCache {
-    private static final ConcurrentHashMap<String, Integer> CACHE = new ConcurrentHashMap();
+    private final ConcurrentHashMap<String, Integer> CACHE = new ConcurrentHashMap();
+
+    @Override
+    public Map<String, Integer> getMap() {
+        return CACHE;
+    }
 
     @Override
     public Integer get(String key) {

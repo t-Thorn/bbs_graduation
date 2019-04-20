@@ -50,7 +50,9 @@
     var layer;
     layui.use(['element', 'layer'], function () {
         layer = layui.layer;
-        layer.msg("[[${errorMsg}]]");
+        if ("[[${errorMsg}]]" != "") {
+            layer.msg("[[${errorMsg}]]");
+        }
     });
 
 </script>

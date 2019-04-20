@@ -39,18 +39,13 @@ public class PostController {
         this.replyService = replyService;
     }
 
-    @RequestMapping("/{pid}/{page}")
+    @RequestMapping(value = {"/{pid}/{page}", "/{pid}"})
     public ModelAndView viewPost(@PathVariable("pid") int pid,
                                  @RequestAttribute(value = "floor", required = false) Integer floor,
-                                 @PathVariable(value = "page") int page,
+                                 @PathVariable(value = "page", required = false) Integer page,
                                  @RequestAttribute(value = "errorMsg", required = false) String errorMsg)
             throws PostNotFoundException, PageException {
-        return postService.viewPost(pid, floor, page, errorMsg);
-    }
-
-    @RequestMapping("/{pid}")
-    public ModelAndView viewPostDefault(@PathVariable("pid") int pid, MsgBuilder builder) {
-        return builder.getMsg("forward:/post/" + pid + "/" + 1);
+        return postService.viewPost(pid, floor, page == null ? 1 : page, errorMsg);
     }
 
     @RequiresPermissions("createPost")
@@ -73,4 +68,7 @@ public class PostController {
     public String imgUpload(@RequestParam("img") MultipartFile[] imgs) {
         return replyService.imgUpload(imgs);
     }
+
+
+
 }

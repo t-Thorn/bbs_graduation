@@ -22,7 +22,6 @@ public class TestRepository {
     public String get(String id) {
         ConcurrentHashMap map = new ConcurrentHashMap();
 
-        System.out.println("走数据库");
         return userMapper.getUserByUserName(id).toString();
     }
 }

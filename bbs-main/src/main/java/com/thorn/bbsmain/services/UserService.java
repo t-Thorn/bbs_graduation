@@ -5,9 +5,7 @@ import com.thorn.bbsmain.confugurations.shiro.jwt.JWTToken;
 import com.thorn.bbsmain.exceptions.UserException;
 import com.thorn.bbsmain.exceptions.UserInfoException;
 import com.thorn.bbsmain.mapper.UserMapper;
-import com.thorn.bbsmain.mapper.entity.Post;
-import com.thorn.bbsmain.mapper.entity.Reply;
-import com.thorn.bbsmain.mapper.entity.User;
+import com.thorn.bbsmain.mapper.entity.*;
 import com.thorn.bbsmain.utils.MsgBuilder;
 import com.thorn.bbsmain.utils.shiro.JWTUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -126,8 +124,9 @@ public class UserService {
         builder.addCookie(response, "nickname", ((User) currentUser.getPrincipal()).getNickname());
         builder.addCookie(response, "img",
                 ((User) currentUser.getPrincipal()).getImg());
+
+        //跳转到登录前的页面
         if (uri != null) {
-            System.out.println("uri:" + uri);
             uri = uri.split(",")[0];
             if ("home".equals(uri)) {
                 uri = "/";
@@ -168,6 +167,16 @@ public class UserService {
         return (User) currentUser.getPrincipal();
     }
 
+    /**
+     * 从shiro缓存中判断当前用户是否存在角色
+     *
+     * @return
+     */
+    public boolean hasRole(String roleName) {
+        Subject currentUser = SecurityUtils.getSubject();
+        return currentUser.hasRole(roleName);
+    }
+
     public void updatePassword(String email, String password) throws UserInfoException {
         try {
             userMapper.updatePassword(email, password);
@@ -184,6 +193,7 @@ public class UserService {
     }
 
     public ModelAndView buildUserHome(Integer uid) throws Exception {
+
         MsgBuilder builder = new MsgBuilder();
         User user = getCurrentUser();
         Integer from = user == null ? null : user.getUid();
@@ -192,7 +202,6 @@ public class UserService {
             builder.addData("myself", 1);
         }
         isUidExist(uid);
-
         builder.addData("userInfo", getUserInfoOfHome(uid));
 
         if (from != null && !from.equals(uid)) {
@@ -202,6 +211,7 @@ public class UserService {
         } else {
             builder.addData("myself", 1);
         }
+
         builder.addData("posts", getUserPost(uid));
         builder.addData("replys", getUserReply(uid));
         return builder.getMsg("/user/home");
@@ -239,7 +249,7 @@ public class UserService {
      *
      * @param to
      */
-    public void createRelationship(int to) throws Exception {
+    public void createRelationship(int to) {
         userMapper.createRelationship(getCurrentUser().getUid(), to);
     }
 
@@ -248,7 +258,7 @@ public class UserService {
      *
      * @param to
      */
-    public void delRelationship(int to) throws Exception {
+    public void delRelationship(int to) {
         userMapper.delRelationship(getCurrentUser().getUid(), to);
     }
 
@@ -262,5 +272,37 @@ public class UserService {
 
     public void addPostNum() {
         userMapper.addPostNum(getCurrentUser().getUid());
+    }
+
+    public void updateBasicInfo(User user) {
+        userMapper.updateBasicInfo(user);
+    }
+
+    public List<Message> getMessages(Integer uid, int page, int step) {
+        return userMapper.getMessages(uid, page, step);
+    }
+
+    public int getMessageNum(Integer uid) {
+        return userMapper.getMessageNum(uid);
+    }
+
+    public User getInfo(String email) {
+        return userMapper.getInfo(email);
+    }
+
+    public void updateAvator(String email, String s) {
+        userMapper.updateAvator(email, s);
+    }
+
+    public List<History> getHistories(Integer uid, int offset, int step) {
+        return userMapper.getHistories(uid, offset, step);
+    }
+
+    public int getHistoryNum(int uid) {
+        return userMapper.getHistoryNum(uid);
+    }
+
+    public boolean collectRelationshipIsExist(Integer uid, Integer pid) {
+        return userMapper.collectRelationshipIsExist(uid, pid) > 0;
     }
 }

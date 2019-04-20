@@ -31,6 +31,10 @@
                 </a>
                 <dl class="layui-nav-child">
                     <dd><a href="/info/setting"><i class="layui-icon">&#xe620;</i>基本设置</a></dd>
+                    <dd><a href="/info/history"><i class="iconfont icon-shichang"
+                                                   style="top: 4px;"></i>浏览历史
+                        <span class="layui-badge-dot" style="float:right"
+                              th:if="${hasMessage==true}"></span></a></dd>
                     <dd><a href="/info/message"><i class="iconfont icon-tongzhi"
                                                    style="top: 4px;"></i>我的消息</a></dd>
                     <dd><a href="/user/home"><i class="layui-icon"
@@ -68,6 +72,12 @@
             <a href="/info/message">
                 <i class="layui-icon">&#xe611;</i>
                 我的消息
+            </a>
+        </li>
+        <li class="layui-nav-item">
+            <a href="/info/history">
+                <i class="layui-icon">&#xe610;</i>
+                浏览记录
             </a>
         </li>
     </ul>
@@ -217,7 +227,7 @@
 </script>
 <script>
     if ("[[${#request.getParameter('errorMsg')}]]" != "") {
-        alert("[[${#request.getParameter('errorMsg')}]]");
+        layer.msg("[[${#request.getParameter('errorMsg')}]]");
     }
 </script>
 </body>
