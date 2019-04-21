@@ -171,6 +171,8 @@ public class GlobalDefaultExceptionHandler {
         MsgBuilder builder = new MsgBuilder();
         log.error("默认异常处理:" + ex.getMessage());
         builder.addData("errorMsg", "服务器内部错误");
+        if (isAjax(request))
+            return builder.getMsgForAjax();
         return builder.getMsg("/other/404");
     }
 

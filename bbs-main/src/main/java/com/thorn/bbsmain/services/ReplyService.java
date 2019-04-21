@@ -130,6 +130,12 @@ public class ReplyService {
     }
 
     public List<Reply> getReplies(Integer pid, MsgBuilder builder, int page) throws PageException {
+        int replyNum;
+        replyNum = replyMapper.getReplyNum(pid);
+        if (page == -1) {
+            //提供给新增回复一个接口跳转到最后一页
+            page = PageUtil.getPage(replyNum, ONE_PAGE_REPLY_NUM);
+        }
         List<Reply> replyList = getReplyByPid(pid, page - 1);
 
         //获取帖子内容
@@ -137,12 +143,8 @@ public class ReplyService {
         replyList.remove(0);
 
         //分页
-        int replyNum;
-        replyNum = replyMapper.getReplyNum(pid);
-        if (page == -1) {
-            //提供给新增回复一个接口跳转到最后一页
-            page = PageUtil.getPage(replyNum, ONE_PAGE_REPLY_NUM);
-        }
+
+
         builder.addData("page", page);
         builder.addData("pageNum",
                 PageUtil.getPage(replyNum, ONE_PAGE_REPLY_NUM));

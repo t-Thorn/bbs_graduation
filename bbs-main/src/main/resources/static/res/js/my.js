@@ -244,8 +244,8 @@ function dianzan(index) {
             url: '/reply/zan',
             type: 'post',
             dataType: 'json',
-            data: {"toUser": uid, "floor": floor, "postid": pid},
-            success: function () {
+            data: {"toUser": uid, "floor": floor, "pid": pid},
+            success: function (data) {
                 $("#jieda li:eq(" + index + ") .jieda-zan em").text(data.no);
                 if (zan.hasClass("zanok")) {
                     zan.removeClass("zanok");
@@ -256,7 +256,7 @@ function dianzan(index) {
                 }
             },
             error: function (data) {
-                layer.msg('点赞失败' + JSON.parse(data.responseText).errorMsg);
+                layer.msg('点赞失败:' + JSON.parse(data.responseText).errorMsg);
             }
         })
     } else {

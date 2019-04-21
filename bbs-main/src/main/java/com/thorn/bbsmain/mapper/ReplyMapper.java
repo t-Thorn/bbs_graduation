@@ -11,24 +11,52 @@ public interface ReplyMapper {
             "#{content_show},#{replyer})")
     void createPostTopReply(Reply reply);
 
-    @Select("select nickname, img, r.*" +
-            "from (select r1.*, contentEx, replyToId,replyToNickname" +
-            "      from reply r1" +
-            "             left join (select (case" +
-            "                               when available=1 then content_show" +
-            "                                 else '回复已被删除'" +
-            "                                   end ) contentEx," +
-            "                               floor," +
-            "                               replyer      replyToId," +
-            "                               nickname     replyToNickname" +
-            "                        from reply left join user on replyer=uid" +
-            "                        where postid = 1) r2 on r1.replyTo = r2.floor" +
-            "      where postid = #{pid}" +
-            "        and available = 1) r" +
-            "       left join" +
-            "     user u on uid = r.replyer and postid>=(select postid from post limit #{offset}," +
-            "1) " +
-            "order by floor asc limit #{step}")
+    @Select("SELECT" +
+            "  r.*," +
+            "  contentEx," +
+            "  replyToId," +
+            "  replyToNickname" +
+            " FROM" +
+            "  (" +
+            "    SELECT" +
+            "      r1.*,nickname,img" +
+            "    FROM" +
+            "      reply r1" +
+            "     left join user on uid=replyer" +
+            "    WHERE" +
+            "        postid = ${pid}" +
+            "      AND id >= ( SELECT id FROM reply WHERE postid = #{pid} AND available = 1 ORDER BY" +
+            "     id" +
+            "     LIMIT" +
+            "        #{offset}, 1 )" +
+            "      AND available = 1" +
+            "    LIMIT #{step}" +
+            "  ) r" +
+            "    LEFT JOIN (" +
+            "    SELECT" +
+            "      ( CASE WHEN available = 1 THEN content_show ELSE '回复已被删除' END ) contentEx," +
+            "      floor," +
+            "      replyer replyToId," +
+            "      nickname replyToNickname" +
+            "    FROM" +
+            "      reply" +
+            "        LEFT JOIN user ON replyer = uid" +
+            "    WHERE" +
+            "          postid=#{pid} and" +
+            " floor in (" +
+            "        select replyTo from (" +
+            "        SELECT" +
+            "          replyTo,id" +
+            "        FROM" +
+            "          reply" +
+            "        WHERE" +
+            "            postid = #{pid}" +
+            "          AND id >= ( SELECT id FROM reply WHERE postid = #{pid} AND available = 1" +
+            "          ORDER BY id  LIMIT" +
+            "            #{offset}, 1 )" +
+            "        LIMIT #{step}" +
+            "      )subReply)" +
+            "  ) r2 ON r.replyTo = r2.floor;")
     List<Reply> getReplyByPID(int pid, int offset, int step);
 
 
