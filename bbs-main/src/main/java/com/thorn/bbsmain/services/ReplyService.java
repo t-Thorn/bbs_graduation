@@ -10,7 +10,7 @@ import com.thorn.bbsmain.mapper.ReplyMapper;
 import com.thorn.bbsmain.mapper.entity.Reply;
 import com.thorn.bbsmain.mapper.entity.User;
 import com.thorn.bbsmain.utils.MsgBuilder;
-import com.thorn.bbsmain.utils.PageUtil;
+import com.thorn.bbsmain.utils.MyUtil;
 import impl.HotPointManager;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -21,14 +21,15 @@ import org.springframework.web.servlet.ModelAndView;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 public class ReplyService {
+
 
     @Value("${system.path.replyImg}")
     String imgPath;
@@ -49,19 +50,18 @@ public class ReplyService {
     }
 
     /**
-     *
      * @param imgList 图片合集
      * @return 消息字符串
      */
     public String imgUpload(MultipartFile[] imgList) {
         MsgBuilder builder = new MsgBuilder();
         //返回的图片链接地址
-        List<String> imgLinkList = new ArrayList<>();
+        List<String> imgLinkList;
         //状态码
         int errno = 0;
 
         imgLinkList =
-                Arrays.stream(imgList).map(this::createImgFile).filter(imgFile -> imgFile != null)
+                Arrays.stream(imgList).map(this::createImgFile).filter(Objects::nonNull)
                         .collect(Collectors.toList());
         builder.addData("data", imgLinkList);
         builder.addData("errno", errno);
@@ -71,12 +71,13 @@ public class ReplyService {
     }
 
     private String createImgFile(MultipartFile img) {
-        if (img.getSize() == 0 || img.getSize() / 1024 >= 50) {
+
+        if (img.getSize() == 0 && img.getOriginalFilename() == null) {
             return null;
         }
         String fileType;
         String[] suffixs = {".jpg", ".gif", ".jpeg", ".png", ".JPG", ".GIF", ".JPEG", ".PNG"};
-        if (!Arrays.stream(suffixs).anyMatch(suffix -> img.getOriginalFilename().endsWith(suffix))) {
+        if (Arrays.stream(suffixs).noneMatch(suffix -> img.getOriginalFilename().endsWith(suffix))) {
             return null;
         } else {
             fileType = img.getOriginalFilename().substring(img.getOriginalFilename().lastIndexOf(
@@ -91,9 +92,12 @@ public class ReplyService {
                 }
             }
             img.transferTo(imgFile);
+            String imgFileOfCompress = MyUtil.CompressImg(img, fileType, imgFile, imgPath);
+            if (imgFileOfCompress != null) return "/img/replyImg/" + imgFileOfCompress;
         } catch (IOException e) {
             return null;
         }
+
         return "/img/replyImg/" + imgFile.getName();
     }
 
@@ -109,7 +113,10 @@ public class ReplyService {
 
     //@cacheable
     public List<Reply> getReplyByPid(int pid, int page) {
-        return replyMapper.getReplyByPID(pid, page * ONE_PAGE_REPLY_NUM, ONE_PAGE_REPLY_NUM);
+        int offset = page * ONE_PAGE_REPLY_NUM;
+        offset = offset == 0 ? 1 : offset;
+        return replyMapper.getReplyByPID(pid, offset,
+                ONE_PAGE_REPLY_NUM);
     }
 
     public List<Integer> getLikesByPID(int pid, int uid) {
@@ -134,20 +141,19 @@ public class ReplyService {
         replyNum = replyMapper.getReplyNum(pid);
         if (page == -1) {
             //提供给新增回复一个接口跳转到最后一页
-            page = PageUtil.getPage(replyNum, ONE_PAGE_REPLY_NUM);
+            page = MyUtil.getPage(replyNum, ONE_PAGE_REPLY_NUM);
         }
         List<Reply> replyList = getReplyByPid(pid, page - 1);
 
         //获取帖子内容
-        builder.addData("topReply", replyList.get(0));
-        replyList.remove(0);
+        builder.addData("topReply", getTopReply(pid));
 
         //分页
 
 
         builder.addData("page", page);
         builder.addData("pageNum",
-                PageUtil.getPage(replyNum, ONE_PAGE_REPLY_NUM));
+                MyUtil.getPage(replyNum, ONE_PAGE_REPLY_NUM));
         //获取点赞列表
         User user = userService.getCurrentUser();
         if (user != null) {
@@ -160,6 +166,10 @@ public class ReplyService {
             builder.addData("user", user);
         }
         return replyList;
+    }
+
+    private Reply getTopReply(Integer pid) {
+        return replyMapper.getTopReply(pid);
     }
 
     @RefreshHotPost(HotPointManager.REPLY)
@@ -180,10 +190,10 @@ public class ReplyService {
             //新增回复
             replyMapper.addReply(reply);
             //将注入到对象中的floor提取出来返回
-            builder.addData("floor", reply.getFloor());
+            builder.addData("floor", reply.getId());
             //todo 消息加入
         } catch (Exception e) {
-            throw new PostException("新增帖子错误");
+            throw new PostException("新增帖子错误" + e.getMessage());
         }
 
         return builder.getMsg("forward:/post/" + reply.getPostid() + "/-1");

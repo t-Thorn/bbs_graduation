@@ -69,19 +69,17 @@
                 <ul class="layui-clear">
                     <!-- 用户登入后显示 -->
                     <li class="layui-hide-xs layui-hide-sm layui-show-md-inline-block"><a
-                            href="../user/myPost.html">我发表的贴</a></li>
+                            href="/info/myPost">我发表的贴</a></li>
                     <li class="layui-hide-xs layui-hide-sm layui-show-md-inline-block"><a
-                            href="../user/myPost.html#collection">我收藏的贴</a></li>
+                            href="/info/myCollection">我收藏的贴</a></li>
 
                 </ul>
 
                 <div class="fly-column-right layui-hide-xs">
                     <span class="fly-search"><i class="layui-icon"></i></span>
-                    <a class="layui-btn" href="add.html">发表新帖</a>
-                </div>
-                <div class="layui-hide-sm layui-show-xs-block"
-                     style="margin-top: -10px; padding-bottom: 10px; text-align: center;">
-                    <a class="layui-btn" href="add.html">发表新帖</a>
+                    <shiro:authenticated>
+                        <a class="layui-btn layui-btn-radius" href="/post/newPost">发表新帖</a>
+                    </shiro:authenticated>
                 </div>
             </shiro:authenticated>
         </div>
@@ -159,7 +157,7 @@
                 </fieldset>
 
                 <ul class="jieda" id="jieda">
-                    <li th:each="reply:${replys}" th:id="${'floor'+reply.floor}">
+                    <li th:each="reply:${replys}" th:id="${'floor'+reply.id}">
                         <div class="detail-about detail-about-reply">
                             <a class="fly-avatar" th:href="${'/user/home/'+reply.replyer}">
                                 <img th:src="${reply.img}">
@@ -207,7 +205,7 @@
                             <span class="source"
                                   th:data-nickname="${reply.nickname}"
                                   th:data-replyer="${reply.replyer}"
-                                  th:onclick="|yinyong(${replyStat.index})|"
+                                  th:onclick="|yinyong(${reply.floor})|"
                                   type="reply">
 
                 <i class="iconfont icon-svgmoban53 "

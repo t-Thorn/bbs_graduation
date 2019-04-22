@@ -21,7 +21,7 @@ public interface PostMapper {
             "       replyNum," +
             "       img from user inner join post on post.uid = user.uid" +
             " where grade < 2" +
-            "  and available = true and pid>=(select pid from post limit #{offset},1)" +
+            "  and available = true and pid>=(select pid from post where available=true limit #{offset},1)" +
             " order by pid desc limit #{step}")
     List<Post> getPosts(int offset, int step);
 
@@ -35,7 +35,7 @@ public interface PostMapper {
             "       img from user inner join post on post.uid = user.uid" +
 //            屏蔽这个则可以显示全部" where grade < 2" +
             "  and available = true and title like concat('%',#{target}," +
-            "    '%')  and pid>=(select pid from post limit #{offset},1)" +
+            "    '%')  and pid>=(select pid from post where available=true limit #{offset},1)" +
             " order by pid desc limit #{step}")
     List<Post> getPostsForTarget(String target, int offset, int step);
 
@@ -62,7 +62,7 @@ public interface PostMapper {
             "       inner join post on post.uid = user.uid" +
             " where type != 4" +
             "  and grade = 1" +
-            "  and available = true and pid>=(select pid from post limit #{offset},1)" +
+            "  and available = true and pid>=(select pid from post where available=true limit #{offset},1)" +
             " order by pid desc limit #{step}")
 //    @Cacheable(value = "posts", key = "'goodposts'", unless = "#result==null")
     List<Post> getGoodPosts(int offset, int step);

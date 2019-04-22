@@ -13,6 +13,7 @@ public class Reply {
 
     String title;
 
+    int id;
 
     String contentEx;
 

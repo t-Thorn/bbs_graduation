@@ -24,7 +24,7 @@ public interface ReplyMapper {
             "      reply r1" +
             "     left join user on uid=replyer" +
             "    WHERE" +
-            "        postid = ${pid}" +
+            "        postid = #{pid}" +
             "      AND id >= ( SELECT id FROM reply WHERE postid = #{pid} AND available = 1 ORDER BY" +
             "     id" +
             "     LIMIT" +
@@ -92,10 +92,12 @@ public interface ReplyMapper {
     })
     int isLegal(Integer postid, Integer replyTo);
 
-    @Options(useGeneratedKeys = true, keyProperty = "floor", keyColumn = "floor")
-    @Insert("insert into reply (postid,content,content_show,replyer,replyTo) values(" +
+    @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
+    @Insert("insert into reply (postid,content,content_show,replyer,replyTo,floor) values(" +
             "#{postid},#{content}," +
-            "#{content_show},#{replyer},#{replyTo})")
+            "#{content_show},#{replyer},#{replyTo},(select * from (select max(floor)+1 from " +
+            "reply where " +
+            "postid=#{postid})r))")
     void addReply(Reply reply);
 
     @Select("select count(1) from reply where postid=#{pid} and floor=#{floor} and available=1")
@@ -119,4 +121,8 @@ public interface ReplyMapper {
 
     @Select("select count(*) from reply where postid=#{pid} and available=true")
     int getReplyNum(Integer pid);
+
+    @Select("select content,content_show,replyer,floor,postid from reply where postid=#{pid} " +
+            "limit 1")
+    Reply getTopReply(Integer pid);
 }

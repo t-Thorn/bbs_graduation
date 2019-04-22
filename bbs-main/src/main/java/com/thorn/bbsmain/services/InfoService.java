@@ -8,7 +8,7 @@ import com.thorn.bbsmain.mapper.PostMapper;
 import com.thorn.bbsmain.mapper.UserMapper;
 import com.thorn.bbsmain.mapper.entity.*;
 import com.thorn.bbsmain.utils.MsgBuilder;
-import com.thorn.bbsmain.utils.PageUtil;
+import com.thorn.bbsmain.utils.MyUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
@@ -105,7 +105,7 @@ public class InfoService {
         });
         int pageNum = userService.getMessageNum(user.getUid());
         builder.addData("messages", messages);
-        builder.addData("pageNum", PageUtil.getPage(pageNum, ONE_MESSAGE_PAGE_NUM));
+        builder.addData("pageNum", MyUtil.getPage(pageNum, ONE_MESSAGE_PAGE_NUM));
         return builder.getMsg("/user/message");
     }
 
@@ -174,14 +174,14 @@ public class InfoService {
         List<Post> myPost = getMyPost(user.getUid());
         if (!Objects.equals(myPost, null) && myPost.size() > 0) {
             builder.addData("currentPage", page);
-            builder.addData("myposts", PageUtil.subList(myPost, page, ONE_PAGE_POST_NUM));
+            builder.addData("myposts", MyUtil.subList(myPost, page, ONE_PAGE_POST_NUM));
             builder.addData("mypostsNum", myPost.size());
 
         }
         List<Collect> myCollection = getMyCollection(user.getUid());
         if (!Objects.equals(myCollection, null) && myCollection.size() > 0) {
             builder.addData("currentCpage", cpage);
-            builder.addData("collections", PageUtil.subList(myCollection, cpage, ONE_PAGE_POST_NUM));
+            builder.addData("collections", MyUtil.subList(myCollection, cpage, ONE_PAGE_POST_NUM));
             builder.addData("collectionsNum", myCollection.size());
         }
 
@@ -218,7 +218,7 @@ public class InfoService {
         }
         String fileType;
         String[] suffixs = {".jpg", ".gif", ".jpeg", ".png", ".JPG", ".GIF", ".JPEG", ".PNG"};
-        if (!Arrays.stream(suffixs).anyMatch(suffix -> img.getOriginalFilename().endsWith(suffix))) {
+        if (Arrays.stream(suffixs).noneMatch(suffix -> img.getOriginalFilename().endsWith(suffix))) {
             throw new UserInfoException("图片格式错误");
         } else {
             fileType = img.getOriginalFilename().substring(img.getOriginalFilename().lastIndexOf(
@@ -226,6 +226,7 @@ public class InfoService {
         }
 
         File imgFile = new File(IMG + user.getEmail() + "_" + UUID.randomUUID() + fileType);
+        String filename = null;
         try {
             if (!imgFile.exists()) {
                 if (!imgFile.createNewFile()) {
@@ -233,13 +234,16 @@ public class InfoService {
                 }
             }
             img.transferTo(imgFile);
+            if ((filename = MyUtil.CompressImg(img, fileType, imgFile, IMG)) == null) {
+                filename = imgFile.getName();
+            }
         } catch (IOException e) {
             throw new UserInfoException(e.getMessage());
         }
 
 
         try {
-            userService.updateAvator(user.getEmail(), "/img/" + imgFile.getName());
+            userService.updateAvator(user.getEmail(), "/img/" + filename);
         } catch (Exception e) {
             log.error("更新头像发生错误：{} params：email:{},path:{}", e.getMessage(), user.getEmail(),
                     "/img/" + imgFile.getName());

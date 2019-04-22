@@ -9,7 +9,7 @@ import com.thorn.bbsmain.mapper.entity.Post;
 import com.thorn.bbsmain.mapper.entity.Reply;
 import com.thorn.bbsmain.mapper.entity.User;
 import com.thorn.bbsmain.utils.MsgBuilder;
-import com.thorn.bbsmain.utils.PageUtil;
+import com.thorn.bbsmain.utils.MyUtil;
 import impl.HotPointManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -169,14 +169,14 @@ public class PostService {
         if (target.equals("")) {
             if (type == 0) {
                 postList = getPosts(page - 1);
-                builder.addData("pageNum", PageUtil.getPage(getPostNum(), ONE_PAGE_POST_NUM));
+                builder.addData("pageNum", MyUtil.getPage(getPostNum(), ONE_PAGE_POST_NUM));
             } else {
                 postList = getGoodPosts(page - 1);
-                builder.addData("pageNum", PageUtil.getPage(getGoodPostNum(), ONE_PAGE_POST_NUM));
+                builder.addData("pageNum", MyUtil.getPage(getGoodPostNum(), ONE_PAGE_POST_NUM));
             }
         } else {
             postList = getPosts(target, page - 1);
-            builder.addData("pageNum", PageUtil.getPage(getPostNum(target), ONE_PAGE_POST_NUM));
+            builder.addData("pageNum", MyUtil.getPage(getPostNum(target), ONE_PAGE_POST_NUM));
         }
 
         //需要返回搜索内容

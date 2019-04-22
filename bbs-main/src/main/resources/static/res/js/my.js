@@ -224,7 +224,6 @@ function processForm() {
  * 添加引用到回复中
  */
 function yinyong(floor) {
-    var replyTo = $("#jieda li:eq(" + floor + ") .source").data("replyer");
     var nickname = $("#jieda li:eq(" + floor + ") .source").data("nickname");
     var reply = $("#jieda li:eq(" + floor + ") .content");
     $("#replyTo").val(floor);
@@ -268,7 +267,7 @@ function dianzan(index) {
  * 新增回复
  */
 function submitReply() {
-    if (editor.txt.text() == "") {
+    if ("" == editor.txt.text()) {
         layer.msg("请输入回复内容");
         return false;
     }
@@ -287,7 +286,7 @@ function delReply(index) {
         data: "",
         success: function () {
             layer.msg("删除成功");
-            window.location.reload(true);
+            window.location.href = '/post/' + reply.data("pid")
         },
         error: function (data) {
             layer.msg('删除失败:' + JSON.parse(data.responseText).errorMsg);

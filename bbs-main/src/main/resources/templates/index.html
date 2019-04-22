@@ -62,13 +62,22 @@
 
 <div class="fly-panel fly-column">
     <div class="layui-container">
+        <shiro:authenticated>
+            <ul class="layui-clear">
+                <!-- 用户登入后显示 -->
+                <li class="layui-hide-xs layui-hide-sm layui-show-md-inline-block"><a
+                        href="/info/myPost">我发表的贴</a></li>
+                <li class="layui-hide-xs layui-hide-sm layui-show-md-inline-block"><a
+                        href="/info/myCollection">我收藏的贴</a></li>
+
+            </ul>
+        </shiro:authenticated>
         <div class="fly-column-right layui-hide-xs">
             <span class="fly-search"><i class="layui-icon"></i></span>
             <shiro:authenticated>
                 <a class="layui-btn layui-btn-radius" href="/post/newPost">发表新帖</a>
             </shiro:authenticated>
         </div>
-
     </div>
 </div>
 
@@ -189,10 +198,10 @@
                         <th:block th:with="current=${page}">
                             <th:block th:if="${page>1}">
                                 <a class="laypage-last"
-                                   th:href="'index/'+${type}+'/1/'+${target}"
+                                   th:href="'/index/'+${type}+'/1/'+${target}"
                                    title="首页">首页</a>
                                 <a class="laypage-next"
-                                   th:href="'index/'+${type}+'/'+${page -1}+'/'+${target}">上一页
+                                   th:href="'/index/'+${type}+'/'+${page -1}+'/'+${target}">上一页
                                 </a>
                             </th:block>
                             <th:block
@@ -206,10 +215,10 @@
                             </th:block>
                             <th:block th:if="${page!=pageNum}">
                                 <a class="laypage-last"
-                                   th:href="'index/'+${type}+'/'+${pageNum}+'/'+${target}"
+                                   th:href="'/index/'+${type}+'/'+${pageNum}+'/'+${target}"
                                    title="尾页">尾页</a>
                                 <a class="laypage-next"
-                                   th:href="'index/'+${type}+'/'+${page+1}+'/'+${target}">下一页
+                                   th:href="'/index/'+${type}+'/'+${page+1}+'/'+${target}">下一页
                                 </a>
                             </th:block>
                         </th:block>
