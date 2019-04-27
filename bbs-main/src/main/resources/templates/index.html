@@ -7,7 +7,7 @@
     <link href="/res/layui/css/layui.css" media="all" rel="stylesheet">
     <link href="/res/css/global.css" rel="stylesheet">
 </head>
-<body style="overflow: hidden">
+<body onload="msg('/')" style="overflow: hidden">
 
 <div class="fly-header layui-bg-black">
     <div class="layui-container">
@@ -18,10 +18,11 @@
             <shiro:guest>
                 <!-- 未登入的状态 -->
                 <li class="layui-nav-item">
-                    <a class="iconfont icon-touxiang layui-hide-xs" href="/user/login/home"></a>
+                    <a class="iconfont icon-touxiang layui-hide-xs"
+                       href="/user/login/index"></a>
                 </li>
                 <li class="layui-nav-item">
-                    <a href="/user/login/home">登入</a>
+                    <a href="/user/login/index">登入</a>
                 </li>
                 <li class="layui-nav-item">
                     <a href="/user/reg/home">注册</a>
@@ -225,7 +226,6 @@
                     </div>
                 </div>
             </div>
-
         </div>
         <div class="layui-col-md4">
 
@@ -259,9 +259,10 @@
     <p><a href="" target="_blank">Fly社区</a> 2019 &copy; <a
             href="" target="_blank">Thorn 出品</a></p>
 </div>
+<input id="msg" th:value="${errorMsg}" type="hidden">
 
 <script src="/res/layui/layui.js"></script>
-<script src="/res/js/my.js"></script>
+
 <script>
     //引入ui的模块，删除可能使部分模块出问题
     layui.config({
@@ -271,13 +272,6 @@
         fly: 'index'
     }).use('fly');
 </script>
-
-<script>
-    if ("[[${#request.getParameter('errorMsg')}]]" != "") {
-        layer.msg("[[${#request.getParameter('errorMsg')}]]");
-        window.location.href = "/";
-    }
-</script>
-
+<script src="/res/js/my.js"></script>
 </body>
 </html>

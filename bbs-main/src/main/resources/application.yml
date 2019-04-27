@@ -4,9 +4,9 @@ server:
     max-threads: 100
 
 logging:
+  config: classpath:logback-spring.xml
   level:
     learning: info
-  config: classpath:logback-spring.xml
 
 spring:
   redis:
@@ -76,3 +76,22 @@ spring:
       max-request-size: 100MB
   aop:
     proxy-target-class: true
+  #  application:
+  #    name: BBS
+  #management:
+  #  endpoints:
+  #    web:
+  #      exposure:
+  #        include: 'prometheus'
+  #  metrics:
+  #    tags:
+  #      application: ${spring.application.name}
+  mail:
+    host: smtp.qq.com
+    username: 1289713219@qq.com
+    password: semmrjytsyyjbagi
+    default-encoding: UTF-8
+    test-connection: true
+  rabbitmq:
+    addresses: 127.0.0.1
+    port: 15672

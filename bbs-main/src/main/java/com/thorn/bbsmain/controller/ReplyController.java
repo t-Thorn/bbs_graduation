@@ -41,7 +41,6 @@ public class ReplyController {
         return builder.getMsg();
     }
 
-
     @PostMapping("addReply")
     public ModelAndView addReply(@Valid Reply reply, BindingResult result) throws PostException {
         return replyService.addReply(reply, result);

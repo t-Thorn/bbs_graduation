@@ -276,6 +276,10 @@ function submitReply() {
     $("#addReply").submit();
 }
 
+/**
+ * 删除回复
+ * @param index
+ */
 function delReply(index) {
     var reply = $("#jieda .jieda-admin:eq(" + index + ") a");
     var uri = "/reply/del/" + reply.data("pid") + "/" + reply.data("floor");
@@ -292,4 +296,16 @@ function delReply(index) {
             layer.msg('删除失败:' + JSON.parse(data.responseText).errorMsg);
         }
     })
+}
+
+/**
+ * 弹出错误消息
+ */
+function msg(uri) {
+    var errorMsg = document.getElementById("msg");
+    if (errorMsg.value != "") {
+        layer.msg(errorMsg.value);
+        if (uri != null && uri != "")
+            window.location.href = uri;
+    }
 }

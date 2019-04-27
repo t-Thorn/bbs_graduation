@@ -96,13 +96,15 @@ public interface PostMapper {
      * 更新浏览量和回复数
      *
      * @param view  增量
-     * @param reply 增量
      */
-    @Update("update post set views=views+#{view} ,replyNum=replyNum+#{reply} where pid=#{pid}")
-    void updateViewAndReplyNum(int pid, int view, int reply);
+    @Update("update post set views=views+#{view}  where pid=#{pid}")
+    void updateViewAndReplyNum(int pid, int view);
 
     @Update("update post set replyNum=replyNUm+1 where pid=#{postid}")
     void increaseReplyNum(int postid);
+
+    @Update("update post set lastReplyTime=sysdate() where pid=#{postid}")
+    void updateLastReplyTime(int postid);
 
     @Update("update post set replyNUm=replyNUm-1 where pid=#{pid}")
     void decreaseReplyNum(int pid);
@@ -110,7 +112,7 @@ public interface PostMapper {
     @Select("select count(*) from post where available=1 and  grade < 2")
     int getPostNum();
 
-    //todo 使用全文索引
+    //todo 搜索引擎
     @Select("select count(*) from post where available=1 and title like concat('%',#{target},'%')")
     int getPostNumOfTarget(String target);
 
@@ -122,4 +124,17 @@ public interface PostMapper {
 
     @Update("update post set collectionNum=collectionNum+1 where pid=#{pid}")
     void increaseCollectNum(Integer pid);
+
+    @Select("select post.*,nickname" +
+            " from post left join user on post.uid=user.uid where pid>#{offset}" +
+            " limit #{limit};")
+    List<Post> getPostsOfAdmin(int offset, int limit);
+
+    @Select("select post.*,nickname" +
+            " from post left join user on post.uid=user.uid where pid>#{offset}" +
+            " and title like concat('%',#{target},'%') limit #{limit};")
+    List<Post> getPostsOfAdminForTarget(int offset, int limit, String target);
+
+    @Select("select count(*) from post")
+    int getPostNumOfAdmin();
 }

@@ -172,6 +172,7 @@ public class ReplyService {
         return replyMapper.getTopReply(pid);
     }
 
+
     @RefreshHotPost(HotPointManager.REPLY)
     @Transactional
     public ModelAndView addReply(Reply reply, BindingResult result) throws PostException {
@@ -185,8 +186,9 @@ public class ReplyService {
         }
         reply.setReplyer(userService.getCurrentUser().getUid());
         try {
-            //帖子回复数+1
+            //帖子回复数+1,最后回复时间更新
             postMapper.increaseReplyNum(reply.getPostid());
+            postMapper.updateLastReplyTime(reply.getPostid());
             //新增回复
             replyMapper.addReply(reply);
             //将注入到对象中的floor提取出来返回

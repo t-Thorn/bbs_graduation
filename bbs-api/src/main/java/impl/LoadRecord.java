@@ -43,7 +43,7 @@ public class LoadRecord {
             hotPointCache = ((HotPointCache) hotPoint.readObject());
             indexCache = (ConcurrentHashMap) index.readObject();
             hotPostCache = (ConcurrentHashMap) hotPost.readObject();
-            log.info("重载成功：");
+            log.info("重载缓存成功：");
             return true;
         } catch (IOException | ClassNotFoundException e) {
             log.error("重载失败：{}", e.getMessage());
@@ -51,9 +51,9 @@ public class LoadRecord {
         }
     }
 
-    public static boolean saveRecord(ViewCache viewCache, HotPointCache hotPointCache,
-                                     ConcurrentHashMap indexCache, ConcurrentHashMap hotPostCache,
-                                     String path) {
+    static void saveRecord(ViewCache viewCache, HotPointCache hotPointCache,
+                           ConcurrentHashMap indexCache, ConcurrentHashMap hotPostCache,
+                           String path) {
         try (ObjectOutputStream view = new ObjectOutputStream(new FileOutputStream(path +
                 "/viewCache"));
              ObjectOutputStream hotPoint = new ObjectOutputStream(new FileOutputStream(path +
@@ -70,10 +70,8 @@ public class LoadRecord {
             hotPoint.flush();
             index.flush();
             hotPost.flush();
-            return true;
         } catch (IOException e) {
             log.error("保存失败：{}", e.getMessage());
-            return false;
         }
     }
 }

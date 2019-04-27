@@ -26,8 +26,11 @@ public abstract class AbstractHotPostHandler<E> {
      * 刷新后默认热度为1000
      */
     protected long defaultHotpoint = 100;
+    /**
+     * 定时任务线程池, 一个定时刷新，一个实时保存到本地，一个定时保存
+     */
     protected ScheduledExecutorService scheduledExecutorService =
-            Executors.newScheduledThreadPool(2);
+            Executors.newScheduledThreadPool(3);
 
     protected AbstractDataSaver dataSaver = null;
     /**
@@ -96,10 +99,31 @@ public abstract class AbstractHotPostHandler<E> {
 
     public abstract Map<Integer, Long> getTopPostHotPoint();
 
-    //增加定期保存任务，
-    public abstract void addCycleSaveTask(int period, TimeUnit unit) ;
+    /**
+     * 增加刷新热度任务
+     */
+    public abstract void addRefreshTask(int period, TimeUnit unit);
 
+    /**
+     * 获取帖子热度
+     *
+     * @param pid
+     * @return
+     */
     public abstract long getHotPoint(int pid);
 
+    /**
+     * 循环保存缓存
+     *
+     * @param period
+     * @param unit
+     * @param path   保存路径
+     */
     public abstract void addCycleSaveTaskForReload(int period, TimeUnit unit, String path);
+
+    /**
+     * 增加循环保存任务
+     */
+    public abstract void addCycleSaveTask(int period, TimeUnit unit);
+
 }

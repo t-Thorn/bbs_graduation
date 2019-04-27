@@ -2,11 +2,15 @@ package impl;
 
 
 import annotation.RefreshHotPost;
+import domain.HotPoint;
+import domain.SaveEntity;
 import interfaces.*;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.Signature;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.beans.factory.annotation.Value;
+import util.DateUtil;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -15,34 +19,34 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-//todo 配置化
 @Slf4j
 public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
 
-    //增量更新阀值
-    private static final int DEFAULT_CHANGE_TASK_THRESHOLD = 100;
-    //刷新时间
-    private static final String REFRESH_TIME = "2:00:00";
-
     //上次刷新时间
-    private static Date lastRefreshTime = null;
+    //private static Date lastRefreshTime = null;
     //写入数据库线程
-    private static ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private static ExecutorService consumerThread = Executors.newFixedThreadPool(5);
     //存储任务队列
-    private static ConcurrentLinkedQueue<Integer> taskQueue = new ConcurrentLinkedQueue();
+    private static ConcurrentLinkedQueue<SaveEntity> taskQueue = new ConcurrentLinkedQueue<>();
+    //增量更新阀值
+    @Value("${hotPoint.threshold}")
+    private int updateThreshold;
+    //刷新时间
+    @Value("${hotPoint.refreshTime}")
+    private int refreshTime;
+    @Value("${hotPoint.saveTaskThreadNum}")
+    private int saveTaskThreadNum;
     //浏览量计算
     private ViewCounter viewCounter = new DefaultViewCounter();
     //热度变更锁
-    private ReentrantReadWriteLock changeLock = new ReentrantReadWriteLock();
+//    private ReentrantReadWriteLock changeLock = new ReentrantReadWriteLock();
     //存储恢复数据路径
     private String path = null;
 
     public DefaultHotPostHandler(ViewCache viewCache, HotPointCache hotPointCache,
                                  Fetcher fetcher) {
         super(viewCache, hotPointCache, fetcher);
-        executorService.execute(new SaveTask());
     }
 
     public DefaultHotPostHandler(ViewCache viewCache, HotPointCache hotPointCache, Fetcher fetcher, ConcurrentHashMap indexCache, ConcurrentHashMap hotPostCache) {
@@ -51,14 +55,19 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
         this.topPost = hotPostCache;
     }
 
-    private static long getTimeMillis(String time) {
+    private static long getTimeMillis(int time) {
         try {
+            int hour = time / 3600;
+            time = time - hour * 3600;
+            int minute = time / 60;
+            int second = time - minute * 60;
+            String timeString = hour + ":" + minute + ":" + second;
             DateFormat dateFormat = new SimpleDateFormat("yy-MM-dd HH:mm:ss");
             DateFormat dayFormat = new SimpleDateFormat("yy-MM-dd");
-            Date curDate = dateFormat.parse(dayFormat.format(new Date()) + " " + time);
+            Date curDate = dateFormat.parse(dayFormat.format(new Date()) + " " + timeString);
             return curDate.getTime();
         } catch (ParseException e) {
-            e.printStackTrace();
+            log.error("日期计算错误:{}", e.getMessage());
         }
         return 0;
     }
@@ -77,7 +86,7 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
     }
 
     protected void addReplyNum(int pid) {
-        updateTopPost(pid, hotPointCache.createOrUpdate(pid, 5l));
+        updateTopPost(pid, hotPointCache.createOrUpdate(pid, 4l));
     }
 
     protected void process(JoinPoint point) {
@@ -96,41 +105,38 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
         //2.最关键的一步:通过这获取到方法的所有参数名称的字符串数组
         String[] parameterNames = methodSignature.getParameterNames();
         //3.通过你需要获取的参数名称的下标获取到对应的值
-        int index = Arrays.asList(parameterNames).indexOf("pid");
         int pid = -1;
+        int index = Arrays.asList(parameterNames).indexOf("pid");
         if (index != -1) {
             pid = (int) args[index];
         }
+        if (index == -1) {
+            //添加回复也会找不到
+            index = Arrays.asList(parameterNames).indexOf("reply");
+            if (index != -1) {
+                pid = fetcher.getPID(args[index]);
+            }
+
+        }
         if (pid != -1) {
-            //log.info("准备计算热度：type：{} pid:{}", type, pid);
-            changeLock.readLock().lock();
+            log.info("准备计算热度：type：{} pid:{}", type, pid);
+//            changeLock.readLock().lock();
             switch (type) {
                 case "view":
                     computeViewNum(pid, null);
+                    checkUpdate(pid);
                     break;
                 case "reply":
                     addReplyNum(pid);
                     break;
                 case "delPost":
-                    try {
-                        del(pid);
-                    } catch (Exception e) {
-                        log.error("删除帖子后尝试更新数据库错误，错误信息：{}", e.getMessage());
-                    }
+                    del(pid);
                     break;
                 case "delReply":
-                    try {
-                        delReply(pid);
-                    } catch (Exception e) {
-                        log.error("删除回复后尝试更新数据库错误，错误信息：{}", e.getMessage());
-                    }
+                    delReply(pid);
                     break;
-                default:
-                    changeLock.readLock().unlock();
-                    return;
             }
-            changeLock.readLock().unlock();
-            change(pid);
+//            changeLock.readLock().unlock();
         }
 
     }
@@ -141,11 +147,17 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
      * @param pid
      */
     protected void delReply(int pid) {
+        log.info("删除回复，减少热度");
         hotPointCache.delReply(pid);
     }
 
-    private void change(int pid) {
-        if (hotPointCache.get(pid).getChangNum() >= DEFAULT_CHANGE_TASK_THRESHOLD) {
+    /**
+     * 检查是否需要更新数据库
+     *
+     * @param pid
+     */
+    private void checkUpdate(int pid) {
+        if (hotPointCache.get(pid).getViewIncrement() >= updateThreshold) {
             addSaveTask(pid);
         }
     }
@@ -174,6 +186,7 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
      */
     protected void updateTopPost(int pid, long hotpoint) {
         //实时淘汰
+        log.info("lowest:{} hotpoint:{}", lowestHotpoint, hotpoint);
         if (lowestHotpoint < hotpoint) {
             lock.readLock().lock();
             //二次判断，判断得到锁后是否符合条件
@@ -236,20 +249,14 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
         return index;
     }
 
-    public void addCycleSaveTask(int period, TimeUnit unit) {
-        RefreshNow();
+    public void addRefreshTask(int period, TimeUnit unit) {
+        addSaveTaskThread();
         long oneDay = 24 * 60 * 60 * 1000;
-        long initDelay = getTimeMillis(REFRESH_TIME) - System.currentTimeMillis();
+        long initDelay = getTimeMillis(refreshTime) - System.currentTimeMillis();
         initDelay = initDelay > 0 ? initDelay : oneDay + initDelay;
         scheduledExecutorService.scheduleAtFixedRate(new DefaultRefresh(), initDelay, period, unit);
     }
 
-    private void RefreshNow() {
-        //fixme 保存到数据库中，每次运行读出来
-/*        if(lastRefreshTime==null){
-            refresh();
-        }*/
-    }
 
     public void addCycleSaveTaskForReload(int period, TimeUnit unit, String path) {
         if (path == null) {
@@ -260,11 +267,30 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
     }
 
     private void addSaveTask(Set<Integer> tasks) {
-        taskQueue.addAll(tasks);
+        tasks.forEach(k -> {
+            taskQueue.add(new SaveEntity(k, false));
+        });
+    }
+
+    @Override
+    public void addCycleSaveTask(int period, TimeUnit unit) {
+        scheduledExecutorService.scheduleWithFixedDelay(() -> {
+            log.info("开始添加保存任务，时间：{}", DateUtil.now());
+            addSaveTask((hotPointCache.getMap()).keySet());
+        }, period, period, unit);
     }
 
     private void addSaveTask(int pid) {
-        taskQueue.offer(pid);
+        taskQueue.offer(new SaveEntity(pid, true));
+    }
+
+    /**
+     * 添加保存线程
+     */
+    private void addSaveTaskThread() {
+        for (int i = 0; i < saveTaskThreadNum; i++) {
+            consumerThread.execute(new SaveTask());
+        }
     }
 
     /**
@@ -290,7 +316,7 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
         //重置门槛，仅当热帖量超出10时再计算
         lowestHotpoint = 0;
         lock.writeLock().unlock();
-        lastRefreshTime = new Date();
+        log.info("刷新成功：{}", DateUtil.now());
     }
 
     /**
@@ -313,19 +339,21 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
             final int MAX_SLEEP = 500;
             int sleepTime = SLEEP_STEP;
             while (true) {
-                Integer pid = taskQueue.poll();
-                while (pid != null) {
+                SaveEntity entity = taskQueue.poll();
+                while (entity != null) {
                     //一旦出现任务，重置等待延时
                     sleepTime = SLEEP_STEP;
-                    if (hotPointCache.get(pid).getChangNum() < DEFAULT_CHANGE_TASK_THRESHOLD) {
+                    if (entity.isCheck() && hotPointCache.get(entity.getPid()).getViewIncrement() < updateThreshold) {
+                        entity = taskQueue.poll();
                         continue;
                     }
-                    changeLock.writeLock().lock();
-                    dataSaver.save(pid, hotPointCache.get(pid));
-                    log.info("保存浏览记录：pid:{} hotPoint:{}", pid, hotPointCache.get(pid).toString());
-                    hotPointCache.reset(pid);
-                    changeLock.writeLock().unlock();
-                    pid = taskQueue.poll();
+//                    changeLock.writeLock().lock();
+                    dataSaver.save(entity.getPid(), hotPointCache.get(entity.getPid()));
+                    /*log.info("保存浏览记录 {}：pid:{} hotPoint:{}", DateUtil.now(), entity.getPid(),
+                            hotPointCache.get(entity.getPid()).toString());*/
+                    // hotPointCache.reset(entity.getPid());
+//                    changeLock.writeLock().unlock();
+                    entity = taskQueue.poll();
                 }
                 try {
                     Thread.sleep(sleepTime < MAX_SLEEP ? sleepTime += SLEEP_STEP : sleepTime);

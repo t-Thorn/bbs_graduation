@@ -3,7 +3,6 @@ package com.thorn.bbsmain.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.thorn.bbsmain.exceptions.PageException;
 import com.thorn.bbsmain.services.PostService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -18,7 +17,7 @@ public class BasicController {
      * @param postService
      */
 
-    public BasicController(@Autowired PostService postService) {
+    public BasicController(PostService postService) {
         this.postService = postService;
     }
 
@@ -34,9 +33,10 @@ public class BasicController {
     public ModelAndView home(@PathVariable(value = "type", required = false) Integer type,
                              @PathVariable(value = "page", required = false) Integer page,
                              @PathVariable(value = "search", required = false) String search,
-                             @RequestParam(value = "target", required = false, defaultValue = "") String target) throws PageException {
+                             @RequestParam(value = "target", required = false, defaultValue = "") String target,
+                             @RequestAttribute(value = "errorMsg", required = false) String errorMsg) throws PageException {
         return postService.buildHome(type == null ? 0 : type, page == null ? 1 : page, search == null ? target :
-                search);
+                search, errorMsg);
     }
 
     @RequestMapping("/error_404")
@@ -60,4 +60,6 @@ public class BasicController {
         mv.setViewName("redirect:" + uri);
         return mv;
     }
+
+
 }

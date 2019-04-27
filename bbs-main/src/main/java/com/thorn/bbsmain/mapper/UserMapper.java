@@ -80,24 +80,25 @@ public interface UserMapper {
             " available=1 order by pid desc limit 10")
     List<Post> getUserPost(int uid);
 
-    @Select("  select nickname replyToNickname, replyDetail.*" +
-            "  from (select title, r.*" +
-            "        from (select r.postid," +
-            "                     r.floor," +
-            "                     r.content_show," +
-            "                     rex.content_show contentEx," +
-            "                     rex.replyer      replyToId" +
-            "              from reply r" +
-            "                     left join reply rex on" +
-            "                  rex.postid = r.postid" +
-            "                  and rex.floor = r.replyTo" +
-            "              where r.replyer = #{uid}" +
-            "                and r.available = 1" +
-            "             ) r" +
-            "               left join post on postid = pid" +
-            "        where available = 1) replyDetail" +
-            "         left join user on" +
-            "    replyToId = uid limit 5")
+    @Select(" select nickname replyToNickname, replyDetail.*" +
+            " from (select title, r.*" +
+            "      from (select r1.*," +
+            "                   rex.content_show contentEx," +
+            "                   rex.replyer      replyToId" +
+            "            from (select postid," +
+            "                         floor," +
+            "                         content_show," +
+            "                         replyTo" +
+            "                  from reply" +
+            "                  where replyer = 1" +
+            "                    and available = 1" +
+            "                  order by id desc" +
+            "                  limit 5) r1" +
+            "                   left join reply rex" +
+            "                             on rex.postid = r1.postid and r1.replyTo = rex.floor) r" +
+            "             left join post on postid = pid" +
+            "      where available = 1) replyDetail" +
+            "       left join user on replyToId = uid")
     List<Reply> getUserReply(int uid);
 
     @Update("update user set postNum=postNum+1 where uid=#{uid}")

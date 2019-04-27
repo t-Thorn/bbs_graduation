@@ -49,7 +49,7 @@ public class HotPointManager<E> {
     }
 
     public void addRefreshTask(int period, TimeUnit unit) {
-        handler.addCycleSaveTask(period, unit);
+        handler.addRefreshTask(period, unit);
     }
 
     public void addCycleSaveForReloadTask(int period, TimeUnit unit, String path) {
@@ -60,4 +60,7 @@ public class HotPointManager<E> {
         handler.setDataSaver(dataSaver);
     }
 
+    public void addCycleSaveThread(int period, TimeUnit unit) {
+        handler.addCycleSaveTask(period, unit);
+    }
 }

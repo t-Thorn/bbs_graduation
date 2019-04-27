@@ -2,10 +2,11 @@ package com.thorn.bbsmain.confugurations;
 
 import com.thorn.bbsmain.mapper.PostMapper;
 import com.thorn.bbsmain.mapper.entity.Post;
+import com.thorn.bbsmain.mapper.entity.Reply;
 import com.thorn.bbsmain.mapper.entity.User;
+import domain.HotPoint;
 import impl.*;
 import interfaces.Fetcher;
-import interfaces.HotPoint;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,6 +25,11 @@ public class HotPointManagerFactory {
     @Bean
     public Fetcher<Post> getFetch(PostMapper postMapper) {
         return new Fetcher<Post>() {
+            @Override
+            public Integer getPID(Object object) {
+                return ((Reply) object).getPostid();
+            }
+
             @Override
             public Post getInfo(int pid) {
                 return postMapper.getPostForHotPost(pid);
@@ -44,16 +50,20 @@ public class HotPointManagerFactory {
                 if ((int) id > 0) {
                     //负数为ip地址，正数为pid
                     HotPoint post = ((HotPoint) hotPoint);
-                    synchronized (post) {
-                        if (post.getReplyIncrement() == 0 && post.getViewIncrement() == 0) {
+                    if (post.getViewIncrement() == 0) {
+                        //无增量则跳过
+                        return;
+                    }
+                    synchronized (hotPoint) {
+                        int increment = 0;
+                        if ((increment = post.getViewIncrement()) == 0) {
                             //无增量则跳过
                             return;
                         }
-                        postMapper.updateViewAndReplyNum(((int) id), post.getViewIncrement(),
-                                post.getReplyIncrement());
+                        //只保存取出时的量，减掉取出时的量。。可能没必要，但安全
+                        postMapper.updateViewAndReplyNum(((int) id), increment);
                         //清空
-                        post.setViewIncrement(0);
-                        post.setReplyIncrement(0);
+                        post.setViewIncrement(post.getViewIncrement() - increment);
                     }
                 }
             }
@@ -66,6 +76,10 @@ public class HotPointManagerFactory {
         manager.addCycleSaveForReloadTask(reload, TimeUnit.SECONDS, reloadPath);
         manager.addDataSavor(saver);
         manager.addRefreshTask(1, TimeUnit.DAYS);
+        /**
+         * 1分钟一次全量备份，作为测试时使用
+         */
+        manager.addCycleSaveThread(1, TimeUnit.MINUTES);
         return manager;
     }
 

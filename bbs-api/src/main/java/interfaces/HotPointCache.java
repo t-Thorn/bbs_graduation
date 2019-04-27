@@ -1,5 +1,7 @@
 package interfaces;
 
+import domain.HotPoint;
+
 import java.util.Map;
 
 public interface HotPointCache extends HotPostCache<Integer, HotPoint> {

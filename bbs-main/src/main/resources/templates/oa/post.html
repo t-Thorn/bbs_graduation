@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1" name="viewport">
+    <title>后台</title>
+    <link href="/res/layui/css/layui.css" rel="stylesheet">
+</head>
+<body>
+<form action="/" class="layui-form">
+    <div class="layui-inline">
+        <label class="layui-form-label">行内表单</label>
+        <div class="layui-input-inline">
+            <input autocomplete="off" class="layui-input" name="number" type="text">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-filter="demo1" lay-submit="">立即提交</button>
+        </div>
+    </div>
+</form>
+<table class="layui-table"
+       lay-data="{ url:'/admin/postTable', page:true, id:'post'}"
+       lay-filter="post">
+    <thead>
+    <tr>
+        <th lay-data="{field:'pid', sort: true, fixed: true}">PID</th>
+        <th lay-data="{field:'nickname',templet: '#nicknameTpl'}">发表者</th>
+        <th lay-data="{field:'title',templet: '#titleTpl'}">标题</th>
+        <th lay-data="{width:60,field:'type',templet: '#typeTpl'}">类型</th>
+        <th lay-data="{ width:100,field:'grade',templet: '#gradeTpl'}">等级</th>
+        <th lay-data="{field:'postTime',templet: '#postTpl'}">发表时间</th>
+        <th lay-data="{width:120,field:'replyNum'}">回复数</th>
+        <th lay-data="{field:'lastReplyTime',templet: '#replyTpl'}">上次回复时间</th>
+        <th lay-data="{width:120,field:'views'}">浏览量</th>
+        <th lay-data="{width:120,field:'collectionNum'}">收藏量</th>
+        <th lay-data="{fixed: 'right', align:'center', toolbar: '#barDemo'}"></th>
+    </tr>
+    </thead>
+</table>
+
+<script id="barDemo" type="text/html">
+    <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail">查看</a>
+    <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+
+
+<script charset="utf-8" src="/res/layui/layui.js"></script>
+<!-- 注意：如果你直接复制所有代码到本地，上述js路径需要改成你本地的 -->
+<script>
+    var layer;
+    layui.use(['element', 'layer'], function () {
+        layer = layui.layer;
+    });
+    layui.use('table', function () {
+        var table = layui.table;
+        //监听表格复选框选择
+        table.on('checkbox(post)', function (obj) {
+            console.log(obj)
+        });
+        //监听工具条
+        table.on('tool(post)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'detail') {
+                layer.msg('PID：' + data.pid + ' 的查看操作');
+            } else if (obj.event === 'del') {
+                layer.confirm('真的删除行么', function (index) {
+                    obj.del();
+                    layer.close(index);
+                });
+            } else if (obj.event === 'edit') {
+                layer.alert('编辑行：<br>' + JSON.stringify(data))
+            }
+        });
+    });
+</script>
+<script id="titleTpl" type="text/html">
+    <a href="/post/{{d.pid}}" target="_blank" class="layui-table-link">{{d.title}}</a>
+</script>
+<script id="nicknameTpl" type="text/html">
+    <a href="/user/home/{{d.uid}}" target="_blank" class="layui-table-link">{{d.nickname}}</a>
+</script>
+<script id="typeTpl" type="text/html">
+    {{#  if(d.type == 0){ }}
+    动态
+    {{#  } else { }}
+    {{#  if(d.type == 1){ }}
+    提问
+    {{#  } else { }}
+    {{#  if(d.type == 2){ }}
+    分享
+    {{#  } else { }}
+    {{#  if(d.type == 3){ }}
+    讨论
+    {{#  } else { }}
+    {{#  if(d.type == 4){ }}
+    公告
+    {{#  } }}
+    {{#  } }}
+    {{#  } }}
+    {{#  } }}
+    {{#  } }}
+</script>
+<script id="gradeTpl" type="text/html">
+    {{#  if(d.grade == 0){ }}
+    普通
+    {{#  } else { }}
+    {{#  if(d.grade == 1){ }}
+    加精
+    {{#  } else { }}
+    {{#  if(d.grade == 2){ }}
+    置顶
+    {{#  } else { }}
+    置顶/加精
+    {{#  } }}
+    {{#  } }}
+    {{#  } }}
+</script>
+<script id="postTpl" type="text/html">
+    {{#
+    var fn = function(){
+    var time =d.postTime;
+    var newDate = new Date();
+    newDate.setTime(time);
+    return newDate.toLocaleString()
+    }}}
+
+    {{ fn() }}
+</script>
+<script id="replyTpl" type="text/html">
+    {{#
+    var fn = function(){
+    var time =d.lastReplyTime;
+    var newDate = new Date();
+    newDate.setTime(time);
+    return newDate.toLocaleString()
+    }}}
+
+    {{ fn() }}
+</script>
+</body>
+</html>

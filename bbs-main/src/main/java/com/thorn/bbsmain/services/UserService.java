@@ -21,6 +21,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 @Slf4j
 @Service
@@ -128,14 +129,17 @@ public class UserService {
         //跳转到登录前的页面
         if (uri != null) {
             uri = uri.split(",")[0];
-            if ("home".equals(uri)) {
+            if ("index".equals(uri)) {
                 uri = "/";
             } else {
-                uri = "/post/" + uri;
+                Pattern pattern = Pattern.compile("^[-\\+]?[\\d]*$");
+                if (pattern.matcher(uri).matches()) {
+                    uri = "/post/" + uri;
+                }
             }
             return builder.getMsg("redirect:" + uri);
         }
-        return null;
+        return builder.getMsg("/");
     }
 
     public void getErrors(BindingResult result, MsgBuilder builder) {

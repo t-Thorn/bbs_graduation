@@ -226,9 +226,12 @@
     }).use('fly');
 </script>
 <script>
-    if ("[[${#request.getParameter('errorMsg')}]]" != "") {
-        layer.msg("[[${#request.getParameter('errorMsg')}]]");
-    }
+    layui.use(['element', 'layer'], function () {
+        var layer = layui.layer;
+        if ("[[${errorMsg}]]" != "") {
+            layer.msg("[[${errorMsg}]]");
+        }
+    });
 </script>
 </body>
 </html>

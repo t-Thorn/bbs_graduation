@@ -70,24 +70,23 @@ public class GlobalDefaultExceptionHandler {
 
     private ModelAndView defaultException(HttpServletRequest request, HttpServletResponse response,
                                           Exception msg) {
-
-        log.warn("认证错误:" + msg.getMessage());
         MsgBuilder builder = new MsgBuilder();
         builder.addData("errorMsg", msg.getMessage());
         if (msg instanceof AuthorizationException) {
             //用户访问只有游客才能访问的页面时则返回主页面，并且不提示
-            if (uris.stream().anyMatch(uri -> request.getRequestURI().contains(uri))) {
+/*            if (uris.stream().anyMatch(uri -> request.getRequestURI().contains(uri))) {
                 log.info("游客界面");
                 builder.clear();
-            } else {
+            } else {*/
                 builder.addData("errorMsg", "权限不足");
-            }
-            //权限不够则跳转到主页
-            if (msg.getMessage().contains("The current Subject is not a user")) {
-                builder.addData("errorMsg", "请登录后再试");
-            }
             if (!isAjax(request)) {
-                return builder.getMsg("/user/login");
+                if (msg.getMessage().contains("The current Subject is not a user")) {
+                    builder.addData("errorMsg", "请登录后再试");
+                    builder.addData("uri", request.getRequestURI());
+                    return builder.getMsg("/user/login");
+                }
+                //权限不够则跳转到主页
+                return builder.getMsg("forward:/");
             } else {
                 return builder.getMsgForAjax();
             }

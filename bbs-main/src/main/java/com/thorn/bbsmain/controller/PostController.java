@@ -39,13 +39,26 @@ public class PostController {
         this.replyService = replyService;
     }
 
+    /**
+     * 跳转帖子详情页面
+     *
+     * @param pid      帖子id
+     * @param f        跳转楼层
+     * @param floor    跳转添加回复后的楼层，接收自转发来的
+     * @param page     页数
+     * @param errorMsg 错误信息
+     * @return 帖子详情
+     * @throws PostNotFoundException 未知帖子错误
+     * @throws PageException         帖子内容错误
+     */
     @RequestMapping(value = {"/{pid}/{page}", "/{pid}"})
     public ModelAndView viewPost(@PathVariable("pid") int pid,
+                                 @RequestParam(value = "floor",required = false)Integer f,
                                  @RequestAttribute(value = "floor", required = false) Integer floor,
                                  @PathVariable(value = "page", required = false) Integer page,
                                  @RequestAttribute(value = "errorMsg", required = false) String errorMsg)
             throws PostNotFoundException, PageException {
-        return postService.viewPost(pid, floor, page == null ? 1 : page, errorMsg);
+        return postService.viewPost(pid, floor == null ? f : floor, page == null ? 1 : page, errorMsg);
     }
 
     @RequiresPermissions("createPost")

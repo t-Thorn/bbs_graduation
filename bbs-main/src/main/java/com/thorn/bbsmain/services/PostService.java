@@ -11,6 +11,7 @@ import com.thorn.bbsmain.mapper.entity.User;
 import com.thorn.bbsmain.utils.MsgBuilder;
 import com.thorn.bbsmain.utils.MyUtil;
 import impl.HotPointManager;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Service
 public class PostService {
     @Value("${system.page.post}")
@@ -155,10 +157,11 @@ public class PostService {
      * @param type   类型0=普通 1=精品贴
      * @param page   页数
      * @param target 搜索内容
+     * @param errorMsg
      * @return
      * @throws PageException
      */
-    public ModelAndView buildHome(Integer type, Integer page, String target) throws PageException {
+    public ModelAndView buildHome(Integer type, Integer page, String target, String errorMsg) throws PageException {
         if (page < 1) {
             throw new PageException("非法参数");
         }
@@ -180,6 +183,7 @@ public class PostService {
         }
 
         //需要返回搜索内容
+        builder.addData("errorMsg", errorMsg);
         builder.addData("type", type);
         builder.addData("page", page);
         builder.addData("target", target);

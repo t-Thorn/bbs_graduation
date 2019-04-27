@@ -1,6 +1,6 @@
 package impl;
 
-import interfaces.HotPoint;
+import domain.HotPoint;
 import interfaces.HotPointCache;
 
 import java.util.Collections;
@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class DefaultHotPointCache implements HotPointCache {
 
+    public static final long REPLY_INCREASEMENT = 4l;
     private final ConcurrentHashMap<Integer, HotPoint> CACHE = new ConcurrentHashMap<Integer,
             HotPoint>();
 
@@ -18,8 +19,6 @@ public class DefaultHotPointCache implements HotPointCache {
             if (v.getReply() > 0) {
                 v.setReply(v.getReply() - 1);
             }
-            v.setReplyIncrement(v.getReplyIncrement() - 1);
-            v.setChangNum(v.getChangNum() + 1);
             return v;
         });
     }
@@ -44,15 +43,12 @@ public class DefaultHotPointCache implements HotPointCache {
     }
 
     private HotPoint computeHotPoint(Long hotPoint, HotPoint v) {
-        if (hotPoint == 5l) {
+        if (hotPoint == REPLY_INCREASEMENT) {
             v.setReply(v.getReply() + 1);
-            v.setReplyIncrement(v.getReplyIncrement() + 1);
-            v.setChangNum(v.getChangNum() + 1);
-            v.setTotal(v.getTotal() + 5);
+            v.setTotal(v.getTotal() + 4);
         } else {
             v.setView(v.getView() + 1);
             v.setViewIncrement(v.getViewIncrement() + 1);
-            v.setChangNum(v.getChangNum() + 1);
             v.setTotal(v.getTotal() + 1);
         }
         return v;
@@ -83,8 +79,6 @@ public class DefaultHotPointCache implements HotPointCache {
     public void reset(int pid) {
         CACHE.computeIfPresent(pid, (k, v) -> {
             v.setViewIncrement(0);
-            v.setReplyIncrement(0);
-            v.setChangNum(0);
             return v;
         });
     }
