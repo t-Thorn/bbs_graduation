@@ -73,9 +73,9 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
     }
 
     @Override
-    public long getHotPoint(int pid) {
+    public HotPoint getHotPoint(int pid) {
         HotPoint hotPoint = hotPointCache.get(pid);
-        return hotPoint == null ? 0 : hotPoint.getTotal();
+        return hotPoint;
     }
 
     protected void computeViewNum(int pid, Object object) {

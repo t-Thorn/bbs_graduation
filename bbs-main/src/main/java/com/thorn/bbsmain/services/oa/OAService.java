@@ -6,7 +6,7 @@ import java.util.List;
 
 
 public interface OAService<E> {
-    List<E> getList(int page, String target, int limit);
+    List<E> getList(int page, String target, int limit, int type);
 
     E getDetail(Object id);
 

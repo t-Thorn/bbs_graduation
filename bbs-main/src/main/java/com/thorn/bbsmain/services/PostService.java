@@ -3,6 +3,7 @@ package com.thorn.bbsmain.services;
 
 import annotation.RefreshHotPost;
 import com.thorn.bbsmain.exceptions.PageException;
+import com.thorn.bbsmain.exceptions.PostException;
 import com.thorn.bbsmain.exceptions.PostNotFoundException;
 import com.thorn.bbsmain.mapper.PostMapper;
 import com.thorn.bbsmain.mapper.entity.Post;
@@ -10,6 +11,7 @@ import com.thorn.bbsmain.mapper.entity.Reply;
 import com.thorn.bbsmain.mapper.entity.User;
 import com.thorn.bbsmain.utils.MsgBuilder;
 import com.thorn.bbsmain.utils.MyUtil;
+import domain.HotPoint;
 import impl.HotPointManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -197,12 +199,12 @@ public class PostService {
      * 浏览帖子
      *
      * @param pid      帖子id
-     * @param floor    偏移楼层
+     * @param replyID    偏移楼层
      * @param errorMsg
      * @return
      */
     @RefreshHotPost()
-    public ModelAndView viewPost(Integer pid, Integer floor, int page, String errorMsg) throws PostNotFoundException,
+    public ModelAndView viewPost(Integer pid, Integer replyID, int page, String errorMsg) throws PostNotFoundException,
             PageException {
         if (page == 0) {
             throw new PageException("页数参数错误");
@@ -212,6 +214,7 @@ public class PostService {
          * 帖子信息获取
          */
         Post post = postMapper.getPost(pid);
+
         if (post == null) {
             throw new PostNotFoundException("未找到页面");
         }
@@ -230,12 +233,17 @@ public class PostService {
             }
 
         }
+
         //构建帖子头信息
-        builder.addData("hotPoint", manager.getHotPoint(pid));
+        HotPoint hotPoint = manager.getHotPoint(pid);
+        if (hotPoint != null) {
+            builder.addData("hotPoint", hotPoint.getTotal());
+            post.setViews(hotPoint.getView() + post.getViews());
+        }
         builder.addData("post", post);
 
         builder.addData("replys", replyService.getReplies(pid, builder, page));
-        builder.addData("floor", floor);
+        builder.addData("replyID", replyID);
         builder.addData("errorMsg", errorMsg);
         getHotPosts(builder);
         return builder.getMsg("/jie/detail");
@@ -254,4 +262,35 @@ public class PostService {
     }
 
 
+    public String delPost(int pid) throws PostException {
+        if (pid < 1) {
+            throw new PostException("删除帖子参数错误");
+        }
+        User user = userService.getCurrentUser();
+        if (user == null) {
+            throw new PostException("请登录再试");
+        }
+        if (!isExist(pid)) {
+            throw new PostException("帖子不存在");
+        }
+        if (!userService.hasRole("admin") || postMapper.hasPermission(user.getUid(), pid) == 0) {
+            throw new PostException("没有权限删除");
+        }
+
+        MsgBuilder builder = new MsgBuilder();
+        //回复可用置0
+        if (postMapper.invalidReply(pid) > 0) {
+            postMapper.decreaseReplyNum(pid);
+        } else {
+            throw new PostException("已被删除");
+        }
+        //帖子回复数-1
+
+        builder.addData("msg", "成功");
+        return builder.getMsg();
+    }
+
+    private boolean isExist(int pid) {
+        return postMapper.isExist(pid) > 0;
+    }
 }

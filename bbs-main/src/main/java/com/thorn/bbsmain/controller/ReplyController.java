@@ -41,8 +41,16 @@ public class ReplyController {
         return builder.getMsg();
     }
 
+    /**
+     * 需要同步，保证不会插入相同楼层
+     *
+     * @param reply
+     * @param result
+     * @return
+     * @throws PostException
+     */
     @PostMapping("addReply")
-    public ModelAndView addReply(@Valid Reply reply, BindingResult result) throws PostException {
+    public synchronized ModelAndView addReply(@Valid Reply reply, BindingResult result) throws PostException {
         return replyService.addReply(reply, result);
     }
 

@@ -1,5 +1,6 @@
 package impl;
 
+import domain.HotPoint;
 import interfaces.*;
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,7 +45,7 @@ public class HotPointManager<E> {
         return handler.getTopPostHotPoint();
     }
 
-    public long getHotPoint(int pid) {
+    public HotPoint getHotPoint(int pid) {
         return handler.getHotPoint(pid);
     }
 

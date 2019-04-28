@@ -10,7 +10,11 @@ import org.springframework.web.servlet.ModelAndView;
 @Controller
 public class BasicController {
 
-
+    /**
+     * 1.修复删除回复不减少热度
+     * 2.完成OA搜索以及编辑删除
+     * 3.帖子页面实时加入浏览量
+     */
     private PostService postService;
 
     /**

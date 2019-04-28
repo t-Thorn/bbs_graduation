@@ -157,7 +157,7 @@
                 </fieldset>
 
                 <ul class="jieda" id="jieda">
-                    <li th:each="reply:${replys}" th:id="${'floor'+reply.id}">
+                    <li th:each="reply:${replys}" th:id="${'replyID'+reply.id}">
                         <div class="detail-about detail-about-reply">
                             <a class="fly-avatar" th:href="${'/user/home/'+reply.replyer}">
                                 <img th:src="${reply.img}">
@@ -347,8 +347,8 @@
     }).extend({
         fly: 'index'
     }).use('fly');
-    if ("[[${floor}]]" != 0) {
-        window.location.hash = "floor" + "[[${floor}]]";
+    if ("[[${replyID}]]" != 0) {
+        window.location.hash = "replyID" + "[[${replyID}]]";
     }
     var editor = createEditor();
 </script>

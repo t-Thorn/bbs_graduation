@@ -1,5 +1,6 @@
 package interfaces;
 
+import domain.HotPoint;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
@@ -110,7 +111,7 @@ public abstract class AbstractHotPostHandler<E> {
      * @param pid
      * @return
      */
-    public abstract long getHotPoint(int pid);
+    public abstract HotPoint getHotPoint(int pid);
 
     /**
      * 循环保存缓存

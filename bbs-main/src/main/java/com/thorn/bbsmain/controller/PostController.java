@@ -1,7 +1,9 @@
 package com.thorn.bbsmain.controller;
 
 
+import com.thorn.bbsmain.exceptions.DeleteReplyException;
 import com.thorn.bbsmain.exceptions.PageException;
+import com.thorn.bbsmain.exceptions.PostException;
 import com.thorn.bbsmain.exceptions.PostNotFoundException;
 import com.thorn.bbsmain.mapper.entity.Post;
 import com.thorn.bbsmain.mapper.entity.Reply;
@@ -43,8 +45,8 @@ public class PostController {
      * 跳转帖子详情页面
      *
      * @param pid      帖子id
-     * @param f        跳转楼层
-     * @param floor    跳转添加回复后的楼层，接收自转发来的
+     * @param ID        跳转楼层
+     * @param replyID    跳转添加回复后的楼层，接收自转发来的
      * @param page     页数
      * @param errorMsg 错误信息
      * @return 帖子详情
@@ -53,12 +55,13 @@ public class PostController {
      */
     @RequestMapping(value = {"/{pid}/{page}", "/{pid}"})
     public ModelAndView viewPost(@PathVariable("pid") int pid,
-                                 @RequestParam(value = "floor",required = false)Integer f,
-                                 @RequestAttribute(value = "floor", required = false) Integer floor,
+                                 @RequestParam(value = "replyID", required = false) Integer ID,
+                                 @RequestAttribute(value = "replyID", required = false) Integer replyID,
                                  @PathVariable(value = "page", required = false) Integer page,
                                  @RequestAttribute(value = "errorMsg", required = false) String errorMsg)
             throws PostNotFoundException, PageException {
-        return postService.viewPost(pid, floor == null ? f : floor, page == null ? 1 : page, errorMsg);
+        return postService.viewPost(pid, replyID == null ? ID : replyID, page == null ? 1 : page,
+                errorMsg);
     }
 
     @RequiresPermissions("createPost")
@@ -82,6 +85,9 @@ public class PostController {
         return replyService.imgUpload(imgs);
     }
 
-
-
+    @ResponseBody
+    @DeleteMapping("del/{pid}")
+    public String delReply(@PathVariable("pid") int pid) throws PostException, DeleteReplyException {
+        return postService.delPost(pid);
+    }
 }

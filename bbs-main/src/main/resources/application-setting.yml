@@ -3,7 +3,6 @@ system:
     replyimg: /run/media/thorn/Thorn Passport/毕设/img/replyImg/
     avator:  /run/media/thorn/Thorn Passport/毕设/img/
     replyImg: /run/media/thorn/Thorn Passport/毕设/img/replyImg/
-    reload: /run/media/thorn/Thorn Passport/毕设/reload/
   page:
     post: 8
     message: 2
@@ -25,6 +24,14 @@ mail:
 
 
 hotPoint:
+  path:
+    reload: /run/media/thorn/Thorn Passport/毕设/reload/
+  period:
+    reload: 1
+    #    单位：天
+    refreshPeriod: 1
+    #    单位：小时
+    savePeriod: 1
   threshold: 3
   refreshTime: 2:00:00
   saveTaskThreadNum: 2

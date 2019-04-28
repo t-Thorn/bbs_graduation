@@ -19,10 +19,17 @@ public class PostOAService implements OAService<Post> {
         this.postMapper = postMapper;
     }
 
+    public Post getPostInfo(int pid) {
+        return postMapper.getPost(pid);
+    }
+
     @Override
-    public List<Post> getList(int page, String target, int limit) {
+    public List<Post> getList(int page, String target, int limit, int type) {
         if (target != null && !"".equals(target)) {
-            return postMapper.getPostsOfAdminForTarget((page - 1) * limit, limit, target);
+            if (type == 1) {
+                return postMapper.getPostsOfAdminForTarget((page - 1) * limit, limit, target);
+            }
+            return postMapper.getPostsOfAdminForTargetByUsername((page - 1) * limit, limit, target);
         }
         return postMapper.getPostsOfAdmin((page - 1) * limit, limit);
     }

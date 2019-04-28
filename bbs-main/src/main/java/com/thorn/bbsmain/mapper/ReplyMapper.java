@@ -93,11 +93,9 @@ public interface ReplyMapper {
     int isLegal(Integer postid, Integer replyTo);
 
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
-    @Insert("insert into reply (postid,content,content_show,replyer,replyTo,floor) values(" +
-            "#{postid},#{content}," +
-            "#{content_show},#{replyer},#{replyTo},(select * from (select max(floor)+1 from " +
-            "reply where " +
-            "postid=#{postid})r))")
+    @Insert("insert into reply (postid,content,content_show,replyer,replyTo,floor) " +
+            "select #{postid},#{content},#{content_show},#{replyer},#{replyTo},floor from (select" +
+            " (max(floor)+1)as floor from reply where postid=#{postid}) r")
     void addReply(Reply reply);
 
     @Select("select count(1) from reply where postid=#{pid} and floor=#{floor} and available=1")

@@ -276,7 +276,7 @@ public class InfoService {
         return builder.getMsg("/user/history");
     }
 
-    @Transactional
+    @Transactional(noRollbackFor = PostException.class)
     public void delCollect(Integer pid) throws PostException {
         Integer uid = userService.getCurrentUser().getUid();
         //检查是否存在
@@ -291,7 +291,7 @@ public class InfoService {
         postMapper.decreaseCollectNum(pid);
     }
 
-    @Transactional
+    @Transactional(noRollbackFor = PostException.class)
     public void collect(Integer pid) throws PostException {
         Integer uid = userService.getCurrentUser().getUid();
         //检查是否存在

@@ -22,9 +22,9 @@ public class AdminService {
     }
 
 
-    public String getPostTable(int page, String search, int limit) {
+    public String getPostTable(int page, String search, int limit, int type) {
         MsgBuilder builder = postOAService.addData();
-        builder.addData("data", postOAService.getList(page, search, limit));
+        builder.addData("data", postOAService.getList(page, search, limit, type));
         return builder.getMsg();
     }
 }

@@ -15,12 +15,17 @@ import java.util.concurrent.TimeUnit;
 
 @Configuration
 public class HotPointManagerFactory {
-    @Value("${system.path.reload}")
+    @Value("${hotPoint.path.reload}")
     private String reloadPath;
 
-    @Value("${system.period.reload}")
+    @Value("${hotPoint.period.reload}")
     private int reload;
 
+    @Value("${hotPoint.period.refreshPeriod}")
+    private int refreshPeriod;
+
+    @Value("${hotPoint.period.savePeriod}")
+    private int savePeriod;
 
     @Bean
     public Fetcher<Post> getFetch(PostMapper postMapper) {
@@ -75,11 +80,11 @@ public class HotPointManagerFactory {
         HotPointManager manager = new HotPointManager<Post>(hotPostHandler);
         manager.addCycleSaveForReloadTask(reload, TimeUnit.SECONDS, reloadPath);
         manager.addDataSavor(saver);
-        manager.addRefreshTask(1, TimeUnit.DAYS);
+        manager.addRefreshTask(refreshPeriod, TimeUnit.DAYS);
         /**
          * 1分钟一次全量备份，作为测试时使用
          */
-        manager.addCycleSaveThread(1, TimeUnit.MINUTES);
+        manager.addCycleSaveThread(savePeriod, TimeUnit.HOURS);
         return manager;
     }
 

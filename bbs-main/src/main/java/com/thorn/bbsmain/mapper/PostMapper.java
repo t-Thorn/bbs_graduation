@@ -89,8 +89,8 @@ public interface PostMapper {
     @Select("select pid,title from post where pid=#{pid}")
     Post getPostForHotPost(int pid);
 
-    @Select("select post.*,img,nickname from post left join user on user.uid=post.uid where " +
-            "pid=#{pid}")
+    @Select("select p.*,img,nickname from (select * from post where pid=#{pid})p left join user " +
+            "on user.uid=p.uid")
     Post getPost(int pid);
     /**
      * 更新浏览量和回复数
@@ -131,10 +131,24 @@ public interface PostMapper {
     List<Post> getPostsOfAdmin(int offset, int limit);
 
     @Select("select post.*,nickname" +
-            " from post left join user on post.uid=user.uid where pid>#{offset}" +
-            " and title like concat('%',#{target},'%') limit #{limit};")
+            " from post left join user on post.uid=user.uid where " +
+            "  title like concat('%',#{target},'%') limit #{offset},#{limit};")
     List<Post> getPostsOfAdminForTarget(int offset, int limit, String target);
+
+    @Select("select post.*,nickname" +
+            " from post left join user on post.uid=user.uid where " +
+            " nickname like concat('%',#{target},'%') limit #{offset},#{limit};")
+    List<Post> getPostsOfAdminForTargetByUsername(int offset, int limit, String target);
 
     @Select("select count(*) from post")
     int getPostNumOfAdmin();
+
+    @Select("select count(*) from post where uid=#{uid} and pid=#{pid} and available=true")
+    int hasPermission(Integer uid, int pid);
+
+    @Select("select count(*) from post where pid=#{pid} and avaiable=1")
+    int isExist(int pid);
+
+    @Update("update post set available=0 where pid=#{pid} and available=1")
+    int invalidReply(int pid);
 }

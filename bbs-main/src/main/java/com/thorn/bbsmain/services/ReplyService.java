@@ -174,7 +174,7 @@ public class ReplyService {
 
 
     @RefreshHotPost(HotPointManager.REPLY)
-    @Transactional
+    @Transactional(rollbackFor = PostException.class)
     public ModelAndView addReply(Reply reply, BindingResult result) throws PostException {
         MsgBuilder builder = new MsgBuilder();
         if (result.hasErrors()) {
@@ -191,8 +191,8 @@ public class ReplyService {
             postMapper.updateLastReplyTime(reply.getPostid());
             //新增回复
             replyMapper.addReply(reply);
-            //将注入到对象中的floor提取出来返回
-            builder.addData("floor", reply.getId());
+            //将注入到对象中的id提取出来返回
+            builder.addData("replyID", reply.getId());
             //todo 消息加入
         } catch (Exception e) {
             throw new PostException("新增帖子错误" + e.getMessage());
@@ -202,22 +202,22 @@ public class ReplyService {
     }
 
     @RefreshHotPost(HotPointManager.DELREPLY)
-    @Transactional
+    @Transactional(rollbackFor = DeleteReplyException.class)
     public String delReply(int pid, int floor) throws PostException, DeleteReplyException {
-        if (floor == 0 || pid == 0) {
-            throw new PostException("删除帖子参数错误");
+        if (floor < 1 || pid < 1) {
+            throw new PostException("删除回复参数错误");
         }
         User user = userService.getCurrentUser();
         if (user == null) {
             throw new DeleteReplyException("请登录再试");
         }
-
+        if (!isExist(pid, floor)) {
+            throw new DeleteReplyException("删除回复参数错误");
+        }
         if (!userService.hasRole("admin") || replyMapper.hasPermission(user.getUid(), pid, floor) == 0) {
             throw new DeleteReplyException("没有权限删除");
         }
-        if (!isExist(pid, floor)) {
-            throw new DeleteReplyException("删除帖子参数错误");
-        }
+
         MsgBuilder builder = new MsgBuilder();
         //回复可用置0
         if (replyMapper.invalidReply(pid, floor) > 0) {
@@ -232,6 +232,6 @@ public class ReplyService {
     }
 
     boolean isExist(int pid, int floor) {
-        return replyMapper.isExist(pid, floor) != 0;
+        return replyMapper.isExist(pid, floor) > 0;
     }
 }

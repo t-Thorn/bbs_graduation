@@ -290,7 +290,24 @@ function delReply(index) {
         data: "",
         success: function () {
             layer.msg("删除成功");
-            window.location.href = '/post/' + reply.data("pid")
+            setTimeout("  window.location.href = '/post/' + reply.data(\"pid\")", 3000);
+
+        },
+        error: function (data) {
+            layer.msg('删除失败:' + JSON.parse(data.responseText).errorMsg);
+        }
+    })
+}
+
+function delReplyByPID(pid) {
+    var uri = "/reply/del/pid"
+    $.ajax({
+        url: uri,
+        type: 'delete',
+        dataType: 'json',
+        data: "",
+        success: function () {
+            layer.msg("删除成功");
         },
         error: function (data) {
             layer.msg('删除失败:' + JSON.parse(data.responseText).errorMsg);
@@ -306,6 +323,6 @@ function msg(uri) {
     if (errorMsg.value != "") {
         layer.msg(errorMsg.value);
         if (uri != null && uri != "")
-            window.location.href = uri;
+            setTimeout("window.location.href = uri;", 3000);
     }
 }

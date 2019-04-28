@@ -18,6 +18,7 @@ public class DefaultHotPointCache implements HotPointCache {
         CACHE.computeIfPresent(pid, (k, v) -> {
             if (v.getReply() > 0) {
                 v.setReply(v.getReply() - 1);
+                v.setTotal(v.getTotal() - REPLY_INCREASEMENT);
             }
             return v;
         });
@@ -45,7 +46,7 @@ public class DefaultHotPointCache implements HotPointCache {
     private HotPoint computeHotPoint(Long hotPoint, HotPoint v) {
         if (hotPoint == REPLY_INCREASEMENT) {
             v.setReply(v.getReply() + 1);
-            v.setTotal(v.getTotal() + 4);
+            v.setTotal(v.getTotal() + REPLY_INCREASEMENT);
         } else {
             v.setView(v.getView() + 1);
             v.setViewIncrement(v.getViewIncrement() + 1);

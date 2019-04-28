@@ -7,21 +7,31 @@
     <link href="/res/layui/css/layui.css" rel="stylesheet">
 </head>
 <body>
-<form action="/" class="layui-form">
+<form action="" class="layui-form layui-form-pane">
     <div class="layui-inline">
-        <label class="layui-form-label">行内表单</label>
-        <div class="layui-input-inline">
-            <input autocomplete="off" class="layui-input" name="number" type="text">
+        <div class="layui-inline">
+            <label class="layui-form-label">搜索选择框</label>
+            <div class="layui-input-inline">
+                <select id="type" lay-search="" lay-verify="required" name="modules">
+                    <option value="">直接选择或搜索选择</option>
+                    <option selected value="1">标题</option>
+                    <option value="2">用户名</option>
+                </select>
+            </div>
         </div>
-    </div>
-    <div class="layui-form-item">
-        <div class="layui-input-block">
-            <button class="layui-btn" lay-filter="demo1" lay-submit="">立即提交</button>
+        <div class="layui-input-inline">
+            <input autocomplete="off" class="layui-input" id="search"
+                   placeholder="搜索条件" type="text" value="">
+        </div>
+        <div class="layui-input-inline">
+            <button class="layui-btn" lay-filter="demo1" lay-submit="" onclick="reload()"
+                    type="button">搜索
+            </button>
         </div>
     </div>
 </form>
 <table class="layui-table"
-       lay-data="{ url:'/admin/postTable', page:true, id:'post'}"
+       lay-data="{url:'/admin/postTable', page:true, id:'demo'}"
        lay-filter="post">
     <thead>
     <tr>
@@ -41,40 +51,46 @@
 </table>
 
 <script id="barDemo" type="text/html">
-    <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail">查看</a>
-    <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
-    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+    <a class="layui-btn layui-btn-xs" data-method="setTop" lay-event="edit">编辑</a>
 </script>
 
 
 <script charset="utf-8" src="/res/layui/layui.js"></script>
-<!-- 注意：如果你直接复制所有代码到本地，上述js路径需要改成你本地的 -->
+<script src="/res/js/jquery-3.3.1.min.js"></script>
 <script>
     var layer;
     layui.use(['element', 'layer'], function () {
         layer = layui.layer;
     });
+    var table;
     layui.use('table', function () {
-        var table = layui.table;
-        //监听表格复选框选择
-        table.on('checkbox(post)', function (obj) {
-            console.log(obj)
-        });
+        table = layui.table;
         //监听工具条
         table.on('tool(post)', function (obj) {
             var data = obj.data;
-            if (obj.event === 'detail') {
-                layer.msg('PID：' + data.pid + ' 的查看操作');
-            } else if (obj.event === 'del') {
-                layer.confirm('真的删除行么', function (index) {
-                    obj.del();
-                    layer.close(index);
-                });
-            } else if (obj.event === 'edit') {
-                layer.alert('编辑行：<br>' + JSON.stringify(data))
-            }
+            window.open("/admin/editPost/" + data.pid);
         });
     });
+
+    function reload() {
+        var param;
+        if ($('#type').val() == 2) {
+            //默认搜索标题
+
+            param = {'search': $('#search').val(), 'type': '2'};
+        } else {
+            param = {'search': $('#search').val(), 'type': '1'};
+        }
+        table.reload('demo', {
+            url: '/admin/postTable'
+            , where: param
+            , method: 'get'
+            , page: {
+                curr: 1 //重新从第 1 页开始
+            }
+        });
+    }
+
 </script>
 <script id="titleTpl" type="text/html">
     <a href="/post/{{d.pid}}" target="_blank" class="layui-table-link">{{d.title}}</a>

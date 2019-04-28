@@ -8,7 +8,7 @@ import java.util.List;
 @Service
 public class ReplyOAService implements OAService {
     @Override
-    public List getList(int page, String target, int limit) {
+    public List getList(int page, String target, int limit, int type) {
         return null;
     }
 
