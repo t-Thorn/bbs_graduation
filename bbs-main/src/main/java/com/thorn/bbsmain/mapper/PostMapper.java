@@ -21,7 +21,8 @@ public interface PostMapper {
             "       replyNum," +
             "       img from user inner join post on post.uid = user.uid" +
             " where grade < 2" +
-            "  and available = true and pid>=(select pid from post where available=true limit #{offset},1)" +
+            "  and post.available = true and pid>=(select pid from post where available=true " +
+            "limit #{offset},1)" +
             " order by pid desc limit #{step}")
     List<Post> getPosts(int offset, int step);
 
@@ -34,14 +35,14 @@ public interface PostMapper {
             "       replyNum," +
             "       img from user inner join post on post.uid = user.uid" +
 //            屏蔽这个则可以显示全部" where grade < 2" +
-            "  and available = true and title like concat('%',#{target}," +
+            "  and post.available = true and title like concat('%',#{target}," +
             "    '%')  and pid>=(select pid from post where available=true limit #{offset},1)" +
             " order by pid desc limit #{step}")
     List<Post> getPostsForTarget(String target, int offset, int step);
 
     @Select("select user.uid,pid,title,user.nickname,type,grade,postTime,lastReplyTime,replyNum," +
             "img from user inner join post on  post.uid=user.uid where  type!=4 and grade>=2 and " +
-            "available=true limit 8")
+            "post.available=true limit 8")
     @Cacheable(value = "posts", key = "'topposts'", unless = "#result==null")
     List<Post> getTopPosts();
 
@@ -62,7 +63,7 @@ public interface PostMapper {
             "       inner join post on post.uid = user.uid" +
             " where type != 4" +
             "  and grade = 1" +
-            "  and available = true and pid>=(select pid from post where available=true limit #{offset},1)" +
+            "  and post.available = true and pid>=(select pid from post where available=true limit #{offset},1)" +
             " order by pid desc limit #{step}")
 //    @Cacheable(value = "posts", key = "'goodposts'", unless = "#result==null")
     List<Post> getGoodPosts(int offset, int step);
@@ -151,4 +152,15 @@ public interface PostMapper {
 
     @Update("update post set available=0 where pid=#{pid} and available=1")
     int invalidReply(int pid);
+
+    @Update("update post set title=#{title} , type=#{type} , grade=#{grade}, " +
+            "available=#{available} where pid=#{pid}")
+    void updatePost(Post post);
+
+    @Select("select count(*) from post where title like concat('%',#{target},'%')")
+    int getPostNumForTargetOfAdmin(String target);
+
+    @Select("select count(*) from post left join user on post.uid=user.uid where nickname like " +
+            "concat('%',#{target},'%')")
+    int getPostNumForTargetByUsernameOfAdmin(String target);
 }

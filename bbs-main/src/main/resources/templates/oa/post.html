@@ -45,6 +45,7 @@
         <th lay-data="{field:'lastReplyTime',templet: '#replyTpl'}">上次回复时间</th>
         <th lay-data="{width:120,field:'views'}">浏览量</th>
         <th lay-data="{width:120,field:'collectionNum'}">收藏量</th>
+        <th lay-data="{width:120,field:'available'}">有效性</th>
         <th lay-data="{fixed: 'right', align:'center', toolbar: '#barDemo'}"></th>
     </tr>
     </thead>
@@ -68,10 +69,21 @@
         //监听工具条
         table.on('tool(post)', function (obj) {
             var data = obj.data;
-            window.open("/admin/editPost/" + data.pid);
+            //页面层
+            layer.open({
+                type: 2,
+                title: '编辑帖子页',
+                shadeClose: true,
+                shade: 0.8,
+                area: ['40%', '80%'],
+                content: '/admin/editPost/' + data.pid
+            });
         });
     });
 
+    /**
+     * 重载页面
+     */
     function reload() {
         var param;
         if ($('#type').val() == 2) {
@@ -90,7 +102,6 @@
             }
         });
     }
-
 </script>
 <script id="titleTpl" type="text/html">
     <a href="/post/{{d.pid}}" target="_blank" class="layui-table-link">{{d.title}}</a>
@@ -124,12 +135,12 @@
     普通
     {{#  } else { }}
     {{#  if(d.grade == 1){ }}
-    加精
+    精品
     {{#  } else { }}
     {{#  if(d.grade == 2){ }}
     置顶
     {{#  } else { }}
-    置顶/加精
+    置顶/精品
     {{#  } }}
     {{#  } }}
     {{#  } }}

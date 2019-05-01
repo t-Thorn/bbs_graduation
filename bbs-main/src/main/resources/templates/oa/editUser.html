@@ -2,69 +2,69 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>编辑帖子</title>
+    <title>编辑用户</title>
     <link href="/res/layui/css/layui.css" rel="stylesheet">
 </head>
 <body>
-
 <form action="" class="layui-form" id="edit" lay-filter="example" method="post">
     <div style="padding-left: 45px">
-        <img th:src="${post.img}"/>
+        <img th:src="${user.img}"/>
     </div>
     <div style="padding-top: 10px">
         <div class="layui-form-item">
-            <label class="layui-form-label">帖子ID</label>
+            <label class="layui-form-label">用户ID</label>
             <div class="layui-input-inline">
-                <input class="layui-input" name="pid" readonly
-                       th:value="${post.pid}" type="text">
+                <input class="layui-input" name="uid" readonly
+                       th:value="${user.uid}" type="text">
             </div>
         </div>
         <div class="layui-form-item">
-            <label class="layui-form-label">帖子标题</label>
+            <label class="layui-form-label">用户邮箱</label>
             <div class="layui-input-inline">
-                <input class="layui-input" lay-verify="title" name="title"
-                       th:value="${post.title}" type="text">
+                <input class="layui-input" name="email" readonly
+                       th:value="${user.email}" type="text">
             </div>
         </div>
         <div class="layui-form-item">
-            <label class="layui-form-label">帖子作者</label>
+            <label class="layui-form-label">用户昵称</label>
             <div class="layui-input-inline">
-                <input class="layui-input" lay-verify="title" name="nickname" readonly
-                       th:value="${post.nickname}" type="text">
-                <input th:value="${post.uid}" type="hidden">
+                <input class="layui-input" lay-verify="title" name="nickname"
+                       th:value="${user.nickname}" type="text">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">用户年龄</label>
+            <div class="layui-input-inline">
+                <input class="layui-input" name="age"
+                       th:value="${user.age}" type="text">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">性别</label>
+            <div class="layui-input-block">
+                <th:block th:with="gender=${user.gender=='男'?true:false}">
+                    <input lay-skin="switch" lay-text="男|女" name="gender_" th:checked="${gender}"
+                           type="checkbox">
+                </th:block>
             </div>
         </div>
     </div>
     <div class="layui-form-item">
-        <label class="layui-form-label">类型</label>
+        <label class="layui-form-label">权限</label>
         <div class="layui-input-inline">
-            <select lay-filter="aihao" name="type">
-                <option th:selected="${post.type==0}" value="0">动态</option>
-                <option th:selected="${post.type==1}" value="1">提问</option>
-                <option th:selected="${post.type==2}" value="2">分享</option>
-                <option th:selected="${post.type==3}" value="3">讨论</option>
-                <option th:selected="${post.type==4}" value="4">公告</option>
+            <select name="grade">
+                <option th:selected="${user.grade=='customer'}" value="customer">用户</option>
+                <!--<option value="0" th:selected="${grade==1}">版主</option>-->
+                <option th:selected="${user.grade=='admin'}" value="admin">管理员</option>
             </select>
         </div>
 
     </div>
     <div class="layui-form-item">
-        <label class="layui-form-label">级别</label>
-        <div class="layui-input-inline">
-            <select lay-filter="aihao" name="grade">
-                <option th:selected="${post.grade==0}" value="0">普通</option>
-                <option th:selected="${post.grade==1}" value="1">精品</option>
-                <option th:selected="${post.grade==2}" value="2">置顶</option>
-                <option th:selected="${post.grade==3}" value="3">精品/置顶</option>
-            </select>
-        </div>
-    </div>
-    <div class="layui-form-item">
-
         <label class="layui-form-label">可用</label>
         <div class="layui-input-block">
             <input lay-skin="switch" lay-text="ON|OFF" name="available"
-                   th:checked="${post.available}"
+                   th:checked="${user.available}"
                    type="checkbox">
         </div>
     </div>
@@ -82,6 +82,7 @@
         var index = parent.layer.getFrameIndex(window.name);
         parent.layer.close(index)
     }
+
     layui.use(['form', 'layedit', 'laydate'], function () {
         var form = layui.form
             , layer = layui.layer
@@ -103,7 +104,7 @@
         form.on('submit(demo1)', function (data) {
             $.ajax({
                 type: "put",
-                url: "/admin/editPost",
+                url: "/admin/editUser",
                 data: $("#edit").serialize(),//表单数据
                 success: function (d) {
                     layer.msg("修改成功");

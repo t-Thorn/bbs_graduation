@@ -24,13 +24,16 @@ public class PostOAService implements OAService<Post> {
     }
 
     @Override
-    public List<Post> getList(int page, String target, int limit, int type) {
+    public List<Post> getList(int page, String target, int limit, int type, MsgBuilder builder) {
         if (target != null && !"".equals(target)) {
             if (type == 1) {
+                builder.addData("count", postMapper.getPostNumForTargetOfAdmin(target));
                 return postMapper.getPostsOfAdminForTarget((page - 1) * limit, limit, target);
             }
+            builder.addData("count", postMapper.getPostNumForTargetByUsernameOfAdmin(target));
             return postMapper.getPostsOfAdminForTargetByUsername((page - 1) * limit, limit, target);
         }
+        builder.addData("count", postMapper.getPostNumOfAdmin());
         return postMapper.getPostsOfAdmin((page - 1) * limit, limit);
     }
 
@@ -41,6 +44,8 @@ public class PostOAService implements OAService<Post> {
 
     @Override
     public boolean update(Post post) {
+        System.out.println("post.toString() = " + post.toString());
+        postMapper.updatePost(post);
         return false;
     }
 
@@ -54,7 +59,7 @@ public class PostOAService implements OAService<Post> {
         MsgBuilder builder = new MsgBuilder();
         builder.addData("code", 0);
         builder.addData("msg", "");
-        builder.addData("count", postMapper.getPostNumOfAdmin());
+
         return builder;
     }
 }

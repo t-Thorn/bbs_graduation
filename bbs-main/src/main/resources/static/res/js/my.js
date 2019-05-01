@@ -299,22 +299,6 @@ function delReply(index) {
     })
 }
 
-function delReplyByPID(pid) {
-    var uri = "/reply/del/pid"
-    $.ajax({
-        url: uri,
-        type: 'delete',
-        dataType: 'json',
-        data: "",
-        success: function () {
-            layer.msg("删除成功");
-        },
-        error: function (data) {
-            layer.msg('删除失败:' + JSON.parse(data.responseText).errorMsg);
-        }
-    })
-}
-
 /**
  * 弹出错误消息
  */

@@ -24,7 +24,13 @@ public class AdminService {
 
     public String getPostTable(int page, String search, int limit, int type) {
         MsgBuilder builder = postOAService.addData();
-        builder.addData("data", postOAService.getList(page, search, limit, type));
+        builder.addData("data", postOAService.getList(page, search, limit, type, builder));
+        return builder.getMsg();
+    }
+
+    public String getUserTable(int page, String search, int limit, int type) {
+        MsgBuilder builder = userOAService.addData();
+        builder.addData("data", userOAService.getList(page, search, limit, type, builder));
         return builder.getMsg();
     }
 }

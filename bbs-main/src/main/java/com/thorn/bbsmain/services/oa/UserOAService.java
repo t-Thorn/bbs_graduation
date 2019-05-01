@@ -1,34 +1,66 @@
 package com.thorn.bbsmain.services.oa;
 
+import com.thorn.bbsmain.exceptions.UserInfoException;
+import com.thorn.bbsmain.mapper.UserMapper;
+import com.thorn.bbsmain.mapper.entity.User;
+import com.thorn.bbsmain.services.UserService;
 import com.thorn.bbsmain.utils.MsgBuilder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-public class UserOAService implements OAService {
-    @Override
-    public List getList(int page, String target, int limit, int type) {
-        return null;
+public class UserOAService {
+    private UserMapper userMapper;
+    private UserService userService;
+
+    public UserOAService(UserMapper userMapper, UserService userService) {
+        this.userMapper = userMapper;
+        this.userService = userService;
     }
 
-    @Override
+    public User getUserInfo(int uid) {
+        return userMapper.getInfoByID(uid);
+    }
+
+    public List getList(int page, String target, int limit, int type, MsgBuilder builder) {
+        if (target != null && !"".equals(target)) {
+            builder.addData("count", userMapper.getUserNumForTargetOfAdmin(target));
+            return userMapper.getUserByNickname((page - 1) * limit, limit, target);
+        }
+        builder.addData("count", userMapper.getUserNumOfAdmin());
+        return userMapper.getUsersOfAdmin((page - 1) * limit, limit);
+    }
+
     public Object getDetail(Object id) {
         return null;
     }
 
-    @Override
-    public boolean update(Object object) {
-        return false;
+    public void update(Object object) throws UserInfoException {
+        User user = (User) object;
+        if (userMapper.checkExistOfEmailForUpdate(user.getEmail(), user.getUid()) != 0) {
+            throw new UserInfoException("已存在相同的邮箱");
+        }
+
+        if (userMapper.checkExistOfNNForUpdate(user.getNickname(), user.getUid()) != 0) {
+            throw new UserInfoException("已存在相同的昵称");
+        }
+        try {
+            userMapper.updateInfoByAdmin(user);
+
+        } catch (Exception e) {
+            throw new UserInfoException("更新失败：" + e.getMessage());
+        }
     }
 
-    @Override
     public boolean delete(Object id) {
         return false;
     }
 
-    @Override
     public MsgBuilder addData() {
-        return null;
+        MsgBuilder builder = new MsgBuilder();
+        builder.addData("code", 0);
+        builder.addData("msg", "");
+        return builder;
     }
 }

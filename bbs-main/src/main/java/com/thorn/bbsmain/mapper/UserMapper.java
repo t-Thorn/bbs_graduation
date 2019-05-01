@@ -14,12 +14,16 @@ public interface UserMapper {
     User getUserByUserName(String email);
 
     @Insert({"insert into user (email,nickname,password) values(#{email},#{nickname},#{password})"})
-    int createNewUser(User user);
+    void createNewUser(User user);
 
 
     @ResultType(Integer.class)
     @Select("select count(*) from user where email=#{email}")
     Integer checkExistOfEmail(String email);
+
+    @ResultType(Integer.class)
+    @Select("select count(*) from user where email=#{email} and available=true")
+    Integer checkValidOfEmail(String email);
 
     /**
      * 昵称是否存在
@@ -38,10 +42,18 @@ public interface UserMapper {
      * @return
      */
     @Insert("insert into user_role values((select uid from user where email=#{email} limit 1),2)")
-    int grantToNewUser(String email);
+    void grantToNewUser(String email);
 
     @Select("select email,nickname,age,gender,img from user where email=#{email} limit 1")
     User getInfo(String email);
+
+    @Select(" select user.*,r.rname grade from user  left join (select rname, uid" +
+            "                                                  from role," +
+            "                                                       user_role" +
+            "                                                  where role.rid = user_role.rid) r" +
+            "                                                 on r.uid = user.uid where user" +
+            ".uid=#{uid} limit 1")
+    User getInfoByID(int uid);
 
     @Update("update user set nickname=#{nickname},gender=#{gender},age=#{age} where email=#{email}")
     void updateBasicInfo(User user);
@@ -59,7 +71,7 @@ public interface UserMapper {
             "#{offset},1) order by pid  desc limit #{step}")
     List<Message> getMessages(int uid, int offset, int step);
 
-    @Select("select uid,nickname,regdate,gender from user where uid=#{uid} limit 1")
+    @Select("select uid,nickname,regdate,gender from user where uid=#{uid} and available=true limit 1")
     User getUserInfoOfHome(@Param("uid") int uid);
 
     @ResultType(Integer.class)
@@ -91,7 +103,7 @@ public interface UserMapper {
             "                         replyTo" +
             "                  from reply" +
             "                  where replyer = 1" +
-            "                    and available = 1" +
+            "                    and reply.available = 1" +
             "                  order by id desc" +
             "                  limit 5) r1" +
             "                   left join reply rex" +
@@ -126,4 +138,64 @@ public interface UserMapper {
 
     @Insert("insert into collection (uid,pid) values(#{uid},#{pid})")
     void Collect(Integer uid, Integer pid);
+
+    @Select("select user.*,r.rname grade" +
+            " from user" +
+            "       left join (select rname, uid" +
+            "                  from role," +
+            "                       user_role" +
+            "                  where role.rid = user_role.rid) r" +
+            "                 on r.uid = user.uid" +
+            " where nickname like concat" +
+            "  ('%',#{target}, '%')" +
+            "  and user.uid > #{offset} " +
+            "  limit #{limit}")
+    List<User> getUserByNickname(int offset, int limit, String target);
+
+    @Select("select user.*,r.rname grade from user " +
+            " left join (select rname, uid" +
+            " from role,user_role" +
+            " where role.rid = user_role.rid) r " +
+            " on r.uid = user.uid" +
+            " where user.uid>#{offset}  limit #{limit}")
+    List<User> getUsersOfAdmin(int offset, int limit);
+
+    @Select("select count(*) from user")
+    int getUserNumOfAdmin();
+
+    @Select("select count(*) from user where nickname like concat('%',#{target},'%')")
+    int getUserNumForTargetOfAdmin(String target);
+
+    @Update("update user,role" +
+            " set email=#{email}," +
+            "    nickname=#{nickname}," +
+            "    age=#{age}," +
+            "    gender=#{gender}," +
+            "    rname=#{grade}," +
+            "    available=#{available}" +
+            " where uid = #{uid}" +
+            "  and rid = (select rid" +
+            "             from user_role" +
+            "             where uid = #{uid})")
+    int updateInfoByAdmin(User user);
+
+    /**
+     * 检查邮箱是否变更，若变更则检查是否存在
+     *
+     * @param email
+     * @param uid
+     * @return
+     */
+    @Select("select count(1) from user where email=#{email} and uid!=#{uid}")
+    int checkExistOfEmailForUpdate(String email, int uid);
+
+    /**
+     * 检查昵称是否变更，若变更则检查是否存在
+     *
+     * @param nickname
+     * @param uid
+     * @return
+     */
+    @Select("select count(1) from user where email=#{nickname} and uid!=#{uid}")
+    int checkExistOfNNForUpdate(String nickname, int uid);
 }

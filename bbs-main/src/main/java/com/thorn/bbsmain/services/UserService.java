@@ -63,8 +63,10 @@ public class UserService {
      * @param user 登录的user
      * @return
      */
-    public String verifyTokenByShiro(Subject currentUser, User user) {
-
+    public String verifyTokenByShiro(Subject currentUser, User user) throws UserException {
+        if (userMapper.checkValidOfEmail(user.getEmail()) == 0) {
+            throw new UserException("不存在或该用户不可用");
+        }
         String token = JWTUtil.sign(user.getEmail(), user.getPassword());
         currentUser.login(new JWTToken(token));
         return token;
@@ -119,7 +121,13 @@ public class UserService {
     public ModelAndView userLogin(User user, String uri, HttpServletResponse response,
                                   MsgBuilder builder) {
         Subject currentUser = SecurityUtils.getSubject();
-        String token = verifyTokenByShiro(currentUser, user);
+        String token;
+        try {
+            token = verifyTokenByShiro(currentUser, user);
+        } catch (UserException e) {
+            builder.addData("errorMsg", "登录失败：" + e.getMessage());
+            return builder.getMsg("/");
+        }
         //向客户端cookie中加入token
         builder.addCookie(response, "token", token);
         builder.addCookie(response, "nickname", ((User) currentUser.getPrincipal()).getNickname());

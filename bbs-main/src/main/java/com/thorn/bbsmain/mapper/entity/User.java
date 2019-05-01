@@ -38,9 +38,11 @@ public class User implements Serializable {
 
     Date regdate;
 
-    Integer postnum;
+    Integer postNum;
 
-    Integer points;
+    String grade;
+
+    boolean available;
 
     public User(@NotNull(message = "用户名不能为空") @Email(message = "请正确输入邮箱") String email, @NotNull @Length(min = 3, max = 18, message = "密码长度在3-18之间") @Pattern(regexp = "^[a-zA-Z0-9_]{3,18}$", message = "密码只能包含字母数字下划线") String password, @NotNull @Length(min = 5, max = 30, message = "密码长度在5-30之间") String nickname) {
         this.email = email;

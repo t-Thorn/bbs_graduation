@@ -1,7 +1,12 @@
 package com.thorn.bbsmain.controller;
 
+import com.thorn.bbsmain.exceptions.PostException;
+import com.thorn.bbsmain.exceptions.UserInfoException;
+import com.thorn.bbsmain.mapper.entity.Post;
+import com.thorn.bbsmain.mapper.entity.User;
 import com.thorn.bbsmain.services.AdminService;
 import com.thorn.bbsmain.services.oa.PostOAService;
+import com.thorn.bbsmain.services.oa.UserOAService;
 import com.thorn.bbsmain.utils.MsgBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authz.annotation.RequiresRoles;
@@ -19,9 +24,12 @@ public class AdminController {
 
     private PostOAService postOAService;
 
-    public AdminController(AdminService adminService, PostOAService postOAService) {
+    private UserOAService userOAService;
+
+    public AdminController(AdminService adminService, PostOAService postOAService, UserOAService userOAService) {
         this.adminService = adminService;
         this.postOAService = postOAService;
+        this.userOAService = userOAService;
     }
 
     @GetMapping("OA")
@@ -37,10 +45,18 @@ public class AdminController {
     }
 
     @GetMapping("editPost/{pid}")
-    public ModelAndView editPost(@PathVariable("pid") int pid) {
+    public ModelAndView jumpToEditPost(@PathVariable("pid") int pid) {
         MsgBuilder builder = new MsgBuilder();
         builder.addData("post", postOAService.getPostInfo(pid));
         return builder.getMsg("/oa/editPost");
+    }
+
+
+    @ResponseBody
+    @PutMapping("editPost")
+    public String editPost(Post post) throws PostException {
+        postOAService.update(post);
+        return "";
     }
 
     @ResponseBody
@@ -51,5 +67,37 @@ public class AdminController {
                              @RequestParam(value = "limit", required = false) int step,
                              @RequestParam(value = "type", required = false, defaultValue = "1") int type) {
         return adminService.getPostTable(page, search, step, type);
+    }
+
+    @GetMapping("user")
+    public ModelAndView userView() {
+        MsgBuilder builder = new MsgBuilder();
+        return builder.getMsg("/oa/user");
+    }
+
+    @ResponseBody
+    @GetMapping("userTable")
+    public String userOAView(@RequestParam(value = "page", required = false,
+            defaultValue = "1") int page,
+                             @RequestParam(value = "search", required = false) String search,
+                             @RequestParam(value = "limit", required = false) int step,
+                             @RequestParam(value = "type", required = false, defaultValue = "1") int type) {
+        return adminService.getUserTable(page, search, step, type);
+    }
+
+    @GetMapping("editUser/{uid}")
+    public ModelAndView jumpToEditUser(@PathVariable("uid") int uid) {
+        MsgBuilder builder = new MsgBuilder();
+        builder.addData("user", userOAService.getUserInfo(uid));
+        return builder.getMsg("/oa/editUser");
+    }
+
+
+    @ResponseBody
+    @PutMapping("editUser")
+    public String editUser(User user, boolean gender_) throws UserInfoException {
+        user.setGender(gender_ ? "男" : "女");
+        userOAService.update(user);
+        return "";
     }
 }
