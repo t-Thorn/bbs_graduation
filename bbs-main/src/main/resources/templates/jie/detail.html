@@ -134,7 +134,7 @@
                     </div>
                     <div class="detail-hits" data-id="123" id="LAY_jieAdmin">
                         <span style="padding-right: 10px; color: #FF7200"
-                              th:text="${'热度：'+hotPoint}"></span>
+                              th:text="${'热度：'+(hotPoint==null?0:hotPoint)}"></span>
                     </div>
                 </div>
                 <div class="detail-body photos" th:utext="${topReply.content_show}">

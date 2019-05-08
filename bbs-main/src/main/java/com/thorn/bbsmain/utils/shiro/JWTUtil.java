@@ -13,11 +13,15 @@ import java.util.Date;
 @Slf4j
 public class JWTUtil {
 
+    /**
+     * 剩余时间只剩一分钟则刷新>10秒保证了redis中身份过期但token中身份还未过期时照样更新
+     */
     public static final int REFRESHLIMIT = 60 * 1000;
     /**
-     * 过期时间60分钟
+     * 过期时间5小时10秒，为redis里的最大值。但redis里过期则直接过期，就不管客户端怎么说，反正只要redis里没有就算过期了
+     * 毕竟一切说法是我说的算
      */
-    private static final long EXPIRE_TIME = 60 * 60 * 1000;
+    private static final long EXPIRE_TIME = (5 * 60 * 60 + 10) * 1000;
 
     /**
      * 校验token是否正确
@@ -35,6 +39,7 @@ public class JWTUtil {
             verifier.verify(token);
             return true;
         } catch (Exception exception) {
+            log.error(exception.getMessage());
             return false;
         }
     }

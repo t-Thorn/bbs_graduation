@@ -1,7 +1,9 @@
 package com.thorn.bbsmain.confugurations.shiro.jwt;
 
+import lombok.ToString;
 import org.apache.shiro.authc.AuthenticationToken;
 
+@ToString
 public class JWTToken implements AuthenticationToken {
 
     private String token;

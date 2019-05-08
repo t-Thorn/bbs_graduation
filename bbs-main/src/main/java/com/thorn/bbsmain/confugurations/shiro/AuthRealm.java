@@ -57,11 +57,11 @@ public class AuthRealm extends AuthorizingRealm {
         if (userBean == null) {
             throw new AuthenticationException("User didn't existed!");
         }
-        if (JWTUtil.isTokenExpired(token)) {
+/*        if (JWTUtil.isTokenExpired(token)) {
             throw new AuthenticationException("token has expired");
-        }
+        }*/
         if (!JWTUtil.verify(token, email, userBean.getPassword())) {
-            throw new AuthenticationException(" password not right");
+            throw new AuthenticationException("token info not right");
         }
 
         return new SimpleAuthenticationInfo(userBean, token, "authrealm");

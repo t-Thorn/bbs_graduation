@@ -117,7 +117,7 @@ public interface UserMapper {
     void addPostNum(int uid);
 
 
-    @Select("select count(1) from message where owner=1")
+    @Select("select count(1) from message where owner=#{uid}")
     int getMessageNum(Integer uid);
 
     @Select("select pid, title, time" +

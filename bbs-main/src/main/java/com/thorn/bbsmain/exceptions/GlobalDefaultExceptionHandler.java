@@ -91,6 +91,7 @@ public class GlobalDefaultExceptionHandler {
                 return builder.getMsgForAjax();
             }
         } else {
+            msg.printStackTrace();
             log.info("身份认证错误");
             //返回请求页面，并附上参数
             //用户访问只有游客才能访问的页面时则返回主页面，并且不提示
@@ -168,7 +169,7 @@ public class GlobalDefaultExceptionHandler {
     public ModelAndView globalException(HttpServletRequest request, HttpServletResponse response,
                                         Throwable ex) {
         MsgBuilder builder = new MsgBuilder();
-        log.error("默认异常处理:" + ex.getMessage());
+        log.error("默认异常处理:{} {}", ex.getMessage(), ex.getStackTrace());
         builder.addData("errorMsg", "服务器内部错误");
         if (isAjax(request))
             return builder.getMsgForAjax();

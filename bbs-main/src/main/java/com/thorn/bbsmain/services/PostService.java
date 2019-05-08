@@ -69,7 +69,6 @@ public class PostService {
     /**
      * 获取热帖
      */
-//    @Cacheable(value = "posts", key = "'hotposts'", unless = "#result==null")
     private void getHotPosts(MsgBuilder builder) {
         List<Post> hotPostList = manager.getTopPost();
         Map<Integer, Long> hotPoints = manager.getHotPoint();
@@ -149,7 +148,7 @@ public class PostService {
         reply.setReplyer(userService.getCurrentUser().getUid());
         replyService.createPostTopReply(reply);
 
-        //todo 消息处理（get：关注表 set：队列+数据库）
+        //todo 消息处理（get：关注表 set：队列+数据库） 公告处理
         return builder.getMsg("forward:/post/" + post.getPid());
     }
 

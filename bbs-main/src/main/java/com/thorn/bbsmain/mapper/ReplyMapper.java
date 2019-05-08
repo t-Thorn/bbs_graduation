@@ -29,12 +29,13 @@ public interface ReplyMapper {
             "     id" +
             "     LIMIT" +
             "        #{offset}, 1 )" +
-            "      AND available = 1" +
+            "      AND r1.available = 1" +
             "    LIMIT #{step}" +
             "  ) r" +
             "    LEFT JOIN (" +
             "    SELECT" +
-            "      ( CASE WHEN available = 1 THEN content_show ELSE '回复已被删除' END ) contentEx," +
+            "      ( CASE WHEN reply.available = 1 THEN content_show ELSE '回复已被删除' END ) " +
+            "contentEx," +
             "      floor," +
             "      replyer replyToId," +
             "      nickname replyToNickname" +

@@ -43,6 +43,9 @@ public class ShiroConfig {
     @Value("#{'${shiro.permissive}'.split(',')}")
     List<String> permissiveURI;
 
+    @Value("#{'${shiro.force}'.split(',')}")
+    List<String> forceURI;
+
     /**
      * Shiro生命周期处理器
      *
@@ -119,10 +122,10 @@ public class ShiroConfig {
     public Realm jwtShiroRealm() {
         AuthRealm myShiroRealm = new AuthRealm();
         myShiroRealm.setCachingEnabled(true);
-        //启用身份验证缓存，即缓存AuthenticationInfo信息，默认false
-        myShiroRealm.setAuthenticationCachingEnabled(true);
+        //启用身份验证缓存，即缓存AuthenticationInfo信息，默认false,开启后只允许从一个地方登录，并非单点登录
+        myShiroRealm.setAuthenticationCachingEnabled(false);
         //缓存AuthenticationInfo信息的缓存名称 在ehcache-shiro.xml中有对应缓存的配置
-        myShiroRealm.setAuthenticationCacheName("authenticationCache");
+//        myShiroRealm.setAuthenticationCacheName("authenticationCache");
         //启用授权缓存，即缓存AuthorizationInfo信息，默认false
         myShiroRealm.setAuthorizationCachingEnabled(true);
         //缓存AuthorizationInfo信息的缓存名称  在ehcache-shiro.xml中有对应缓存的配置
@@ -193,6 +196,10 @@ public class ShiroConfig {
         //做认证，但默认允许通过
         permissiveURI.forEach(uri -> chainDefinition.addPathDefinition(uri, "noSessionCreation," +
                 "authcToken[permissive]"));
+
+        //强制做认证
+        forceURI.forEach(uri -> chainDefinition.addPathDefinition(uri, "noSessionCreation," +
+                "authcToken"));
 
 
         //注解处理→没注解则直接通过

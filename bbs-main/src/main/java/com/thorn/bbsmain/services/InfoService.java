@@ -12,7 +12,6 @@ import com.thorn.bbsmain.utils.MyUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -52,14 +51,18 @@ public class InfoService {
 
     private ReplyService replyService;
 
+    private MessageService messageService;
+
     private UserMapper userMapper;
 
-    public InfoService(@Autowired PostMapper postMapper, UserMapper userMapper,
-                       @Autowired UserService userService, ReplyService replyService) {
+    public InfoService(PostMapper postMapper, UserMapper userMapper,
+                       UserService userService, ReplyService replyService,
+                       MessageService messageService) {
         this.postMapper = postMapper;
         this.userService = userService;
         this.replyService = replyService;
         this.userMapper = userMapper;
+        this.messageService = messageService;
     }
 
     public void updateBasicInfo(User user) throws UserException {
@@ -102,6 +105,7 @@ public class InfoService {
             if (v.getType() != 2 && !replyService.isExist(v.getPid(), v.getFloor())) {
                 v.setContent("<p>此回复已被删除</p>");
             }
+            messageService.checkMessage(v.getId());
         });
         int pageNum = userService.getMessageNum(user.getUid());
         builder.addData("messages", messages);

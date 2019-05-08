@@ -1,6 +1,6 @@
 package com.thorn.bbsmain.confugurations.shiro.jwt;
 
-import com.thorn.bbsmain.utils.MysqlTemplate;
+import com.thorn.bbsmain.utils.MysqlJdbc;
 import com.thorn.bbsmain.utils.shiro.JWTUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.SecurityUtils;
@@ -9,7 +9,6 @@ import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter;
 import org.apache.shiro.web.util.WebUtils;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -86,7 +85,7 @@ public class JWTFilter extends BasicHttpAuthenticationFilter {
         String newToken = null;
         if (token instanceof JWTToken) {
             String email = JWTUtil.getEmail(token.getCredentials().toString());
-            String password = getPassword(email);
+            String password = MysqlJdbc.getPassword(email);
             boolean shouldRefresh = JWTUtil.isTokenNeedRefresh(token.getCredentials().toString());
             if (shouldRefresh) {
                 newToken = JWTUtil.sign(email, password);
@@ -108,11 +107,6 @@ public class JWTFilter extends BasicHttpAuthenticationFilter {
         return true;
     }
 
-    private String getPassword(String email) {
-        JdbcTemplate jdbcTemplate = MysqlTemplate.getTemplate();
-        return jdbcTemplate.queryForObject("select password from user where email='" + email + "'",
-                String.class);
-    }
 
     /**
      * 如果调用shiro的login认证失败，会回调这个方法，这里我们什么都不做，因为逻辑放到了onAccessDenied（）中。

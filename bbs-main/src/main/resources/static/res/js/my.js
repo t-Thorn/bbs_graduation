@@ -19,11 +19,11 @@ function upload() {
         contentType: false,
         cache: false,
         success: function (data) {
-            $("#img").attr('src', data.msg);
-            $("#avator").attr('src', data.msg);
+            $("#img").attr('src', JSON.parse(data.responseText).msg);
+            $("#avator").attr('src', JSON.parse(data.responseText).msg);
         },
         error: function (data) {
-            layer.msg(data.errorMsg);
+            layer.msg(JSON.parse(data.responseText).errorMsg);
         }
     })
 }
@@ -133,26 +133,8 @@ function collect(pid) {
         }
     })
 }
-/**
- * 消息框配置 todo 加入websocket
- * @type {NotificationFx}
- */
 
-/*
-var notification = new NotificationFx({
-    message :
-        '<div class="ns-thumb"><img src="/img/user1.jpg"/></div><div class="ns-content"><p><a href="#">Zoe Moulder</a> accepted your invitation.</p></div>',
-    layout : 'other',
-    ttl : 6000,
-    effect : 'thumbslider',
-    type : 'notice', // notice, warning, error or success
-    onClose : function() {
 
-    }
-});
-
-// show the notification
-notification.show();*/
 var E = window.wangEditor;
 var editor = new E('#editor');
 
@@ -245,7 +227,7 @@ function dianzan(index) {
             dataType: 'json',
             data: {"toUser": uid, "floor": floor, "pid": pid},
             success: function (data) {
-                $("#jieda li:eq(" + index + ") .jieda-zan em").text(data.no);
+                $("#jieda li:eq(" + index + ") .jieda-zan em").text(JSON.parse(data.responseText).no);
                 if (zan.hasClass("zanok")) {
                     zan.removeClass("zanok");
                     zan.addClass("zan");

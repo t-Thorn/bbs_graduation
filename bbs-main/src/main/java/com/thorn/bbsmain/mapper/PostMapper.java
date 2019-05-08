@@ -91,7 +91,7 @@ public interface PostMapper {
     Post getPostForHotPost(int pid);
 
     @Select("select p.*,img,nickname from (select * from post where pid=#{pid})p left join user " +
-            "on user.uid=p.uid")
+            "on user.uid=p.uid limit 1")
     Post getPost(int pid);
     /**
      * 更新浏览量和回复数
@@ -113,7 +113,6 @@ public interface PostMapper {
     @Select("select count(*) from post where available=1 and  grade < 2")
     int getPostNum();
 
-    //todo 搜索引擎
     @Select("select count(*) from post where available=1 and title like concat('%',#{target},'%')")
     int getPostNumOfTarget(String target);
 

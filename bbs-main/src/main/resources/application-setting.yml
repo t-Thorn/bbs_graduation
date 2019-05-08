@@ -16,6 +16,7 @@ shiro:
   static: /res/**,/favicon.ico,/img/**
   monitor: /actuator/**,/druid/**
   permissive: /
+  force: /message
   noUser: /user/login,/user/reg
 
 mail:
