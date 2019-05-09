@@ -15,7 +15,7 @@ public class MessageObject implements Serializable {
     @Builder.Default
     private int num = 0;
     /**
-     * 消息类型 0=未读消息 >0为新消息 1=普通消息 2=公告
+     * 消息类型 0=未读消息 >0为新消息 1=普通消息(点赞/回复) 2=公告
      */
     @Builder.Default
     private int type = 0;

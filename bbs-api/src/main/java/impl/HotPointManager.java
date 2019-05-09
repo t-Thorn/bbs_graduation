@@ -29,7 +29,6 @@ public class HotPointManager<E> {
     }
 
     public List<E> getTopPost() {
-
         if (handler == null) {
             log.error("handler为空");
             throw new NullPointerException();

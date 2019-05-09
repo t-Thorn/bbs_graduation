@@ -23,9 +23,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletResponse;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -72,7 +70,12 @@ public class PostService {
     private void getHotPosts(MsgBuilder builder) {
         List<Post> hotPostList = manager.getTopPost();
         Map<Integer, Long> hotPoints = manager.getHotPoint();
-        hotPostList.forEach(element -> element.setHotPoint(hotPoints.get(element.getPid())));
+        if (Objects.nonNull(hotPostList) && Objects.nonNull(hotPoints)) {
+            hotPostList.forEach(element -> {
+                Long hotPoint = Optional.ofNullable(hotPoints.get(element.getPid())).orElse(0l);
+                element.setHotPoint(hotPoint);
+            });
+        }
         builder.addData("hotPosts", Collections.unmodifiableList(hotPostList));
     }
 
@@ -147,8 +150,6 @@ public class PostService {
         reply.setPostid(post.getPid());
         reply.setReplyer(userService.getCurrentUser().getUid());
         replyService.createPostTopReply(reply);
-
-        //todo 消息处理（get：关注表 set：队列+数据库） 公告处理
         return builder.getMsg("forward:/post/" + post.getPid());
     }
 

@@ -64,7 +64,7 @@ $(function () {
                             num = msg.num;
                         }
                         //最大显示数
-                        num = num > 99 ? 99 : 0;
+                        num = num > 99 ? 99 : num;
                         if (num !== 0) {
                             //显示红点+显示消息数
                             if ($("#hongdian").length === 0) {

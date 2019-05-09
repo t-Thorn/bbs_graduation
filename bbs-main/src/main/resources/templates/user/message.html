@@ -112,12 +112,13 @@
                                th:href="${'/user/home/'+message.fromUser}"><cite
                                     th:text="${message.nickname}"></cite>
                             </a>
-                            <th:block th:if="${message.type==0}">点赞了你在</th:block>
-                            <th:block th:if="${message.type==1}">回复了你在</th:block>
+                            <th:block th:if="${message.type==1}">点赞了你在</th:block>
+                            <th:block th:if="${message.type==0}">在</th:block>
+                            </th:block>
                             <a target="_blank"
                                th:href="${'/post/'+message.pid+'?floor='+message.floor}"><cite
                                     th:text="${message.postTitle}"></cite></a>
-                            的回复：
+                            回复了你
                             <br/>
                             <div class="home-dacontent" th:utext="${message.content}">
                             </div>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>系统消息</title>
+    <link href="/res/layui/css/layui.css" rel="stylesheet">
+</head>
+<body>
+<form action="" class="layui-form layui-form-pane">
+    <div class="layui-inline">
+        <div class="layui-input-inline">
+            <input autocomplete="off" class="layui-input" id="search"
+                   placeholder="请输入内容" type="text" value="">
+        </div>
+        <div class="layui-input-inline">
+            <button class="layui-btn" lay-filter="demo1" lay-submit="" onclick="sendMessage()"
+                    type="button">发送广播
+            </button>
+        </div>
+    </div>
+</form>
+<table class="layui-table"
+       lay-data="{url:'/admin/messageTable', page:true, id:'demo'}"
+       lay-filter="message">
+    <thead>
+    <tr>
+        <th lay-data="{field:'id', sort: true, fixed: true}">id</th>
+        <th lay-data="{width:200,field:'ownerNickname',templet: '#ownerTpl'}">所有者</th>
+        <th lay-data="{width:200,field:'senderNickname',templet: '#nicknameTpl'}">发送者</th>
+        <th lay-data="{width:120,field:'type',templet:'#typeTpl'}">消息类型</th>
+        <th lay-data="{width:250,field:'postTitle',templet:'#titleTpl'}">帖子标题</th>
+        <th lay-data="{width:100,field:'floor'}">对应层数</th>
+        <th lay-data="{width:180,field:'regdate',templet: '#regTpl'}">创建时间</th>
+        <th lay-data="{width:100,field:'content',templet:'#contentTpl'}">内容</th>
+        <th lay-data="{width:100,field:'check'}">是否已读</th>
+        <!--<th lay-data="{fixed: 'right', align:'center', toolbar: '#barDemo'}"></th>-->
+    </tr>
+    </thead>
+</table>
+<!--<script id="barDemo" type="text/html">
+    <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail" onclick="">查看</a>
+</script>-->
+<script charset="utf-8" src="/res/layui/layui.js"></script>
+<script src="/res/js/jquery-3.3.1.min.js"></script>
+<script>
+    var layer;
+    layui.use(['element', 'layer'], function () {
+        layer = layui.layer;
+    });
+    var table;
+    layui.use('table', function () {
+        table = layui.table;
+        //监听工具条
+        table.on('tool(message)', function (obj) {
+            if (obj.event === 'detail') {
+                layer.msg('ID：' + data.id + ' 的查看操作');
+            }
+        });
+    });
+
+    /**
+     * 发送消息并重载页面
+     */
+    function sendMessage() {
+
+        var msg = $('#search').val();
+        $.ajax({
+            url: '/admin/broadcast',
+            type: 'post',
+            dataType: 'text',
+            data: {"msg": msg},
+            success: function (data) {
+                console.info("广播成功");
+                table.reload('demo', {
+                    url: '/admin/messageTable'
+                    , method: 'get'
+                    , page: {
+                        curr: 1 //重新从第 1 页开始
+                    }
+                });
+            },
+            error: function (data) {
+                console.info("广播失败");
+            }
+        });
+        return false;
+    }
+
+    function showContent(msg) {
+        console.info(msg);
+        var that = this;
+        //多窗口模式，层叠置顶
+        layer.open({
+            type: 1 //此处以iframe举例
+            , title: '详情'
+            , area: ['390px', '260px']
+            , shade: 0
+            , maxmin: true
+            , offset: [ //为了演示，随机坐标
+                $(window).height() - 500,
+                $(window).width() - 500
+            ]
+            , content: msg
+            , btn: ['全部关闭'] //只是为了演示
+            , btn2: function () {
+                layer.closeAll();
+            }
+
+            , zIndex: layer.zIndex //重点1
+            , success: function (layero) {
+                layer.setTop(layero); //重点2
+            }
+        });
+    }
+</script>
+<script id="ownerTpl" type="text/html">
+    {{#  if(d.type != 2){ }}
+    <a href="/user/home/{{d.owner}}" target="_blank"
+       class="layui-table-link">{{d.ownerNickname}}</a>
+    {{#  } else { }}
+    {{d.ownerNickname}}
+    {{#  } }}
+</script>
+<script id="contentTpl" type="text/html">
+    {{#  if(d.type != 1){ }}
+    <a href="javascript:showContent('{{d.content}}')" target="_blank" class="layui-table-link">显示详情
+    </a>
+    {{#  } else { }}
+
+    {{#  } }}
+</script>
+<script id="senderTpl" type="text/html">
+    {{#  if(d.type != 2){ }}
+    <a href="/user/home/{{d.fromUser}}" target="_blank" class="layui-table-link">{{d.senderNickname}}</a>
+    {{#  } else { }}
+    {{d.ownerNickname}}
+    {{#  } }}
+</script>
+<script id="regTpl" type="text/html">
+    {{#
+    var fn = function(){
+    var time =d.createTime;
+    var newDate = new Date();
+    newDate.setTime(time);
+    return newDate.toLocaleString()
+    }}}
+
+    {{ fn() }}
+</script>
+<script id="typeTpl" type="text/html">
+    {{#  if(d.type == 0){ }}
+    回复
+    {{#  } else { }}
+    {{#  if(d.type == 1){ }}
+    点赞
+    {{#  } else { }}
+    系统消息
+    {{#  } }}
+    {{#  } }}
+</script>
+<script id="titleTpl" type="text/html">
+    {{#  if(d.type != 2){ }}
+    <a href="/post/{{d.pid}}" target="_blank" class="layui-table-link">{{d.postTitle}}</a>
+    {{#  } else { }}
+
+    {{#  } }}
+</script>
+</body>
+</html>

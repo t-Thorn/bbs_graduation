@@ -77,7 +77,7 @@ public class HotPointManagerFactory {
 
     @Bean
     public HotPointManager getHotPointManager(DefaultDataSaver saver, DefaultHotPostHandler hotPostHandler) {
-        HotPointManager manager = new HotPointManager<Post>(hotPostHandler);
+        HotPointManager<Post> manager = new HotPointManager<Post>(hotPostHandler);
         manager.addCycleSaveForReloadTask(reload, TimeUnit.SECONDS, reloadPath);
         manager.addDataSavor(saver);
         manager.addRefreshTask(refreshPeriod, TimeUnit.DAYS);

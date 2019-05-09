@@ -14,6 +14,7 @@ public class MessageSender {
     @RabbitListener(queues = "unCheckedMsg")
     @RabbitHandler
     public void process(MessageObject msg) {
+        System.out.println("获取未读消息" + msg);
         MessageChannelInfo info = ChannelCache.get(msg.getUid());
         Channel msgChannel = info == null ? null : info.getChannel();
         if (msgChannel != null) {
@@ -29,6 +30,7 @@ public class MessageSender {
     @RabbitListener(queues = "newMsgAgain")
     @RabbitHandler
     public void sendNewMsgAgain(int uid) {
+        System.out.println("再次发送新消息啦" + uid);
         MessageChannelInfo info = ChannelCache.get(uid);
         if (info == null) {
             return;
@@ -59,6 +61,7 @@ public class MessageSender {
     @RabbitListener(queues = "newMsg")
     @RabbitHandler
     public void sendNewMsg(MessageObject msg) {
+        System.out.println("发送新消息啦:" + msg);
         //取出uid对应的channel和token
         MessageChannelInfo info = ChannelCache.get(msg.getUid());
         if (info == null) {
@@ -86,5 +89,31 @@ public class MessageSender {
 
         //根据消息类型处理消息
         channel.writeAndFlush(new TextWebSocketFrame(JSONObject.toJSONString(msg)));
+    }
+
+    /**
+     * 有新消息产生是发送
+     *
+     * @param msg
+     */
+    @RabbitListener(queues = "broadcast")
+    @RabbitHandler
+    public void broadcast(String msg) {
+        System.out.println("广播消息啦:" + msg);
+        if (ChannelCache.getChannelGroup().size() == 0) {
+            System.out.println("无通道");
+            return;
+        }
+
+        ChannelCache.getChannelGroup().forEach(channel -> {
+            //验证channel是否可写
+            if (!channel.isWritable()) {
+                System.out.println("通道不可写");
+                return;
+            }
+            channel.writeAndFlush(new TextWebSocketFrame(JSONObject.toJSONString(
+                    MessageObject.builder().uid(-1).content(msg).type(2).build())));
+        });
+
     }
 }

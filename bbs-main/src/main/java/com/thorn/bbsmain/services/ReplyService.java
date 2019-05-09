@@ -7,11 +7,14 @@ import com.thorn.bbsmain.exceptions.PageException;
 import com.thorn.bbsmain.exceptions.PostException;
 import com.thorn.bbsmain.mapper.PostMapper;
 import com.thorn.bbsmain.mapper.ReplyMapper;
+import com.thorn.bbsmain.mapper.entity.Message;
 import com.thorn.bbsmain.mapper.entity.Reply;
 import com.thorn.bbsmain.mapper.entity.User;
 import com.thorn.bbsmain.utils.MsgBuilder;
 import com.thorn.bbsmain.utils.MyUtil;
+import com.thorn.bbsmain.utils.message.MessageObject;
 import impl.HotPointManager;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,10 +46,18 @@ public class ReplyService {
 
     private UserService userService;
 
-    public ReplyService(ReplyMapper replyMapper, PostMapper postMapper, UserService userService) {
+    private RabbitTemplate rabbitTemplate;
+
+    private MessageService messageService;
+
+    public ReplyService(ReplyMapper replyMapper, PostMapper postMapper,
+                        UserService userService, RabbitTemplate rabbitTemplate,
+                        MessageService messageService) {
         this.replyMapper = replyMapper;
         this.postMapper = postMapper;
         this.userService = userService;
+        this.rabbitTemplate = rabbitTemplate;
+        this.messageService = messageService;
     }
 
     /**
@@ -106,20 +117,20 @@ public class ReplyService {
      *
      * @param reply 回复信息
      */
-    public void createPostTopReply(Reply reply) {
+    void createPostTopReply(Reply reply) {
         replyMapper.createPostTopReply(reply);
     }
 
 
     //@cacheable
-    public List<Reply> getReplyByPid(int pid, int page) {
+    private List<Reply> getReplyByPid(int pid, int page) {
         int offset = page * ONE_PAGE_REPLY_NUM;
         offset = offset == 0 ? 1 : offset;
         return replyMapper.getReplyByPID(pid, offset,
                 ONE_PAGE_REPLY_NUM);
     }
 
-    public List<Integer> getLikesByPID(int pid, int uid) {
+    private List<Integer> getLikesByPID(int pid, int uid) {
         return replyMapper.getLikesByPID(pid, uid);
     }
 
@@ -133,11 +144,24 @@ public class ReplyService {
         }
         replyMapper.zan(pid, uid, floor, to);
         replyMapper.increaseLikesNum(pid, floor);
-        // TODO: 19-5-8 消息提醒
+        //不给自己发消息
+        if (!uid.equals(to)) {
+            Message message = new Message();
+            message.setPid(pid);
+            message.setFloor(floor);
+            message.setOwner(to);
+            message.setFromUser(uid);
+            message.setPostTitle(postMapper.getPost(pid).getTitle());
+            message.setContent("");
+            message.setType(1);
+            messageService.addMessage(message);
+            rabbitTemplate.convertAndSend("newMsg",
+                    MessageObject.builder().uid(to).type(1).num(1).build());
+        }
         return replyMapper.getLikesNum(pid, floor);
     }
 
-    public List<Reply> getReplies(Integer pid, MsgBuilder builder, int page) throws PageException {
+    List<Reply> getReplies(Integer pid, MsgBuilder builder, int page) throws PageException {
         int replyNum;
         replyNum = replyMapper.getReplyNum(pid);
         if (page == -1) {
@@ -193,13 +217,41 @@ public class ReplyService {
             //新增回复
             replyMapper.addReply(reply);
             //将注入到对象中的id提取出来返回
+            reply.setFloor(replyMapper.getFloorByID(reply.getId(), reply.getPostid()));
             builder.addData("replyID", reply.getId());
-            //todo 消息加入
         } catch (Exception e) {
             throw new PostException("新增帖子错误" + e.getMessage());
         }
+        /**
+         * 获取帖子主人，和回复的层主id(如果存在)
+         */
+        int postOwner = postMapper.getPostOwner(reply.getPostid());
+        //不给自己发消息
+        if (postOwner != reply.getReplyer()) {
+            addMessage(reply, postOwner);
 
+        }
+        if (reply.getReplyTo() != null) {
+            int replyToID = replyMapper.getReplyOwner(reply.getReplyTo(), reply.getPostid());
+            if (replyToID != reply.getReplyer() && replyToID != postOwner) {
+                addMessage(reply, replyToID);
+            }
+        }
         return builder.getMsg("forward:/post/" + reply.getPostid() + "/-1");
+    }
+
+    private void addMessage(Reply reply, int replyTo) {
+        Message message = new Message();
+        message.setPid(reply.getPostid());
+        message.setFloor(reply.getFloor());
+        message.setOwner(replyTo);
+        message.setFromUser(reply.getReplyer());
+        message.setPostTitle(postMapper.getPost(reply.getPostid()).getTitle());
+        message.setContent(reply.getContent_show());
+        message.setType(0);
+        messageService.addMessage(message);
+        rabbitTemplate.convertAndSend("newMsg",
+                MessageObject.builder().uid(replyTo).type(1).num(1).build());
     }
 
     @RefreshHotPost(HotPointManager.DELREPLY)

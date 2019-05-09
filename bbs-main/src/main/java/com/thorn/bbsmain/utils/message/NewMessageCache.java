@@ -41,8 +41,8 @@ public class NewMessageCache {
             if (v == null) {
                 v = new MessageObject();
                 v.setUid(uid);
+                v.setNum(1);
             }
-            //公告采取覆盖策略
             v.setNum(v.getNum() + 1);
             return v;
         });

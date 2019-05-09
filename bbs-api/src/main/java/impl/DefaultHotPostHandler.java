@@ -239,8 +239,8 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
     }
 
     public List<E> getTopPost() {
-        List list = new ArrayList();
-        topPost.forEachValue(1, v -> list.add(v));
+        List<E> list = new ArrayList<E>();
+        topPost.forEachValue(1, list::add);
         return list;
     }
 
@@ -302,6 +302,7 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
          * viewcache→hotpointcache 所以先清空hotpointcache不会引起数据的不一致性
          */
         lock.writeLock().lock();
+        log.info("开始重置热帖榜：{}", DateUtil.now());
         if (dataSaver != null) {
             addSaveTask((hotPointCache.getMap()).keySet());
         } else {
@@ -315,8 +316,9 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
         index.forEach((k, v) -> index.compute(k, (x, y) -> defaultHotpoint));
         //重置门槛，仅当热帖量超出10时再计算
         lowestHotpoint = 0;
+        log.info("重置成功：{}", DateUtil.now());
         lock.writeLock().unlock();
-        log.info("刷新成功：{}", DateUtil.now());
+
     }
 
     /**
@@ -358,7 +360,7 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
                 try {
                     Thread.sleep(sleepTime < MAX_SLEEP ? sleepTime += SLEEP_STEP : sleepTime);
                 } catch (InterruptedException e) {
-                    log.error("保存线程挂掉：{}", e.getMessage());
+                    log.error("保存线程挂掉：{} 时间：{}", e.getMessage(), DateUtil.now());
                 }
             }
         }

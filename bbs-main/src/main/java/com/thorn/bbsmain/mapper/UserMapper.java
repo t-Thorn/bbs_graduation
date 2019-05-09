@@ -67,8 +67,8 @@ public interface UserMapper {
     @Select(" select message.*, user.nickname " +
             "from message " +
             "       left join user on uid = fromUser " +
-            "where owner = #{uid} and id>=(select id from message where owner=#{uid} limit " +
-            "#{offset},1) order by pid  desc limit #{step}")
+            "where owner = #{uid} and owner=-1 and id>" +
+            " #{offset} order by id  desc limit #{step}")
     List<Message> getMessages(int uid, int offset, int step);
 
     @Select("select uid,nickname,regdate,gender from user where uid=#{uid} and available=true limit 1")

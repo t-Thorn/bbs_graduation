@@ -29,6 +29,7 @@ public class Reply {
 
     Date replyTime;
 
+    //楼层
     @Range(min = 1, max = Integer.MAX_VALUE, message = "参数错误")
     Integer replyTo;
 
@@ -36,6 +37,7 @@ public class Reply {
 
     Boolean available;
 
+    //层主用户id
     Integer replyToId;
 
     String replyToNickname;

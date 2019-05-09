@@ -32,7 +32,7 @@
                         <dd><a href="javascript:jumpToUser()">基础管理</a></dd>
                     </dl>
                 </li>
-                <!--<li class="layui-nav-item"><a href="">系统消息</a></li>-->
+                <li class="layui-nav-item"><a href="javascript:jumpToMessage()">系统消息</a></li>
             </ul>
         </div>
     </div>
@@ -65,6 +65,10 @@
 
     function jumpToPost() {
         document.getElementById('detail').src = '/admin/post'
+    }
+
+    function jumpToMessage() {
+        document.getElementById('detail').src = '/admin/message'
     }
 </script>
 </body>

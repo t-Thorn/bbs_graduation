@@ -100,4 +100,24 @@ public class AdminController {
         userOAService.update(user);
         return "";
     }
+
+    @GetMapping("message")
+    public ModelAndView systemMessage() {
+        MsgBuilder builder = new MsgBuilder();
+        return builder.getMsg("/oa/systemMessage");
+    }
+
+    @ResponseBody
+    @GetMapping("messageTable")
+    public String messages(@RequestParam(value = "page", required = false,
+            defaultValue = "1") int page,
+                           @RequestParam(value = "limit", required = false) int step) {
+        return adminService.getMessageTable(page, step);
+    }
+
+    @ResponseBody
+    @PostMapping("broadcast")
+    public String broadcast(@RequestParam(value = "msg") String msg) {
+        return adminService.broadcast(msg);
+    }
 }

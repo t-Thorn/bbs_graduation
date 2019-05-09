@@ -124,4 +124,10 @@ public interface ReplyMapper {
     @Select("select content,content_show,replyer,floor,postid from reply where postid=#{pid} " +
             "limit 1")
     Reply getTopReply(Integer pid);
+
+    @Select("select replyer from reply where floor=#{replyTo} and postid=#{pid}")
+    int getReplyOwner(Integer replyTo, int pid);
+
+    @Select("select floor from reply where id=#{id} and postid=#{postid}")
+    Integer getFloorByID(int id, Integer postid);
 }

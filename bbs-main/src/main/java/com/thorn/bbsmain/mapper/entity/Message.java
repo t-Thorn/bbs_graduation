@@ -14,17 +14,28 @@ public class Message {
 
     int fromUser;
 
+
     int pid;
+
 
     int floor;
 
+
     String postTitle;
+
 
     String content;
 
+
     boolean isCheck;
+
 
     Date createTime;
 
+
     String nickname;
+
+    String senderNickname;
+
+    String ownerNickname;
 }

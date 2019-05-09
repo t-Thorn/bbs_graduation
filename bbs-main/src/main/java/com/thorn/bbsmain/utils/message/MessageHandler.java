@@ -32,8 +32,8 @@ public class MessageHandler extends SimpleChannelInboundHandler<TextWebSocketFra
             System.out.println("获取未读消息");
             rabbitTemplate.convertAndSend("unCheckedMsg",
                     MessageObject.builder().uid(uid).num(MysqlJdbc.getUncheckedMessage(uid)).build());
-            rabbitTemplate.convertAndSend("newMsg",
-                    MessageObject.builder().uid(uid).content("<p>测试系统消息</p>").build());
+/*            rabbitTemplate.convertAndSend("newMsg",
+                    MessageObject.builder().uid(uid).content("<p>测试系统消息</p>").build());*/
         } else {
             System.out.println("再次请求发送消息");
             //触发再次发送新消息事件

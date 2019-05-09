@@ -162,4 +162,7 @@ public interface PostMapper {
     @Select("select count(*) from post left join user on post.uid=user.uid where nickname like " +
             "concat('%',#{target},'%')")
     int getPostNumForTargetByUsernameOfAdmin(String target);
+
+    @Select("select uid from post where pid=#{postid}")
+    int getPostOwner(Integer postid);
 }

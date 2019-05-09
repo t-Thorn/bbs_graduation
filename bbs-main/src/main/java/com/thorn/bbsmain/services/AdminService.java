@@ -1,7 +1,7 @@
 package com.thorn.bbsmain.services;
 
+import com.thorn.bbsmain.services.oa.MessageOAService;
 import com.thorn.bbsmain.services.oa.PostOAService;
-import com.thorn.bbsmain.services.oa.ReplyOAService;
 import com.thorn.bbsmain.services.oa.UserOAService;
 import com.thorn.bbsmain.utils.MsgBuilder;
 import org.springframework.stereotype.Service;
@@ -13,12 +13,12 @@ public class AdminService {
 
     private UserOAService userOAService;
 
-    private ReplyOAService replyOAService;
+    private MessageOAService messageOAService;
 
-    public AdminService(PostOAService postOAService, UserOAService userOAService, ReplyOAService replyOAService) {
+    public AdminService(PostOAService postOAService, UserOAService userOAService, MessageOAService messageOAService) {
         this.postOAService = postOAService;
         this.userOAService = userOAService;
-        this.replyOAService = replyOAService;
+        this.messageOAService = messageOAService;
     }
 
 
@@ -32,5 +32,16 @@ public class AdminService {
         MsgBuilder builder = userOAService.addData();
         builder.addData("data", userOAService.getList(page, search, limit, type, builder));
         return builder.getMsg();
+    }
+
+    public String getMessageTable(int page, int step) {
+        MsgBuilder builder = messageOAService.addData();
+        builder.addData("data", messageOAService.getList(page, step, builder));
+        return builder.getMsg();
+    }
+
+    public String broadcast(String msg) {
+        messageOAService.broadcast(msg);
+        return "";
     }
 }

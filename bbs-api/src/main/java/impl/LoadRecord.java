@@ -46,7 +46,7 @@ public class LoadRecord {
             log.info("重载缓存成功：");
             return true;
         } catch (IOException | ClassNotFoundException e) {
-            log.error("重载失败：{}", e.getMessage());
+            log.error("重载失败：{} 堆栈信息:{}", e.getMessage(), e.getStackTrace());
             return false;
         }
     }
