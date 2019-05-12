@@ -44,6 +44,11 @@ public class HotPointManagerFactory {
             public Integer getUID(Object object) {
                 return ((User) object).getUid();
             }
+
+            @Override
+            public Class<Post> getPostClass() {
+                return Post.class;
+            }
         };
     }
 
@@ -76,8 +81,9 @@ public class HotPointManagerFactory {
     }
 
     @Bean
-    public HotPointManager getHotPointManager(DefaultDataSaver saver, DefaultHotPostHandler hotPostHandler) {
-        HotPointManager<Post> manager = new HotPointManager<Post>(hotPostHandler);
+    public HotPointManager<Post> getHotPointManager(DefaultDataSaver saver,
+                                                    DefaultHotPostHandler<Post> hotPostHandler) {
+        HotPointManager<Post> manager = new HotPointManager<>(hotPostHandler);
         manager.addCycleSaveForReloadTask(reload, TimeUnit.SECONDS, reloadPath);
         manager.addDataSavor(saver);
         manager.addRefreshTask(refreshPeriod, TimeUnit.DAYS);
@@ -89,12 +95,14 @@ public class HotPointManagerFactory {
     }
 
     @Bean
-    public DefaultHotPostHandler getHotPointHandler(Fetcher fetcher) {
-        if (LoadRecord.reloadRecord(reloadPath)) {
-            return new DefaultHotPostHandler<Post>(LoadRecord.getViewCache(),
-                    LoadRecord.getHotPointCache(), fetcher, LoadRecord.getIndexCache(),
-                    LoadRecord.getHotPostCache());
+    public DefaultHotPostHandler<Post> getHotPointHandler(Fetcher fetcher) {
+        LoadRecord<Post> loadRecord = new LoadRecord<>();
+        if (loadRecord.reloadRecord(reloadPath)) {
+            return new DefaultHotPostHandler<>(loadRecord.getViewCache(),
+                    loadRecord.getHotPointCache(), fetcher, loadRecord.getIndexCache(),
+                    loadRecord.getHotPostCache());
         }
-        return new DefaultHotPostHandler(new DefaultViewCache(), new DefaultHotPointCache(), fetcher);
+        return new DefaultHotPostHandler<>(new DefaultViewCache(), new DefaultHotPointCache(),
+                fetcher);
     }
 }

@@ -2,6 +2,9 @@ package com.thorn.bbsmain;
 
 import com.thorn.bbsmain.utils.message.MessageHandlerBuilder;
 import io.netty.channel.ChannelFuture;
+import org.junit.runner.Description;
+import org.junit.runner.Runner;
+import org.junit.runner.notification.RunNotifier;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -16,7 +19,16 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @MapperScan("com.thorn.bbsmain.mapper")
 @EnableCaching
 @SpringBootApplication
-public class BbsMainApplication implements CommandLineRunner {
+public class BbsMainApplication extends Runner implements CommandLineRunner {
+    @Override
+    public Description getDescription() {
+        return null;
+    }
+
+    @Override
+    public void run(RunNotifier runNotifier) {
+
+    }
 
     @Autowired
     private MessageHandlerBuilder ws;

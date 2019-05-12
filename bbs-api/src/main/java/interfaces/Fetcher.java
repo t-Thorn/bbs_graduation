@@ -9,4 +9,6 @@ public interface Fetcher<E> {
     Integer getUID(Object object);
 
     Integer getPID(Object object);
+
+    Class<E> getPostClass();
 }

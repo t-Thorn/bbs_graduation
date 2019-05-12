@@ -38,10 +38,10 @@ public class PostService {
 
     private UserService userService;
 
-    private HotPointManager manager;
+    private HotPointManager<Post> manager;
 
     public PostService(@Autowired PostMapper postMapper, @Autowired ReplyService replyService,
-                       @Autowired UserService userService, HotPointManager manager) {
+                       @Autowired UserService userService, HotPointManager<Post> manager) {
         this.postMapper = postMapper;
         this.replyService = replyService;
         this.userService = userService;
@@ -72,8 +72,11 @@ public class PostService {
         Map<Integer, Long> hotPoints = manager.getHotPoint();
         if (Objects.nonNull(hotPostList) && Objects.nonNull(hotPoints)) {
             hotPostList.forEach(element -> {
-                Long hotPoint = Optional.ofNullable(hotPoints.get(element.getPid())).orElse(0l);
-                element.setHotPoint(hotPoint);
+                //list允许null值，所以需要非空判断
+                if (element != null) {
+                    Long hotPoint = Optional.ofNullable(hotPoints.get(element.getPid())).orElse(0L);
+                    element.setHotPoint(hotPoint);
+                }
             });
         }
         builder.addData("hotPosts", Collections.unmodifiableList(hotPostList));

@@ -18,13 +18,13 @@ public class HotPointManager<E> {
 
     public static final String DELPOST = "delPost";
 
-    private AbstractHotPostHandler handler;
+    private AbstractHotPostHandler<E> handler;
 
     public HotPointManager(ViewCache viewCache, HotPointCache hotPointCache, Fetcher fetcher) {
-        this.handler = new DefaultHotPostHandler(viewCache, hotPointCache, fetcher);
+        this.handler = new DefaultHotPostHandler<E>(viewCache, hotPointCache, fetcher);
     }
 
-    public HotPointManager(AbstractHotPostHandler handler) {
+    public HotPointManager(AbstractHotPostHandler<E> handler) {
         this.handler = handler;
     }
 

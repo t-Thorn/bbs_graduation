@@ -2,6 +2,7 @@ package impl;
 
 
 import annotation.RefreshHotPost;
+import com.google.gson.Gson;
 import domain.HotPoint;
 import domain.SaveEntity;
 import interfaces.*;
@@ -49,7 +50,9 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
         super(viewCache, hotPointCache, fetcher);
     }
 
-    public DefaultHotPostHandler(ViewCache viewCache, HotPointCache hotPointCache, Fetcher fetcher, ConcurrentHashMap indexCache, ConcurrentHashMap hotPostCache) {
+    public DefaultHotPostHandler(ViewCache viewCache, HotPointCache hotPointCache,
+                                 Fetcher fetcher, ConcurrentHashMap<Integer, Long> indexCache,
+                                 ConcurrentHashMap<Integer, E> hotPostCache) {
         super(viewCache, hotPointCache, fetcher);
         this.index = indexCache;
         this.topPost = hotPostCache;
@@ -74,8 +77,7 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
 
     @Override
     public HotPoint getHotPoint(int pid) {
-        HotPoint hotPoint = hotPointCache.get(pid);
-        return hotPoint;
+        return hotPointCache.get(pid);
     }
 
     protected void computeViewNum(int pid, Object object) {
@@ -239,8 +241,14 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
     }
 
     public List<E> getTopPost() {
-        List<E> list = new ArrayList<E>();
-        topPost.forEachValue(1, list::add);
+        List<E> list = new ArrayList<>();
+        topPost.forEachValue(1, v -> {
+            if (fetcher.getPostClass().isInstance(v)) {
+                list.add(v);
+            } else {
+                list.add(new Gson().fromJson(v.toString(), fetcher.getPostClass()));
+            }
+        });
         return list;
     }
 
@@ -372,7 +380,7 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
     private class SaveForReloadTask implements Runnable {
         @Override
         public void run() {
-            LoadRecord.saveRecord(viewCache, hotPointCache, index, topPost, path);
+            new LoadRecord<E>().saveRecord(viewCache, hotPointCache, index, topPost, path);
         }
     }
 }
