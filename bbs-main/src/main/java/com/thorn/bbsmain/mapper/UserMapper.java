@@ -67,8 +67,8 @@ public interface UserMapper {
     @Select(" select message.*, user.nickname " +
             "from message " +
             "       left join user on uid = fromUser " +
-            "where owner = #{uid} and owner=-1 and id>" +
-            " #{offset} order by id  desc limit #{step}")
+            "where (owner = #{uid} or owner=-1) " +
+            " order by id  desc limit #{offset},#{step}")
     List<Message> getMessages(int uid, int offset, int step);
 
     @Select("select uid,nickname,regdate,gender from user where uid=#{uid} and available=true limit 1")
@@ -198,4 +198,7 @@ public interface UserMapper {
      */
     @Select("select count(1) from user where email=#{nickname} and uid!=#{uid}")
     int checkExistOfNNForUpdate(String nickname, int uid);
+
+    @Insert("insert into history (uid,pid,title) values(#{uid},#{pid},#{title})")
+    void createHistory(Integer uid, Integer pid, String title);
 }

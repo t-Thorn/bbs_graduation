@@ -44,4 +44,8 @@ public class AdminService {
         messageOAService.broadcast(msg);
         return "";
     }
+
+    public String getMessageDetail(int id) {
+        return (String) messageOAService.getDetail(id);
+    }
 }

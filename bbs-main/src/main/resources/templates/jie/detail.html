@@ -8,7 +8,7 @@
     <link href="/res/layui/css/layui.css" rel="stylesheet">
     <link href="/res/css/global.css" rel="stylesheet">
 </head>
-<body>
+<body style="overflow: hidden">
 <div class="fly-header layui-bg-black">
     <div class="layui-container">
         <a class="fly-logo" href="/">
@@ -205,7 +205,9 @@
                             <span class="source"
                                   th:data-nickname="${reply.nickname}"
                                   th:data-replyer="${reply.replyer}"
-                                  th:onclick="|yinyong(${reply.floor})|"
+                                  th:data-floor="${reply.floor}"
+                                  th:data-uid="${reply.replyer}"
+                                  th:onclick="|yinyong(${reply.id})|"
                                   type="reply">
 
                 <i class="iconfont icon-svgmoban53 "
@@ -284,7 +286,7 @@
                                     <div class="layui-colla-item">
                                         <h2 class="layui-colla-title"> 引用：<a id="yinyonglink"
                                                                              style="color: #4f99cf"
-                                                                             target="_blank">123</a>的回复
+                                                                             target="_blank"></a>的回复
                                         </h2>
                                         <div class="layui-colla-content" id="yinyongcontent">
 

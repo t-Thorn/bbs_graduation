@@ -19,8 +19,8 @@ function upload() {
         contentType: false,
         cache: false,
         success: function (data) {
-            $("#img").attr('src', JSON.parse(data.responseText).msg);
-            $("#avator").attr('src', JSON.parse(data.responseText).msg);
+            $("#img").attr('src', data.msg);
+            $("#avator").attr('src', data.msg);
         },
         error: function (data) {
             layer.msg(JSON.parse(data.responseText).errorMsg);
@@ -205,10 +205,11 @@ function processForm() {
 /**
  * 添加引用到回复中
  */
-function yinyong(floor) {
-    var nickname = $("#jieda li:eq(" + floor + ") .source").data("nickname");
-    var reply = $("#jieda li:eq(" + floor + ") .content");
-    $("#replyTo").val(floor);
+function yinyong(id) {
+    var nickname = $("#replyID" + id + " .source").data("nickname");
+    var reply = $("#replyID" + id + " .content");
+    var replyTo = $("#replyID" + id + " .source").data("uid");
+    $("#replyTo").val($("#replyID" + id + " .source").data("floor"));
     $("#yinyongcontent").html(reply.html());
     $("#yinyonglink").attr("href", "/user/home/" + replyTo).text(nickname);
     $("#yinyong").show();
@@ -227,7 +228,7 @@ function dianzan(index) {
             dataType: 'json',
             data: {"toUser": uid, "floor": floor, "pid": pid},
             success: function (data) {
-                $("#jieda li:eq(" + index + ") .jieda-zan em").text(JSON.parse(data.responseText).no);
+                $("#jieda li:eq(" + index + ") .jieda-zan em").text(data.no);
                 if (zan.hasClass("zanok")) {
                     zan.removeClass("zanok");
                     zan.addClass("zan");

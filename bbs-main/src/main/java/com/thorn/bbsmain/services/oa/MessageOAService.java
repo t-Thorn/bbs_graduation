@@ -27,7 +27,8 @@ public class MessageOAService {
 
 
     public Object getDetail(Object id) {
-        return null;
+
+        return messageMapper.getMessageDetail((int) id);
     }
 
 

@@ -48,8 +48,8 @@ public class HotPointManager<E> {
         return handler.getHotPoint(pid);
     }
 
-    public void addRefreshTask(int period, TimeUnit unit) {
-        handler.addRefreshTask(period, unit);
+    public void addRefreshTask(int period) {
+        handler.addRefreshTask(period);
     }
 
     public void addCycleSaveForReloadTask(int period, TimeUnit unit, String path) {

@@ -31,7 +31,7 @@
         <th lay-data="{width:250,field:'postTitle',templet:'#titleTpl'}">帖子标题</th>
         <th lay-data="{width:100,field:'floor'}">对应层数</th>
         <th lay-data="{width:180,field:'regdate',templet: '#regTpl'}">创建时间</th>
-        <th lay-data="{width:100,field:'content',templet:'#contentTpl'}">内容</th>
+        <th lay-data="{width:100,field:'',templet:'#contentTpl'}">内容</th>
         <th lay-data="{width:100,field:'check'}">是否已读</th>
         <!--<th lay-data="{fixed: 'right', align:'center', toolbar: '#barDemo'}"></th>-->
     </tr>
@@ -86,11 +86,10 @@
         return false;
     }
 
-    function showContent(msg) {
-        console.info(msg);
+    function showContent(id) {
         var that = this;
         layer.open({
-            type: 1
+            type: 2
             , title: '详情'
             , area: ['390px', '260px']
             , shade: 0
@@ -99,7 +98,7 @@
                 $(window).height() - 500,
                 $(window).width() - 500
             ]
-            , content: msg
+            , content: '/admin/messageDetail/' + id
             , btn: ['全部关闭']
             , btn2: function () {
                 layer.closeAll();
@@ -122,7 +121,7 @@
 </script>
 <script id="contentTpl" type="text/html">
     {{#  if(d.type != 1){ }}
-    <a href="javascript:showContent('{{d.content}}')" target="_blank" class="layui-table-link">显示详情
+    <a href="javascript:showContent('{{d.id}}')" target="_blank" class="layui-table-link">显示详情
     </a>
     {{#  } else { }}
 

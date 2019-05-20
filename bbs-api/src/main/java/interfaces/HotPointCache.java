@@ -22,4 +22,5 @@ public interface HotPointCache extends HotPostCache<Integer, HotPoint> {
 
     //重置热度增量
     void reset(int pid);
+
 }

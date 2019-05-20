@@ -37,4 +37,7 @@ public interface MessageMapper {
 
     @Select("select count(*) from message")
     int getMessageNum();
+
+    @Select("select content from message where id=#{id}")
+    String getMessageDetail(int id);
 }

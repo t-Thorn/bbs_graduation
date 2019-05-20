@@ -19,14 +19,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  *
  * @param <E> 帖子类型
  */
-
 @Aspect
 public abstract class AbstractHotPostHandler<E> {
 
-    /**
-     * 刷新后默认热度为1000
-     */
-    protected long defaultHotpoint = 100;
     /**
      * 定时任务线程池, 一个定时刷新，一个实时保存到本地，一个定时保存
      */
@@ -44,12 +39,12 @@ public abstract class AbstractHotPostHandler<E> {
     /**
      * pid:post
      */
-    protected ConcurrentHashMap<Integer, E> topPost = new ConcurrentHashMap<>();
+    protected ConcurrentHashMap<Integer, E> topPost = new ConcurrentHashMap<>(10);
     /**
      * 索引
      * pid:hotpoint
      */
-    protected ConcurrentHashMap<Integer, Long> index = new ConcurrentHashMap<>();
+    protected ConcurrentHashMap<Integer, Long> index = new ConcurrentHashMap<>(10);
     protected volatile long lowestHotpoint = 0l;
 
     /**
@@ -103,7 +98,7 @@ public abstract class AbstractHotPostHandler<E> {
     /**
      * 增加刷新热度任务
      */
-    public abstract void addRefreshTask(int period, TimeUnit unit);
+    public abstract void addRefreshTask(int period);
 
     /**
      * 获取帖子热度

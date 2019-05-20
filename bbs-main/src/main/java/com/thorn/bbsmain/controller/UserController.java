@@ -5,6 +5,7 @@ import com.thorn.bbsmain.exceptions.UserException;
 import com.thorn.bbsmain.mapper.entity.User;
 import com.thorn.bbsmain.services.UserService;
 import com.thorn.bbsmain.utils.MsgBuilder;
+import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authz.annotation.RequiresGuest;
 import org.apache.shiro.authz.annotation.RequiresUser;
@@ -18,6 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
+@Api(tags = "用户模块")
 @Slf4j
 @RequestMapping("user")
 @Controller
@@ -33,9 +35,9 @@ public class UserController {
 
 
     @RequiresGuest
-    @GetMapping("login/{uri}")
+    @GetMapping(value = {"login/{uri}", "login"})
     public ModelAndView turnToLogin(@Autowired MsgBuilder builder,
-                                    @PathVariable("uri") String uri) {
+                                    @PathVariable(value = "uri", required = false) String uri) {
         builder.addData("uri", uri);
         return builder.getMsg("/user/login");
     }
@@ -54,8 +56,9 @@ public class UserController {
 
 
     @RequiresGuest
-    @GetMapping("reg/{uri}")
-    public String turnToReg(@PathVariable("uri") String uri, MsgBuilder builder) {
+    @GetMapping(value = {"reg/{uri}", "reg"})
+    public String turnToReg(@PathVariable(value = "uri", required = false) String uri,
+                            MsgBuilder builder) {
         builder.addData("uri", uri);
         return "/user/reg";
     }

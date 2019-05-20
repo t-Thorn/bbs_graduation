@@ -317,4 +317,8 @@ public class UserService {
     public boolean collectRelationshipIsExist(Integer uid, Integer pid) {
         return userMapper.collectRelationshipIsExist(uid, pid) > 0;
     }
+
+    public void createHistory(Integer uid, Integer pid, String title) {
+        userMapper.createHistory(uid, pid, title);
+    }
 }

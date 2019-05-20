@@ -146,7 +146,7 @@
                     <a href="/" th:classappend="${type==0}?'layui-this':''">综合
                     </a>
                     <span class="fly-mid"></span>
-                    <a href="/1/1/" th:classappend="${type==1}?'layui-this':''">精华</a>
+                    <a href="/index/1/1/" th:classappend="${type==1}?'layui-this':''">精华</a>
                     <span class="fly-filter-right layui-hide-xs"/>
                 </div>
 
@@ -210,7 +210,7 @@
                                 (pageNum -current>2?current +2:pageNum))}">
                                 <span class="laypage-curr" th:if="${index==current}"
                                       th:text="${index}"></span>
-                                <a th:href="'/index/'+${type}+'/'+${target}+'/'+${index}"
+                                <a th:href="'/index/'+${type}+'/'+${index}+'/'+${target}"
                                    th:if="${index!=page}"
                                    th:text="${index}"></a>
                             </th:block>

@@ -3,12 +3,17 @@ package com.thorn.bbsmain.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.thorn.bbsmain.exceptions.PageException;
 import com.thorn.bbsmain.services.PostService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+@Api(tags = "基本模块")
 @Controller
 public class BasicController {
+
 
     private PostService postService;
 
@@ -28,6 +33,9 @@ public class BasicController {
      * @param target 搜索内容，为空则默认
      * @return
      */
+    @ApiOperation(value = "主页显示", notes = "主页")
+    @ApiImplicitParam(name = "type", value = "帖子类型", required = false,
+            paramType = ".path", dataType = "int", defaultValue = "0")
     @GetMapping(value = {"index/{type}/{page}/{search}", "index/{type}/{page}", "/"})
     public ModelAndView home(@PathVariable(value = "type", required = false) Integer type,
                              @PathVariable(value = "page", required = false) Integer page,

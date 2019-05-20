@@ -11,7 +11,9 @@
 
 <div class="fly-header layui-bg-black">
     <div class="layui-container">
-
+        <a class="fly-logo" href="/">
+            <img alt="layui" src="/res/images/logo.png">
+        </a>
         <ul class="layui-nav fly-nav-user">
             <!-- 登入后的状态 -->
             <li class="layui-nav-item">
@@ -93,11 +95,7 @@
 
 
     <div class="fly-panel fly-panel-user" pad20>
-        <!--
-        <div class="fly-msg" style="margin-top: 15px;">
-          您的邮箱尚未验证，这比较影响您的帐号安全，<a href="activate.html">立即去激活？</a>
-        </div>
-        -->
+
         <div class="layui-tab layui-tab-brief" lay-filter="user">
             <ul class="layui-tab-title" id="LAY_mine">
                 <li class="layui-this" data-type="mine-jie" lay-id="index">我发的帖（<span
@@ -180,8 +178,14 @@
         fly: 'index'
     }).use('fly');
 </script>
+<script src="/res/js/jquery-3.3.1.min.js"></script>
 <script>
-    window.location.hash = "[[${loc}]]";
+    if ("[[${loc}]]" == '#collection') {
+        $(".layui-tab-title li:eq(0)").removeClass("layui-this");
+        $(".layui-tab-title li:eq(1)").addClass("layui-this");
+        $('.layui-tab-content div:eq(0)').removeClass("layui-show");
+        $('.layui-tab-content div:eq(2)').addClass("layui-show");
+    }
 </script>
 </body>
 </html>

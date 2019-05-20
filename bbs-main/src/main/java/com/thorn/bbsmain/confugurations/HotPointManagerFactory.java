@@ -86,7 +86,7 @@ public class HotPointManagerFactory {
         HotPointManager<Post> manager = new HotPointManager<>(hotPostHandler);
         manager.addCycleSaveForReloadTask(reload, TimeUnit.SECONDS, reloadPath);
         manager.addDataSavor(saver);
-        manager.addRefreshTask(refreshPeriod, TimeUnit.DAYS);
+        manager.addRefreshTask(refreshPeriod * 60 * 60 * 1000);
         /**
          * 1分钟一次全量备份，作为测试时使用
          */

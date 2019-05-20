@@ -116,6 +116,12 @@ public class AdminController {
     }
 
     @ResponseBody
+    @GetMapping("messageDetail/{id}")
+    public String messageDetail(@PathVariable(value = "id") int id) {
+        return adminService.getMessageDetail(id);
+    }
+
+    @ResponseBody
     @PostMapping("broadcast")
     public String broadcast(@RequestParam(value = "msg") String msg) {
         return adminService.broadcast(msg);

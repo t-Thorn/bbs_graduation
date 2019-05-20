@@ -21,6 +21,15 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.*;
 
+/**
+ * 默认的热度计算器
+ * 1.viewCache:用户浏览记录缓存
+ * 2.hotpointCache 热度缓存
+ * 3.indexCache: 热帖索引
+ * 4.hotpostCache ：热帖热度
+ *
+ * @param <E> 帖子类型
+ */
 @Slf4j
 public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
 
@@ -179,7 +188,6 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
         lock.writeLock().unlock();
         hotPointCache.remove(pid);
         viewCache.removeLike(pid);
-
     }
 
     /**
@@ -201,7 +209,6 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
                 index.put(pid, hotpoint);
                 topPost.put(pid, fetcher.getInfo(pid));
                 lock.readLock().unlock();
-
                 return;
             }
             /**
@@ -209,35 +216,51 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
              * computeifabsent 仅在不在是时候创建，创建后返回创建时指定的值
              * computeifPresent 仅在在的时候更新，没有的话不创建，返回null，有的话返回最新的值
              */
+            /**
+             * 当前不存在时插入热帖
+             */
             if (index.computeIfPresent(pid, (k, v) -> hotpoint) == null) {
-                //新晋热帖
-                //没超出
                 log.info("新晋热帖");
-                index.put(pid, hotpoint);
-                if (index.size() <= 10) {
+
+                //没超出
+                if (index.size() < 10) {
+                    index.put(pid, hotpoint);
                     topPost.put(pid, fetcher.getInfo(pid));
+                    if (index.size() == 10) {
+                        getMinHotPoint(hotpoint);
+                    }
                     lock.readLock().unlock();
                     return;
                 }
+
                 //超出了
                 Iterator<Map.Entry<Integer, Long>> entries = index.entrySet().iterator();
                 while (entries.hasNext()) {
-                    {
-                        Map.Entry<Integer, Long> entry = entries.next();
-                        if (entry.getValue() == lowestHotpoint) {
-                            //删除原有的
-                            topPost.remove(entry.getKey());
-                            index.remove(entry.getKey());
-                        } else if (lowestHotpoint > entry.getValue()) {
-                            //更新门槛
-                            lowestHotpoint = entry.getValue();
-                        }
+                    Map.Entry<Integer, Long> entry = entries.next();
+                    //随机末尾淘汰
+                    if (entry.getValue() == lowestHotpoint) {
+                        //删除原有的
+                        topPost.remove(entry.getKey());
+                        index.remove(entry.getKey());
+                        break;
                     }
                 }
+                index.put(pid, hotpoint);
+                topPost.put(pid, fetcher.getInfo(pid));
+                getMinHotPoint(hotpoint);
             }
             lock.readLock().unlock();
         }
 
+    }
+
+    private void getMinHotPoint(long hotpoint) {
+        //满了后取出最小的热度
+        lowestHotpoint = hotpoint;
+        index.forEachValue(1, v -> {
+            if (v < lowestHotpoint)
+                lowestHotpoint = v;
+        });
     }
 
     public List<E> getTopPost() {
@@ -257,12 +280,13 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
         return index;
     }
 
-    public void addRefreshTask(int period, TimeUnit unit) {
+    public void addRefreshTask(int period) {
         addSaveTaskThread();
         long oneDay = 24 * 60 * 60 * 1000;
         long initDelay = getTimeMillis(refreshTime) - System.currentTimeMillis();
         initDelay = initDelay > 0 ? initDelay : oneDay + initDelay;
-        scheduledExecutorService.scheduleAtFixedRate(new DefaultRefresh(), initDelay, period, unit);
+
+        scheduledExecutorService.scheduleAtFixedRate(new DefaultRefresh(), initDelay, period, TimeUnit.MILLISECONDS);
     }
 
 
@@ -314,6 +338,7 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
         if (dataSaver != null) {
             addSaveTask((hotPointCache.getMap()).keySet());
         } else {
+
             hotPointCache = hotPointCache.refresh();
         }
         viewCache = viewCache.refresh();
@@ -321,7 +346,8 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
          * toppost不需要刷新，保留昨天的，仅把热度统一更新为固定值
          * 这里加锁对应 缓存更新到索引中，保证了一致性
          */
-        index.forEach((k, v) -> index.compute(k, (x, y) -> defaultHotpoint));
+
+        index.clear();
         //重置门槛，仅当热帖量超出10时再计算
         lowestHotpoint = 0;
         log.info("重置成功：{}", DateUtil.now());
@@ -335,6 +361,7 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
     class DefaultRefresh implements Runnable {
         @Override
         public void run() {
+            System.out.println("\"测试重置\" = " + "测试重置");
             refresh();
         }
     }

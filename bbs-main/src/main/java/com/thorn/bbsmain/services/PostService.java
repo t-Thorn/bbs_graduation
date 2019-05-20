@@ -76,7 +76,9 @@ public class PostService {
                 if (element != null) {
                     Long hotPoint = Optional.ofNullable(hotPoints.get(element.getPid())).orElse(0L);
                     element.setHotPoint(hotPoint);
+                    System.out.println(element.getPid());
                 }
+
             });
         }
         builder.addData("hotPosts", Collections.unmodifiableList(hotPostList));
@@ -139,7 +141,7 @@ public class PostService {
             }
             builder.addData("errorMsg", stringBuilder.toString());
 
-            return builder.getMsg("/post/newPost");
+            return builder.getMsg("/jie/add");
         }
 
         //用户帖子数+1
@@ -153,7 +155,7 @@ public class PostService {
         reply.setPostid(post.getPid());
         reply.setReplyer(userService.getCurrentUser().getUid());
         replyService.createPostTopReply(reply);
-        return builder.getMsg("forward:/post/" + post.getPid());
+        return builder.getMsg("redirect:/post/" + post.getPid());
     }
 
     /**
@@ -222,8 +224,9 @@ public class PostService {
             throw new PostNotFoundException("未找到页面");
         }
         User currentUser = userService.getCurrentUser();
-        //检测是否收藏帖子
+
         if (currentUser != null) {
+            //检测是否收藏帖子
             if (post.getUid().equals(currentUser.getUid())) {
                 builder.addData("myself", true);
             } else {
@@ -234,7 +237,8 @@ public class PostService {
                     builder.addData("collect", false);
                 }
             }
-
+            //添加浏览记录
+            userService.createHistory(currentUser.getUid(), pid, post.getTitle());
         }
 
         //构建帖子头信息

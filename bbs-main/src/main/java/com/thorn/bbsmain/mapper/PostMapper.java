@@ -19,10 +19,11 @@ public interface PostMapper {
             "       grade," +
             "       lastReplyTime," +
             "       replyNum," +
-            "       img from user inner join post on post.uid = user.uid" +
+            "       img from post" +
+            "       left JOIN user on post.uid = user.uid" +
             " where grade < 2" +
-            "  and post.available = true and pid>=(select pid from post where available=true " +
-            "limit #{offset},1)" +
+            "  and post.available = true and pid<=(select pid from post where available=true " +
+            "order by pid desc limit #{offset},1)" +
             " order by pid desc limit #{step}")
     List<Post> getPosts(int offset, int step);
 
@@ -33,10 +34,11 @@ public interface PostMapper {
             "       grade," +
             "       lastReplyTime," +
             "       replyNum," +
-            "       img from user inner join post on post.uid = user.uid" +
+            "       img from post" +
+            "       left JOIN user on post.uid = user.uid" +
 //            屏蔽这个则可以显示全部" where grade < 2" +
-            "  and post.available = true and title like concat('%',#{target}," +
-            "    '%')  and pid>=(select pid from post where available=true limit #{offset},1)" +
+            "  where post.available = true and title like concat('%',#{target}," +
+            "    '%')  and pid<=(select pid from post where available=true order by pid desc limit #{offset},1)" +
             " order by pid desc limit #{step}")
     List<Post> getPostsForTarget(String target, int offset, int step);
 
@@ -59,11 +61,12 @@ public interface PostMapper {
             "       lastReplyTime," +
             "       replyNum," +
             "       img" +
-            " from user" +
-            "       inner join post on post.uid = user.uid" +
+            " from post" +
+            "       left JOIN user on post.uid = user.uid" +
             " where type != 4" +
             "  and grade = 1" +
-            "  and post.available = true and pid>=(select pid from post where available=true limit #{offset},1)" +
+            "  and post.available = true and pid<=(select pid from post where available=true order by pid desc" +
+            " limit #{offset},1)" +
             " order by pid desc limit #{step}")
 //    @Cacheable(value = "posts", key = "'goodposts'", unless = "#result==null")
     List<Post> getGoodPosts(int offset, int step);
