@@ -49,7 +49,7 @@ public class UserService {
             hasError = true;
         }
         if (hasError) {
-            return builder.getMsg("/user/reg");
+            return builder.getMsg("user/reg");
         }
 
 
@@ -126,7 +126,7 @@ public class UserService {
             token = verifyTokenByShiro(currentUser, user);
         } catch (UserException e) {
             builder.addData("errorMsg", "登录失败：" + e.getMessage());
-            return builder.getMsg("/");
+            return builder.getMsg("");
         }
         //向客户端cookie中加入token
         builder.addCookie(response, "token", token);
@@ -147,7 +147,7 @@ public class UserService {
             }
             return builder.getMsg("redirect:" + uri);
         }
-        return builder.getMsg("/");
+        return builder.getMsg("");
     }
 
     public void getErrors(BindingResult result, MsgBuilder builder) {
@@ -226,7 +226,7 @@ public class UserService {
 
         builder.addData("posts", getUserPost(uid));
         builder.addData("replys", getUserReply(uid));
-        return builder.getMsg("/user/home");
+        return builder.getMsg("user/home");
     }
 
     /**

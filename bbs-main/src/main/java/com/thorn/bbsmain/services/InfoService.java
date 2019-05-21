@@ -110,7 +110,7 @@ public class InfoService {
         int pageNum = userService.getMessageNum(user.getUid());
         builder.addData("messages", messages);
         builder.addData("pageNum", MyUtil.getPage(pageNum, ONE_MESSAGE_PAGE_NUM));
-        return builder.getMsg("/user/message");
+        return builder.getMsg("user/message");
     }
 
     public ModelAndView updateUserPassword(String nowpass, User user, BindingResult result,
@@ -139,7 +139,7 @@ public class InfoService {
         }
         if (error) {
             builder.addDatas(getInfo(currentUser.getEmail()));
-            return builder.getMsg("/user/set");
+            return builder.getMsg("user/set");
         }
         userService.updatePassword(currentUser.getEmail(), user.getPassword());
         //logout
@@ -150,7 +150,7 @@ public class InfoService {
         builder.addData("errorMsg", "密码修改成功");
         builder.addDatas(getInfo(currentUser.getEmail()));
         builder.addData("loc", "password");
-        return builder.getMsg("/user/set");
+        return builder.getMsg("user/set");
     }
 
     public ModelAndView modifyBasicInfo(User user, BindingResult bindingResult) {
@@ -166,7 +166,7 @@ public class InfoService {
         }
         msgBuilder.addDatas(getInfo(user.getEmail()));
         msgBuilder.addData("loc", "basic");
-        return msgBuilder.getMsg("/user/set");
+        return msgBuilder.getMsg("user/set");
     }
 
     public ModelAndView getMyPosts(Integer page, Integer cpage) throws Exception {
@@ -189,7 +189,7 @@ public class InfoService {
             builder.addData("collectionsNum", myCollection.size());
         }
 
-        return builder.getMsg("/user/myPost");
+        return builder.getMsg("user/myPost");
     }
 
     /**
@@ -277,7 +277,7 @@ public class InfoService {
         builder.addData("histories", histories);
         builder.addData("currentPage", page);
         builder.addData("pageNum", pageNum);
-        return builder.getMsg("/user/history");
+        return builder.getMsg("user/history");
     }
 
     @Transactional(noRollbackFor = PostException.class)

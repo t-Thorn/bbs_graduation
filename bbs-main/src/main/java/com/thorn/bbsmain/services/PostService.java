@@ -76,7 +76,6 @@ public class PostService {
                 if (element != null) {
                     Long hotPoint = Optional.ofNullable(hotPoints.get(element.getPid())).orElse(0L);
                     element.setHotPoint(hotPoint);
-                    System.out.println(element.getPid());
                 }
 
             });
@@ -141,7 +140,7 @@ public class PostService {
             }
             builder.addData("errorMsg", stringBuilder.toString());
 
-            return builder.getMsg("/jie/add");
+            return builder.getMsg("jie/add");
         }
 
         //用户帖子数+1
@@ -253,7 +252,7 @@ public class PostService {
         builder.addData("replyID", replyID);
         builder.addData("errorMsg", errorMsg);
         getHotPosts(builder);
-        return builder.getMsg("/jie/detail");
+        return builder.getMsg("jie/detail");
     }
 
     public int getPostNum() {

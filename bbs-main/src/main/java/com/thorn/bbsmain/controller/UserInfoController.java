@@ -42,7 +42,7 @@ public class UserInfoController {
         User user = userService.getCurrentUser();
 
         msgBuilder.addDatas(infoService.getInfo(user.getEmail()));
-        return msgBuilder.getMsg("/user/set");
+        return msgBuilder.getMsg("user/set");
     }
 
 

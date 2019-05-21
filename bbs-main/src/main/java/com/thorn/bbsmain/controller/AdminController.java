@@ -35,20 +35,20 @@ public class AdminController {
     @GetMapping("OA")
     public ModelAndView OAView() {
         MsgBuilder builder = new MsgBuilder();
-        return builder.getMsg("/oa/index");
+        return builder.getMsg("oa/index");
     }
 
     @GetMapping("post")
     public ModelAndView postView() {
         MsgBuilder builder = new MsgBuilder();
-        return builder.getMsg("/oa/post");
+        return builder.getMsg("oa/post");
     }
 
     @GetMapping("editPost/{pid}")
     public ModelAndView jumpToEditPost(@PathVariable("pid") int pid) {
         MsgBuilder builder = new MsgBuilder();
         builder.addData("post", postOAService.getPostInfo(pid));
-        return builder.getMsg("/oa/editPost");
+        return builder.getMsg("oa/editPost");
     }
 
 
@@ -72,7 +72,7 @@ public class AdminController {
     @GetMapping("user")
     public ModelAndView userView() {
         MsgBuilder builder = new MsgBuilder();
-        return builder.getMsg("/oa/user");
+        return builder.getMsg("oa/user");
     }
 
     @ResponseBody
@@ -89,7 +89,7 @@ public class AdminController {
     public ModelAndView jumpToEditUser(@PathVariable("uid") int uid) {
         MsgBuilder builder = new MsgBuilder();
         builder.addData("user", userOAService.getUserInfo(uid));
-        return builder.getMsg("/oa/editUser");
+        return builder.getMsg("oa/editUser");
     }
 
 
@@ -104,7 +104,7 @@ public class AdminController {
     @GetMapping("message")
     public ModelAndView systemMessage() {
         MsgBuilder builder = new MsgBuilder();
-        return builder.getMsg("/oa/systemMessage");
+        return builder.getMsg("oa/systemMessage");
     }
 
     @ResponseBody

@@ -83,7 +83,7 @@ public class GlobalDefaultExceptionHandler {
                 if (msg.getMessage().contains("The current Subject is not a user")) {
                     builder.addData("errorMsg", "请登录后再试");
                     builder.addData("uri", request.getRequestURI());
-                    return builder.getMsg("/user/login");
+                    return builder.getMsg("user/login");
                 }
                 //权限不够则跳转到主页
                 return builder.getMsg("forward:/");
@@ -173,7 +173,7 @@ public class GlobalDefaultExceptionHandler {
         builder.addData("errorMsg", "服务器内部错误");
         if (isAjax(request))
             return builder.getMsgForAjax();
-        return builder.getMsg("/other/404");
+        return builder.getMsg("other/404");
     }
 
 

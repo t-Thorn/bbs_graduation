@@ -2,14 +2,13 @@ package com.thorn.bbsmain;
 
 import com.thorn.bbsmain.utils.message.MessageHandlerBuilder;
 import io.netty.channel.ChannelFuture;
-import org.junit.runner.Description;
-import org.junit.runner.Runner;
-import org.junit.runner.notification.RunNotifier;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
@@ -19,16 +18,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @MapperScan("com.thorn.bbsmain.mapper")
 @EnableCaching
 @SpringBootApplication
-public class BbsMainApplication extends Runner implements CommandLineRunner {
-    @Override
-    public Description getDescription() {
-        return null;
-    }
-
-    @Override
-    public void run(RunNotifier runNotifier) {
-
-    }
+public class BbsMainApplication extends SpringBootServletInitializer implements CommandLineRunner {
 
     @Autowired
     private MessageHandlerBuilder ws;
@@ -42,15 +32,19 @@ public class BbsMainApplication extends Runner implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         ChannelFuture future = ws.buildMessageHandler();
-
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
                 ws.destroy();
             }
         });
-
         future.channel().closeFuture().syncUninterruptibly();
     }
 
+    private static Class<BbsMainApplication> applicationClass = BbsMainApplication.class;
+
+    @Override
+    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+        return application.sources(applicationClass);
+    }
 }

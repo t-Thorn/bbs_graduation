@@ -67,7 +67,7 @@ public class PostController {
     @RequiresPermissions("createPost")
     @GetMapping("newPost")
     public ModelAndView newPost(@Autowired MsgBuilder builder) {
-        return builder.getMsg("/jie/add");
+        return builder.getMsg("jie/add");
     }
 
     @RequiresPermissions("createPost")

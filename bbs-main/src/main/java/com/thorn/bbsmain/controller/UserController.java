@@ -39,7 +39,7 @@ public class UserController {
     public ModelAndView turnToLogin(@Autowired MsgBuilder builder,
                                     @PathVariable(value = "uri", required = false) String uri) {
         builder.addData("uri", uri);
-        return builder.getMsg("/user/login");
+        return builder.getMsg("user/login");
     }
 
     @RequiresGuest
@@ -49,7 +49,7 @@ public class UserController {
                               HttpServletResponse response, @Autowired MsgBuilder builder) {
         if (result.hasErrors()) {
             userService.getErrors(result, builder);
-            return builder.getMsg("/user/login");
+            return builder.getMsg("user/login");
         }
         return userService.userLogin(user, uri, response, builder);
     }
@@ -60,7 +60,7 @@ public class UserController {
     public String turnToReg(@PathVariable(value = "uri", required = false) String uri,
                             MsgBuilder builder) {
         builder.addData("uri", uri);
-        return "/user/reg";
+        return "user/reg";
     }
 
     @RequiresGuest
@@ -75,14 +75,14 @@ public class UserController {
     @GetMapping("forget")
     public String turnToForget() {
 
-        return "/user/forget";
+        return "user/forget";
     }
 
     @RequiresGuest
     @PostMapping("forget")
     public String forget() {
 
-        return "/user/forget";
+        return "user/forget";
     }
 
     @RequiresUser

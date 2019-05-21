@@ -44,7 +44,7 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
     private int updateThreshold;
     //刷新时间
     @Value("${hotPoint.refreshTime}")
-    private int refreshTime;
+    private String refreshTime;
     @Value("${hotPoint.saveTaskThreadNum}")
     private int saveTaskThreadNum;
     //浏览量计算
@@ -67,12 +67,12 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
         this.topPost = hotPostCache;
     }
 
-    private static long getTimeMillis(int time) {
+    private static long getTimeMillis(String time) {
         try {
-            int hour = time / 3600;
-            time = time - hour * 3600;
-            int minute = time / 60;
-            int second = time - minute * 60;
+            String[] t = time.split(":", 3);
+            int hour = Integer.valueOf(t[0]);
+            int minute = Integer.valueOf(t[1]);
+            int second = Integer.valueOf(t[2]);
             String timeString = hour + ":" + minute + ":" + second;
             DateFormat dateFormat = new SimpleDateFormat("yy-MM-dd HH:mm:ss");
             DateFormat dayFormat = new SimpleDateFormat("yy-MM-dd");
@@ -224,8 +224,8 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
 
                 //没超出
                 if (index.size() < 10) {
-                    index.put(pid, hotpoint);
-                    topPost.put(pid, fetcher.getInfo(pid));
+                    index.putIfAbsent(pid, hotpoint);
+                    topPost.putIfAbsent(pid, fetcher.getInfo(pid));
                     if (index.size() == 10) {
                         getMinHotPoint(hotpoint);
                     }
@@ -245,8 +245,8 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
                         break;
                     }
                 }
-                index.put(pid, hotpoint);
-                topPost.put(pid, fetcher.getInfo(pid));
+                index.putIfAbsent(pid, hotpoint);
+                topPost.putIfAbsent(pid, fetcher.getInfo(pid));
                 getMinHotPoint(hotpoint);
             }
             lock.readLock().unlock();
@@ -338,7 +338,6 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
         if (dataSaver != null) {
             addSaveTask((hotPointCache.getMap()).keySet());
         } else {
-
             hotPointCache = hotPointCache.refresh();
         }
         viewCache = viewCache.refresh();
@@ -361,7 +360,6 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
     class DefaultRefresh implements Runnable {
         @Override
         public void run() {
-            System.out.println("\"测试重置\" = " + "测试重置");
             refresh();
         }
     }
@@ -386,6 +384,7 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
                     }
 //                    changeLock.writeLock().lock();
                     dataSaver.save(entity.getPid(), hotPointCache.get(entity.getPid()));
+                    hotPointCache.remove(entity.getPid());
                     /*log.info("保存浏览记录 {}：pid:{} hotPoint:{}", DateUtil.now(), entity.getPid(),
                             hotPointCache.get(entity.getPid()).toString());*/
                     // hotPointCache.reset(entity.getPid());
