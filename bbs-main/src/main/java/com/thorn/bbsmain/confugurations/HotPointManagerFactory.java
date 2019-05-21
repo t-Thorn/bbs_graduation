@@ -95,7 +95,7 @@ public class HotPointManagerFactory {
     }
 
     @Bean
-    public DefaultHotPostHandler<Post> getHotPointHandler(Fetcher fetcher) {
+    public DefaultHotPostHandler<Post> getHotPointHandler(Fetcher<Post> fetcher) {
         LoadRecord<Post> loadRecord = new LoadRecord<>();
         if (loadRecord.reloadRecord(reloadPath)) {
             return new DefaultHotPostHandler<>(loadRecord.getViewCache(),

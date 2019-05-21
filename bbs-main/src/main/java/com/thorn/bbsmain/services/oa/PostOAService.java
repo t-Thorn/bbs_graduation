@@ -44,8 +44,13 @@ public class PostOAService implements OAService<Post> {
 
     @Override
     public boolean update(Post post) {
-        System.out.println("post.toString() = " + post.toString());
+        if (post.getAvailable() == null) {
+            post.setAvailable(false);
+        }
         postMapper.updatePost(post);
+        if (!post.getAvailable()) {
+            postService.delPostOfHotPoint(post.getPid());
+        }
         return false;
     }
 

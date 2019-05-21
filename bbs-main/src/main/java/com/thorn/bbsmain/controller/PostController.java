@@ -1,6 +1,7 @@
 package com.thorn.bbsmain.controller;
 
 
+import annotation.RefreshHotPost;
 import com.thorn.bbsmain.exceptions.DeleteReplyException;
 import com.thorn.bbsmain.exceptions.PageException;
 import com.thorn.bbsmain.exceptions.PostException;
@@ -11,6 +12,7 @@ import com.thorn.bbsmain.services.PostService;
 import com.thorn.bbsmain.services.ReplyService;
 import com.thorn.bbsmain.services.UserService;
 import com.thorn.bbsmain.utils.MsgBuilder;
+import impl.HotPointManager;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -53,10 +55,10 @@ public class PostController {
      * @throws PostNotFoundException 未知帖子错误
      * @throws PageException         帖子内容错误
      */
-    @RequestMapping(value = {"/{pid}/{page}", "/{pid}"})
+    @RequestMapping(value = {"/{pid}/{page}", "/{pid}", "/{pid}/{page}/{replyID}"})
     public ModelAndView viewPost(@PathVariable("pid") int pid,
                                  @RequestParam(value = "replyID", required = false) Integer ID,
-                                 @RequestAttribute(value = "replyID", required = false) Integer replyID,
+                                 @PathVariable(value = "replyID", required = false) Integer replyID,
                                  @PathVariable(value = "page", required = false) Integer page,
                                  @RequestAttribute(value = "errorMsg", required = false) String errorMsg)
             throws PostNotFoundException, PageException {
@@ -85,9 +87,10 @@ public class PostController {
         return replyService.imgUpload(imgs);
     }
 
+    @RefreshHotPost(HotPointManager.DELPOST)
     @ResponseBody
     @DeleteMapping("del/{pid}")
-    public String delReply(@PathVariable("pid") int pid) throws PostException, DeleteReplyException {
+    public String delPost(@PathVariable("pid") int pid) throws PostException, DeleteReplyException {
         return postService.delPost(pid);
     }
 }

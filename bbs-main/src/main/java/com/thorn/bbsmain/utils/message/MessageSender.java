@@ -14,7 +14,7 @@ public class MessageSender {
     @RabbitListener(queues = "unCheckedMsg")
     @RabbitHandler
     public void process(MessageObject msg) {
-        System.out.println("获取未读消息" + msg);
+        //System.out.println("获取未读消息" + msg);
         MessageChannelInfo info = ChannelCache.get(msg.getUid());
         Channel msgChannel = info == null ? null : info.getChannel();
         if (msgChannel != null) {

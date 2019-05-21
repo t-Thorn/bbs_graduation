@@ -76,11 +76,14 @@ public class PostService {
                 if (element != null) {
                     Long hotPoint = Optional.ofNullable(hotPoints.get(element.getPid())).orElse(0L);
                     element.setHotPoint(hotPoint);
+                    // System.out.println(element.toString());
                 }
 
             });
         }
-        builder.addData("hotPosts", Collections.unmodifiableList(hotPostList));
+        //去除空元素防止出问题
+        hotPostList.removeAll(Collections.singleton(null));
+        builder.addData("hotPosts", hotPostList);
     }
 
     /**
@@ -268,6 +271,14 @@ public class PostService {
     }
 
 
+    /**
+     * 错误的方法
+     *
+     * @param pid
+     * @return
+     * @throws PostException
+     */
+    @Deprecated
     public String delPost(int pid) throws PostException {
         if (pid < 1) {
             throw new PostException("删除帖子参数错误");
@@ -286,11 +297,12 @@ public class PostService {
         MsgBuilder builder = new MsgBuilder();
         //回复可用置0
         if (postMapper.invalidReply(pid) > 0) {
+            //帖子回复数-1
             postMapper.decreaseReplyNum(pid);
         } else {
             throw new PostException("已被删除");
         }
-        //帖子回复数-1
+
 
         builder.addData("msg", "成功");
         return builder.getMsg();
@@ -298,5 +310,10 @@ public class PostService {
 
     private boolean isExist(int pid) {
         return postMapper.isExist(pid) > 0;
+    }
+
+    @RefreshHotPost(HotPointManager.DELPOST)
+    public void delPostOfHotPoint(Integer pid) {
+
     }
 }

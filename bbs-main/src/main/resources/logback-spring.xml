@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <property name="log.base" value="log/"/>
+    <property name="log.base" value="/home/thorn/log/"/>
     <!-- %m输出的信息,%p日志级别,%t线程名,%d日期,%c类的全名,%i索引【从数字0开始递增】,,, -->
     <!-- appender是configuration的子节点，是负责写日志的组件。 -->
     <!-- ConsoleAppender：把日志输出到控制台 -->
@@ -103,9 +103,9 @@
         <appender-ref ref="WARNFILE"/>
         <appender-ref ref="INFOFILE"/>
     </root>
-    <logger name="com.thorn.bbsmain.mapper" level="debug">
-        <appender-ref ref="STDOUT"/>
-    </logger>
+    <!--    <logger name="com.thorn.bbsmain.mapper" level="debug">
+            <appender-ref ref="STDOUT"/>
+        </logger>-->
 
     <!-- 指定项目中某个包，当有日志操作行为时的日志记录级别 -->
     <!-- com.thorn为根包，也就是只要是发生在这个根包下面的所有日志操作行为的权限都是DEBUG -->

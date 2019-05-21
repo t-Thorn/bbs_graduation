@@ -49,8 +49,6 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
     private int saveTaskThreadNum;
     //浏览量计算
     private ViewCounter viewCounter = new DefaultViewCounter();
-    //热度变更锁
-//    private ReentrantReadWriteLock changeLock = new ReentrantReadWriteLock();
     //存储恢复数据路径
     private String path = null;
 
@@ -60,11 +58,21 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
     }
 
     public DefaultHotPostHandler(ViewCache viewCache, HotPointCache hotPointCache,
-                                 Fetcher fetcher, ConcurrentHashMap<Integer, Long> indexCache,
+                                 Fetcher<E> fetcher, ConcurrentHashMap<Integer, Long> indexCache,
                                  ConcurrentHashMap<Integer, E> hotPostCache) {
         super(viewCache, hotPointCache, fetcher);
-        this.index = indexCache;
-        this.topPost = hotPostCache;
+        if (Objects.isNull(indexCache)) {
+            this.index = new ConcurrentHashMap<>(10);
+            topPost = new ConcurrentHashMap<>(10);
+        } else {
+            this.index = indexCache;
+            if (Objects.isNull(hotPostCache)) {
+                this.topPost = new ConcurrentHashMap<>(10);
+            } else {
+                this.topPost = hotPostCache;
+            }
+        }
+
     }
 
     private static long getTimeMillis(String time) {
@@ -81,6 +89,7 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
         } catch (ParseException e) {
             log.error("日期计算错误:{}", e.getMessage());
         }
+
         return 0;
     }
 
@@ -184,7 +193,6 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
         index.remove(pid);
         //重置门槛，仅当热帖量超出10时再计算
         //筛选当前热度第十名：性能消耗可能更大，因为遍历的是当时全部的帖子集合
-        lowestHotpoint = 0;
         lock.writeLock().unlock();
         hotPointCache.remove(pid);
         viewCache.removeLike(pid);
@@ -196,19 +204,18 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
      */
     protected void updateTopPost(int pid, long hotpoint) {
         //实时淘汰
-        log.info("lowest:{} hotpoint:{}", lowestHotpoint, hotpoint);
-        if (lowestHotpoint < hotpoint) {
-            lock.readLock().lock();
+        if (getMinHotPointOfLock() < hotpoint) {
+            lock.writeLock().lock();
             //二次判断，判断得到锁后是否符合条件
-            if (lowestHotpoint > hotpoint) {
-                lock.readLock().unlock();
+            long min = getMinHotPoint();
+            if (min > hotpoint) {
+                lock.writeLock().unlock();
                 return;
             }
-            log.info("正在更新TopPost,pid:{}-hotpoint:{}", pid, hotpoint);
             if (index.size() == 0) {
                 index.put(pid, hotpoint);
                 topPost.put(pid, fetcher.getInfo(pid));
-                lock.readLock().unlock();
+                lock.writeLock().unlock();
                 return;
             }
             /**
@@ -226,19 +233,17 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
                 if (index.size() < 10) {
                     index.putIfAbsent(pid, hotpoint);
                     topPost.putIfAbsent(pid, fetcher.getInfo(pid));
-                    if (index.size() == 10) {
-                        getMinHotPoint(hotpoint);
-                    }
-                    lock.readLock().unlock();
+                    lock.writeLock().unlock();
                     return;
                 }
 
+                // FIXME: 19-5-21 线程不安全，淘汰时其他用户如果改变热度，则删除失败
                 //超出了
                 Iterator<Map.Entry<Integer, Long>> entries = index.entrySet().iterator();
                 while (entries.hasNext()) {
                     Map.Entry<Integer, Long> entry = entries.next();
                     //随机末尾淘汰
-                    if (entry.getValue() == lowestHotpoint) {
+                    if (entry.getValue() == min) {
                         //删除原有的
                         topPost.remove(entry.getKey());
                         index.remove(entry.getKey());
@@ -247,33 +252,53 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
                 }
                 index.putIfAbsent(pid, hotpoint);
                 topPost.putIfAbsent(pid, fetcher.getInfo(pid));
-                getMinHotPoint(hotpoint);
             }
-            lock.readLock().unlock();
+            lock.writeLock().unlock();
         }
 
     }
 
-    private void getMinHotPoint(long hotpoint) {
-        //满了后取出最小的热度
-        lowestHotpoint = hotpoint;
-        index.forEachValue(1, v -> {
-            if (v < lowestHotpoint)
-                lowestHotpoint = v;
-        });
+    /**
+     * 加读锁获取热帖榜最小热度，低精确
+     *
+     * @return
+     */
+    private long getMinHotPointOfLock() {
+        lock.readLock().lock();
+        Collection<Long> c = index.values();
+        Object[] obj = c.toArray();
+        Arrays.sort(obj);
+        lock.readLock().unlock();
+        return (long) obj[0];
+    }
+
+    /**
+     * 获取热帖榜最小热度，高精确（需要在写锁中使用）
+     *
+     * @return
+     */
+    private long getMinHotPoint() {
+        Collection<Long> c = index.values();
+        Object[] obj = c.toArray();
+        Arrays.sort(obj);
+        return (long) obj[0];
     }
 
     public List<E> getTopPost() {
         List<E> list = new ArrayList<>();
         topPost.forEachValue(1, v -> {
-            if (fetcher.getPostClass().isInstance(v)) {
-                list.add(v);
-            } else {
-                list.add(new Gson().fromJson(v.toString(), fetcher.getPostClass()));
+            if (v != null) {
+                if (fetcher.getPostClass().isInstance(v)) {
+                    list.add(v);
+                } else {
+                    list.add(new Gson().fromJson(v.toString(), fetcher.getPostClass()));
+                }
             }
         });
         return list;
     }
+
+
 
     @Override
     public Map<Integer, Long> getTopPostHotPoint() {
@@ -347,8 +372,6 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
          */
 
         index.clear();
-        //重置门槛，仅当热帖量超出10时再计算
-        lowestHotpoint = 0;
         log.info("重置成功：{}", DateUtil.now());
         lock.writeLock().unlock();
 

@@ -1,6 +1,8 @@
 package interfaces;
 
 import domain.HotPoint;
+import impl.DefaultHotPointCache;
+import impl.DefaultViewCache;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
@@ -45,7 +47,6 @@ public abstract class AbstractHotPostHandler<E> {
      * pid:hotpoint
      */
     protected ConcurrentHashMap<Integer, Long> index = new ConcurrentHashMap<>(10);
-    protected volatile long lowestHotpoint = 0l;
 
     /**
      * 初始化 热帖处理器 需要实现的部分：fetcher和dataSaver（可选，用于保存数据到数据库）
@@ -54,14 +55,11 @@ public abstract class AbstractHotPostHandler<E> {
      * @param hotPointCache 热度缓存
      * @param fetcher       信息提取器
      */
-    public AbstractHotPostHandler(ViewCache viewCache, HotPointCache hotPointCache, Fetcher fetcher) {
-        this.viewCache = viewCache;
-        this.hotPointCache = hotPointCache;
+    public AbstractHotPostHandler(ViewCache viewCache, HotPointCache hotPointCache,
+                                  Fetcher<E> fetcher) {
+        this.viewCache = viewCache == null ? new DefaultViewCache() : viewCache;
+        this.hotPointCache = hotPointCache == null ? new DefaultHotPointCache() : hotPointCache;
         this.fetcher = fetcher;
-    }
-
-    public void setDefaultHotpoint(int defaultHotpoint) {
-        defaultHotpoint = defaultHotpoint;
     }
 
     public void setDataSaver(AbstractDataSaver dataSaver) {

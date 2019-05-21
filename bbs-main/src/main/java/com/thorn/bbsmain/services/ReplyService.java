@@ -218,7 +218,6 @@ public class ReplyService {
             replyMapper.addReply(reply);
             //将注入到对象中的id提取出来返回
             reply.setFloor(replyMapper.getFloorByID(reply.getId(), reply.getPostid()));
-            builder.addData("replyID", reply.getId());
         } catch (Exception e) {
             throw new PostException("新增帖子错误" + e.getMessage());
         }
@@ -237,7 +236,7 @@ public class ReplyService {
                 addMessage(reply, replyToID);
             }
         }
-        return builder.getMsg("forward:/post/" + reply.getPostid() + "/-1");
+        return builder.getMsg("redirect:/post/" + reply.getPostid() + "/-1/" + reply.getId());
     }
 
     private void addMessage(Reply reply, int replyTo) {
@@ -258,14 +257,14 @@ public class ReplyService {
     @Transactional(rollbackFor = DeleteReplyException.class)
     public String delReply(int pid, int floor) throws PostException, DeleteReplyException {
         if (floor < 1 || pid < 1) {
-            throw new PostException("删除回复参数错误");
+            throw new PostException("删除回复参数错误:楼层或帖子id非法");
         }
         User user = userService.getCurrentUser();
         if (user == null) {
             throw new DeleteReplyException("请登录再试");
         }
         if (!isExist(pid, floor)) {
-            throw new DeleteReplyException("删除回复参数错误");
+            throw new DeleteReplyException("删除回复参数错误，不存在该帖子或者楼层");
         }
         if (!userService.hasRole("admin") || replyMapper.hasPermission(user.getUid(), pid, floor) == 0) {
             throw new DeleteReplyException("没有权限删除");
