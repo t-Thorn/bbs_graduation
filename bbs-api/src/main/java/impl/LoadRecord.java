@@ -1,18 +1,10 @@
 package impl;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonWriter;
 import interfaces.HotPointCache;
 import interfaces.ViewCache;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.lang.reflect.Type;
+import java.io.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
@@ -43,27 +35,22 @@ public class LoadRecord<E> {
 
 
     public boolean reloadRecord(String path) {
-        try (JsonReader viewCacheFile = new JsonReader(new BufferedReader(new FileReader(path +
-                "viewCache")));
-             JsonReader hotPointFile = new JsonReader(new BufferedReader((new FileReader(path +
-                     "hotPointCache"))));
-             JsonReader indexFile =
-                     new JsonReader(new BufferedReader(new FileReader(path + "indexCache")));
-             JsonReader hotPostFile =
-                     new JsonReader(new BufferedReader(new FileReader(path + "hotPostCache")))) {
-            Gson gson = new Gson();
-            Type type = new TypeToken<ConcurrentHashMap<Integer, E>>() {
-            }.getType();
-            viewCache = gson.fromJson(viewCacheFile, DefaultViewCache.class);
-            hotPointCache = gson.fromJson(hotPointFile, DefaultHotPointCache.class);
-            indexCache = gson.fromJson(indexFile,
-                    new TypeToken<ConcurrentHashMap<Integer, Long>>() {
-                    }.getType());
-            hotPostCache = gson.fromJson(hotPostFile,
-                    ConcurrentHashMap.class);
+        try (ObjectInputStream viewCacheInput =
+                     new ObjectInputStream(new FileInputStream(path +
+                             "viewCache"));
+             ObjectInputStream hotPointInput = new ObjectInputStream(new FileInputStream(path +
+                     "hotPointCache"));
+             ObjectInputStream indexInput =
+                     new ObjectInputStream(new FileInputStream(path + "indexCache"));
+             ObjectInputStream hotPostInput =
+                     new ObjectInputStream(new FileInputStream(path + "hotPostCache"))) {
+            viewCache = (ViewCache) viewCacheInput.readObject();
+            hotPointCache = (HotPointCache) hotPointInput.readObject();
+            indexCache = (ConcurrentHashMap<Integer, Long>) indexInput.readObject();
+            hotPostCache = (ConcurrentHashMap<Integer, E>) hotPostInput.readObject();
             log.info("重载缓存成功：");
             return true;
-        } catch (IOException e) {
+        } catch (IOException | ClassNotFoundException e) {
             log.error("重载失败：{} 堆栈信息:{}", e.getMessage(), e.getStackTrace());
             return false;
         }
@@ -72,23 +59,18 @@ public class LoadRecord<E> {
     void saveRecord(ViewCache viewCache, HotPointCache hotPointCache,
                     ConcurrentHashMap indexCache, ConcurrentHashMap hotPostCache,
                     String path) {
-        try (JsonWriter view = new JsonWriter(new FileWriter(path +
+        try (ObjectOutputStream view = new ObjectOutputStream(new FileOutputStream(path +
                 "/viewCache"));
-             JsonWriter hotPoint = new JsonWriter(new FileWriter(path +
+             ObjectOutputStream hotPoint = new ObjectOutputStream(new FileOutputStream(path +
                      "/hotPointCache"));
-             JsonWriter index = new JsonWriter(new FileWriter(path +
+             ObjectOutputStream index = new ObjectOutputStream(new FileOutputStream(path +
                      "/indexCache"));
-             JsonWriter hotPost = new JsonWriter(new FileWriter(path +
+             ObjectOutputStream hotPost = new ObjectOutputStream(new FileOutputStream(path +
                      "/hotPostCache"))) {
-            Gson gson = new Gson();
-            gson.toJson(viewCache, DefaultViewCache.class, view);
-            gson.toJson(hotPointCache, DefaultHotPointCache.class, hotPoint);
-            gson.toJson(indexCache, new TypeToken<ConcurrentHashMap<Integer, Long>>() {
-                    }.getType(),
-                    index);
-            gson.toJson(hotPostCache, new TypeToken<ConcurrentHashMap<Integer, E>>() {
-                    }.getType(),
-                    hotPost);
+            view.writeObject(viewCache);
+            hotPoint.writeObject(hotPointCache);
+            index.writeObject(indexCache);
+            hotPost.writeObject(hotPostCache);
         } catch (IOException e) {
             log.error("保存失败：{}", e.getMessage());
         }

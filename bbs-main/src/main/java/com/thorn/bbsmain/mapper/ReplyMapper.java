@@ -130,4 +130,17 @@ public interface ReplyMapper {
 
     @Select("select floor from reply where id=#{id} and postid=#{postid}")
     Integer getFloorByID(int id, Integer postid);
+
+    /**
+     * 获取指定帖子中楼层的偏移量 用来计算楼层所在页面
+     *
+     * @param pid
+     * @param floor
+     * @return
+     */
+    @Select("select count(1) from reply where postid=#{pid} and floor<=#{floor} and available=true")
+    int getOffsetByFloor(int pid, int floor);
+
+    @Select("select id from reply where postid=#{pid} and floor=#{floor}")
+    int getReplyIDByFloor(int pid, int floor);
 }

@@ -91,7 +91,7 @@ public class GlobalDefaultExceptionHandler {
                 return builder.getMsgForAjax();
             }
         } else {
-            msg.printStackTrace();
+            //msg.printStackTrace();
             log.info("身份认证错误");
             //返回请求页面，并附上参数
             //用户访问只有游客才能访问的页面时则返回主页面，并且不提示

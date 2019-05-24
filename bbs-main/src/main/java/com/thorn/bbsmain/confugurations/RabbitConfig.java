@@ -30,6 +30,16 @@ public class RabbitConfig {
         return new Queue("broadcast");
     }
 
+    /**
+     * 内容审核队列
+     *
+     * @return
+     */
+    @Bean
+    public Queue ReviewQueue() {
+        return new Queue("review");
+    }
+
     @Bean
     public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
         RabbitTemplate template = new RabbitTemplate(connectionFactory);

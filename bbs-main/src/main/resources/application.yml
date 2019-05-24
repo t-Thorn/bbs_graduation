@@ -134,5 +134,5 @@ hotPoint:
     #    单位：小时
     savePeriod: 1
   threshold: 3
-  refreshTime: 02:00:00
+  refreshTime: 20:50:00
   saveTaskThreadNum: 2

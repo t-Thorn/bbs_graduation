@@ -72,6 +72,7 @@ public class HotPointManagerFactory {
                         }
                         //只保存取出时的量，减掉取出时的量。。可能没必要，但安全
                         postMapper.updateViewAndReplyNum(((int) id), increment);
+                        System.out.println("保存当前增量到数据库 pid:" + id + " increment:" + increment);
                         //清空
                         post.setViewIncrement(post.getViewIncrement() - increment);
                     }
@@ -90,7 +91,7 @@ public class HotPointManagerFactory {
         /**
          * 1分钟一次全量备份，作为测试时使用
          */
-        manager.addCycleSaveThread(savePeriod, TimeUnit.HOURS);
+        manager.addCycleSaveThread(savePeriod, TimeUnit.MINUTES);
         return manager;
     }
 

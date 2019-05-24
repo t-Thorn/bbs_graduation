@@ -114,7 +114,18 @@
                             <a class="jie-title" target="_blank" th:href="'/post/'+${mypost.pid}"
                                th:text="${mypost.title}"/>
                             <i th:text="${#dates.format(mypost.postTime,'yyyy-MM-dd hh:mm:ss')}"/>
-                            <em th:text="${mypost.views}+'阅/'+${mypost.replyNum}+'答'"></em>
+                            <div style="float: right">
+                                <span
+                                        th:text="${mypost.views}+'阅/'+${mypost.replyNum}+'答'">
+
+                                </span>
+                                <button
+                                        class="layui-btn layui-btn-danger layui-btn-xs"
+                                        th:onclick="|delPost(${mypost.pid})|">
+                                    删除
+                                </button>
+                            </div>
+
                         </li>
                     </ul>
                     <br/>
@@ -126,7 +137,7 @@
                             <i class="layui-icon"></i></a>
                         <a class="layui-btn layui-btn-primary layui-btn-sm"
                            th:href="${'/info/myPost/'+(currentPage+1)+'/'+currentCpage}"
-                           th:if="${currentPage<mypostsNum/10+1}">
+                           th:if="${(mypostsNum%10!=0 && currentPage<mypostsNum/10+1) || (mypostsNum%10==0 && currentPage<mypostsNum/10)}">
                             <i class="layui-icon"></i>
                         </a>
                     </div>
@@ -151,7 +162,7 @@
                             <i class="layui-icon"></i></a>
                         <a class="layui-btn layui-btn-primary layui-btn-sm"
                            th:href="${'/info/myCollection/'+currentPage+'/'+(currentCpage)}"
-                           th:if="${currentCpage<collectionsNum/10+1}">
+                           th:if="${(collectionsNum%10!=0 && currentCpage<collectionsNum/10+1) || (collectionsNum%10==0 && currentCpage<collectionsNum/10)}">
                             <i class="layui-icon"></i></a>
                     </div>
                     <div id="LAY_page1"></div>
@@ -179,6 +190,7 @@
     }).use('fly');
 </script>
 <script src="/res/js/jquery-3.3.1.min.js"></script>
+<script src="/res/js/my.js"></script>
 <script>
     if ("[[${loc}]]" == '#collection') {
         $(".layui-tab-title li:eq(0)").removeClass("layui-this");

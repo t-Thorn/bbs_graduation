@@ -11,9 +11,11 @@ import com.thorn.bbsmain.mapper.entity.Reply;
 import com.thorn.bbsmain.mapper.entity.User;
 import com.thorn.bbsmain.utils.MsgBuilder;
 import com.thorn.bbsmain.utils.MyUtil;
+import com.thorn.bbsmain.utils.review.ReviewInfo;
 import domain.HotPoint;
 import impl.HotPointManager;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -40,19 +42,23 @@ public class PostService {
 
     private HotPointManager<Post> manager;
 
+    private RabbitTemplate rabbitTemplate;
+
     public PostService(@Autowired PostMapper postMapper, @Autowired ReplyService replyService,
-                       @Autowired UserService userService, HotPointManager<Post> manager) {
+                       @Autowired UserService userService, HotPointManager<Post> manager,
+                       RabbitTemplate rabbitTemplate) {
         this.postMapper = postMapper;
         this.replyService = replyService;
         this.userService = userService;
         this.manager = manager;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
     /**
      * 获取公告
      */
 
-    public List<Post> getAnnouncements() {
+    private List<Post> getAnnouncements() {
         return postMapper.getAnnouncements();
     }
 
@@ -60,7 +66,7 @@ public class PostService {
      * 获取置顶帖
      */
 
-    public List<Post> getTopPosts() {
+    private List<Post> getTopPosts() {
         return postMapper.getTopPosts();
     }
 
@@ -92,7 +98,7 @@ public class PostService {
      * @return 帖子×8
      */
 
-    public List<Post> getGoodPosts(int page) {
+    private List<Post> getGoodPosts(int page) {
         return postMapper.getGoodPosts(page * ONE_PAGE_POST_NUM, ONE_PAGE_POST_NUM);
     }
 
@@ -102,7 +108,7 @@ public class PostService {
      * @return 帖子×8
      */
 
-    public List<Post> getPosts(int page) {
+    private List<Post> getPosts(int page) {
         return postMapper.getPosts(page * ONE_PAGE_POST_NUM, ONE_PAGE_POST_NUM);
     }
 
@@ -113,7 +119,7 @@ public class PostService {
      * @return 帖子×8
      */
 
-    public List<Post> getPosts(String target, int page) {
+    private List<Post> getPosts(String target, int page) {
         return postMapper.getPostsForTarget(target, page * ONE_PAGE_POST_NUM, ONE_PAGE_POST_NUM);
     }
 
@@ -148,24 +154,26 @@ public class PostService {
 
         //用户帖子数+1
         userService.addPostNum();
-
+        User user = userService.getCurrentUser();
         //post表新增
-        post.setUid(userService.getCurrentUser().getUid());
+        post.setUid(user.getUid());
         postMapper.createPost(post);
 
         //reply表新增
         reply.setPostid(post.getPid());
         reply.setReplyer(userService.getCurrentUser().getUid());
         replyService.createPostTopReply(reply);
+        rabbitTemplate.convertAndSend("review",
+                ReviewInfo.builder().uid(user.getUid()).pid(post.getPid()).floor(0).content(post.getTitle() + reply.getContent()).build());
         return builder.getMsg("redirect:/post/" + post.getPid());
     }
 
     /**
      * 构建主页
      *
-     * @param type   类型0=普通 1=精品贴
-     * @param page   页数
-     * @param target 搜索内容
+     * @param type     类型0=普通 1=精品贴
+     * @param page     页数
+     * @param target   搜索内容
      * @param errorMsg
      * @return
      * @throws PageException
@@ -206,14 +214,14 @@ public class PostService {
      * 浏览帖子
      *
      * @param pid      帖子id
-     * @param replyID    偏移楼层
+     * @param replyID  偏移楼层
      * @param errorMsg
      * @return
      */
     @RefreshHotPost()
     public ModelAndView viewPost(Integer pid, Integer replyID, int page, String errorMsg) throws PostNotFoundException,
             PageException {
-        if (page == 0) {
+        if (page < 1) {
             throw new PageException("页数参数错误");
         }
         MsgBuilder builder = new MsgBuilder();
@@ -271,14 +279,14 @@ public class PostService {
     }
 
 
+    @Transactional
     /**
-     * 错误的方法
+     * 用户删除帖子接口
      *
      * @param pid
      * @return
      * @throws PostException
      */
-    @Deprecated
     public String delPost(int pid) throws PostException {
         if (pid < 1) {
             throw new PostException("删除帖子参数错误");
@@ -290,21 +298,14 @@ public class PostService {
         if (!isExist(pid)) {
             throw new PostException("帖子不存在");
         }
-        if (!userService.hasRole("admin") || postMapper.hasPermission(user.getUid(), pid) == 0) {
+        if (!userService.hasRole("admin") && postMapper.hasPermission(user.getUid(), pid) == 0) {
             throw new PostException("没有权限删除");
         }
 
         MsgBuilder builder = new MsgBuilder();
         //回复可用置0
-        if (postMapper.invalidReply(pid) > 0) {
-            //帖子回复数-1
-            postMapper.decreaseReplyNum(pid);
-        } else {
-            throw new PostException("已被删除");
-        }
-
-
-        builder.addData("msg", "成功");
+        postMapper.invalidPost(pid);
+        userService.decreasePostnum(user.getUid());
         return builder.getMsg();
     }
 

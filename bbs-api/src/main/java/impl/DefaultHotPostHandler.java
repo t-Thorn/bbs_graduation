@@ -2,7 +2,6 @@ package impl;
 
 
 import annotation.RefreshHotPost;
-import com.google.gson.Gson;
 import domain.HotPoint;
 import domain.SaveEntity;
 import interfaces.*;
@@ -69,27 +68,38 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
             if (Objects.isNull(hotPostCache)) {
                 this.topPost = new ConcurrentHashMap<>(10);
             } else {
-                this.topPost = hotPostCache;
+                topPost = hotPostCache;
             }
         }
 
     }
 
     private static long getTimeMillis(String time) {
+        String[] t = time.split(":", 3);
+        int hour;
+        int minute;
+        int second;
+        if (t.length == 3) {
+            hour = Integer.valueOf(t[0]);
+            minute = Integer.valueOf(t[1]);
+            second = Integer.valueOf(t[2]);
+        } else {
+            //spring @value机制有问题//大于12点自动转换为毫秒
+            int timeInt = Integer.valueOf(t[0]);
+            hour = timeInt / 60 / 60;
+            minute = timeInt % 3600 / 60;
+            second = timeInt % 60;
+        }
+
+        String timeString = hour + ":" + minute + ":" + second;
+        DateFormat dateFormat = new SimpleDateFormat("yy-MM-dd HH:mm:ss");
+        DateFormat dayFormat = new SimpleDateFormat("yy-MM-dd");
         try {
-            String[] t = time.split(":", 3);
-            int hour = Integer.valueOf(t[0]);
-            int minute = Integer.valueOf(t[1]);
-            int second = Integer.valueOf(t[2]);
-            String timeString = hour + ":" + minute + ":" + second;
-            DateFormat dateFormat = new SimpleDateFormat("yy-MM-dd HH:mm:ss");
-            DateFormat dayFormat = new SimpleDateFormat("yy-MM-dd");
             Date curDate = dateFormat.parse(dayFormat.format(new Date()) + " " + timeString);
             return curDate.getTime();
         } catch (ParseException e) {
             log.error("日期计算错误:{}", e.getMessage());
         }
-
         return 0;
     }
 
@@ -101,7 +111,7 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
     protected void computeViewNum(int pid, Object object) {
         if (viewCache.putIfAbsent((String) viewCounter.getID(pid, fetcher), 1) == null) {
             //需要计算浏览量
-            updateTopPost(pid, hotPointCache.createOrUpdate(pid, 1l));
+            updateTopPost(pid, hotPointCache.createOrUpdate(pid, 1L));
         }
     }
 
@@ -204,11 +214,11 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
      */
     protected void updateTopPost(int pid, long hotpoint) {
         //实时淘汰
-        if (getMinHotPointOfLock() < hotpoint) {
+        if (getMinHotPointOfLock() < hotpoint || index.size() < 10) {
             lock.writeLock().lock();
             //二次判断，判断得到锁后是否符合条件
             long min = getMinHotPoint();
-            if (min > hotpoint) {
+            if (min > hotpoint && index.size() >= 10) {
                 lock.writeLock().unlock();
                 return;
             }
@@ -264,6 +274,9 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
      * @return
      */
     private long getMinHotPointOfLock() {
+        if (index.size() == 0) {
+            return 0L;
+        }
         lock.readLock().lock();
         Collection<Long> c = index.values();
         Object[] obj = c.toArray();
@@ -278,6 +291,9 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
      * @return
      */
     private long getMinHotPoint() {
+        if (index.size() == 0) {
+            return 0L;
+        }
         Collection<Long> c = index.values();
         Object[] obj = c.toArray();
         Arrays.sort(obj);
@@ -285,19 +301,9 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
     }
 
     public List<E> getTopPost() {
-        List<E> list = new ArrayList<>();
-        topPost.forEachValue(1, v -> {
-            if (v != null) {
-                if (fetcher.getPostClass().isInstance(v)) {
-                    list.add(v);
-                } else {
-                    list.add(new Gson().fromJson(v.toString(), fetcher.getPostClass()));
-                }
-            }
-        });
+        List<E> list = new ArrayList<>(topPost.values());
         return list;
     }
-
 
 
     @Override
@@ -407,10 +413,7 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
                     }
 //                    changeLock.writeLock().lock();
                     dataSaver.save(entity.getPid(), hotPointCache.get(entity.getPid()));
-                    hotPointCache.remove(entity.getPid());
-                    /*log.info("保存浏览记录 {}：pid:{} hotPoint:{}", DateUtil.now(), entity.getPid(),
-                            hotPointCache.get(entity.getPid()).toString());*/
-                    // hotPointCache.reset(entity.getPid());
+                    //hotPointCache.remove(entity.getPid());
 //                    changeLock.writeLock().unlock();
                     entity = taskQueue.poll();
                 }

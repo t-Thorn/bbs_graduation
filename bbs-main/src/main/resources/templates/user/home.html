@@ -91,6 +91,16 @@
                     height:auto;" th:if="${posts==null || posts.size()==0}">
                     <i style="font-size:14px;">没有发表任何帖子</i>
                 </div>
+                <div style="text-align:center" th:if="${posts!=null || posts.size()>0}">
+                    <a class="layui-btn layui-btn-primary layui-btn-sm"
+                       th:href="${'/user/home/'+uid+'/'+(page -1)+'/'+rpage}"
+                       th:if="${page>1}">
+                        <i class="layui-icon"></i></a>
+                    <a class="layui-btn layui-btn-primary layui-btn-sm"
+                       th:href="${'/user/home/'+uid+'/'+(page +1)+'/'+rpage}"
+                       th:if="${(postNum%10!=0 && page<postNum/10+1) || (postNum%10==0 && page<postNum/10)}">
+                        <i class="layui-icon"></i></a>
+                </div>
             </div>
         </div>
 
@@ -104,7 +114,7 @@
                                     th:text="${#dates.format(reply.replyTime,'yyyy-MM-dd hh:mm:ss')}">
                             </span>
                             在<a target="_blank"
-                                th:href="${'/post/'+reply.postid+'?floor='+reply.floor}"
+                                th:href="${'/post/'+reply.postid+'/'+reply.page+'/'+reply.id}"
                                 th:text="${reply.title}"></a>中回复：
                         </p>
                         <div class="home-dacontent">
@@ -124,6 +134,16 @@
                 <div class="fly-none" style="min-height: 50px; padding:30px 0; height:auto;"
                      th:if="${replys==null || replys.size()==0}"><span>没有任何回复
                      </span>
+                </div>
+                <div style="text-align:center" th:if="${replys!=null || replys.size()>0}">
+                    <a class="layui-btn layui-btn-primary layui-btn-sm"
+                       th:href="${'/user/home/'+uid+'/'+page+'/'+(rpage -1)}"
+                       th:if="${rpage>1}">
+                        <i class="layui-icon"></i></a>
+                    <a class="layui-btn layui-btn-primary layui-btn-sm"
+                       th:href="${'/user/home/'+uid+'/'+page+'/'+(rpage +1)}"
+                       th:if="${(postNum%5!=0 && page<postNum/5+1) || (postNum%5==0 && page<postNum/5)}">
+                        <i class="layui-icon"></i></a>
                 </div>
             </div>
         </div>

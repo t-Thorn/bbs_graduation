@@ -33,6 +33,14 @@
                     </dl>
                 </li>
                 <li class="layui-nav-item"><a href="javascript:jumpToMessage()">系统消息</a></li>
+                <li class="layui-nav-item">
+                    <a href="javascript:;">违规管理</a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="javascript:jumpToSensitivity()">敏感词管理</a></dd>
+                        <dd><a href="javascript:jumpToViolation()">违规用户管理</a></dd>
+                        <dd><a href="javascript:jumpToViolationRecord()">违规记录</a></dd>
+                    </dl>
+                </li>
             </ul>
         </div>
     </div>
@@ -69,6 +77,18 @@
 
     function jumpToMessage() {
         document.getElementById('detail').src = '/admin/message'
+    }
+
+    function jumpToSensitivity() {
+        document.getElementById('detail').src = '/admin/sensitivity'
+    }
+
+    function jumpToViolation() {
+        document.getElementById('detail').src = '/admin/violation'
+    }
+
+    function jumpToViolationRecord() {
+        document.getElementById('detail').src = '/admin/violationRecord'
     }
 </script>
 </body>

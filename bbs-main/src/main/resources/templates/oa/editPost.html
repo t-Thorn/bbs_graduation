@@ -79,6 +79,7 @@
 <script src="/res/js/jquery-3.3.1.min.js"></script>
 <script>
     function zclose() {
+        parent.table.reload('demo');
         var index = parent.layer.getFrameIndex(window.name);
         parent.layer.close(index)
     }

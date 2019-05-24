@@ -293,3 +293,20 @@ function msg(uri) {
             setTimeout("window.location.href = uri;", 3000);
     }
 }
+
+function delPost(pid) {
+    $.ajax({
+        url: '/post/del/' + pid,
+        type: 'delete',
+        dataType: 'json',
+        data: "",
+        success: function () {
+            layer.msg("删除成功");
+            setTimeout("  window.location.reload()", 3000);
+
+        },
+        error: function (data) {
+            layer.msg('删除失败:' + JSON.parse(data.responseText).errorMsg);
+        }
+    })
+}

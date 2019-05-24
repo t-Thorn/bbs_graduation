@@ -2,16 +2,20 @@ package com.thorn.bbsmain.services;
 
 
 import com.thorn.bbsmain.confugurations.shiro.jwt.JWTToken;
+import com.thorn.bbsmain.exceptions.PageException;
 import com.thorn.bbsmain.exceptions.UserException;
 import com.thorn.bbsmain.exceptions.UserInfoException;
+import com.thorn.bbsmain.mapper.ReplyMapper;
 import com.thorn.bbsmain.mapper.UserMapper;
 import com.thorn.bbsmain.mapper.entity.*;
 import com.thorn.bbsmain.utils.MsgBuilder;
+import com.thorn.bbsmain.utils.MyUtil;
 import com.thorn.bbsmain.utils.shiro.JWTUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -30,9 +34,9 @@ public class UserService {
 
     private UserMapper userMapper;
 
-    public UserService(@Autowired UserMapper userMapper) {
-        this.userMapper = userMapper;
-    }
+    @Value("${system.page.post}")
+    int replyStep;
+    private ReplyMapper replyMapper;
 
     public ModelAndView userReg(User user, BindingResult result, String uri, String repass,
                                 HttpServletResponse response) throws UserException {
@@ -92,18 +96,9 @@ public class UserService {
         response.addCookie(img);
     }
 
-    public void createNewUser(User user) throws UserException {
-        //检验user合法性
-        isEmailExist(user);
-        isNicknameExist(user);
-        try {
-            userMapper.createNewUser(user);
-            userMapper.grantToNewUser(user.getEmail());
-        } catch (Exception e) {
-            //重新封装错误投出
-            log.error("创建用户错误： user:{} error:{}", user, e.getMessage());
-            throw new UserException("内部错误");
-        }
+    public UserService(@Autowired UserMapper userMapper, ReplyMapper replyMapper) {
+        this.userMapper = userMapper;
+        this.replyMapper = replyMapper;
     }
 
     public void isNicknameExist(User user) throws UserException {
@@ -118,36 +113,20 @@ public class UserService {
         }
     }
 
-    public ModelAndView userLogin(User user, String uri, HttpServletResponse response,
-                                  MsgBuilder builder) {
-        Subject currentUser = SecurityUtils.getSubject();
-        String token;
+    public void createNewUser(User user) throws UserException {
+        //检验user合法性
+        isEmailExist(user);
+        if (userMapper.checkExistOfNN(user.getNickname()) > 0) {
+            throw new UserException("昵称已存在");
+        }
         try {
-            token = verifyTokenByShiro(currentUser, user);
-        } catch (UserException e) {
-            builder.addData("errorMsg", "登录失败：" + e.getMessage());
-            return builder.getMsg("");
+            userMapper.createNewUser(user);
+            userMapper.grantToNewUser(user.getEmail());
+        } catch (Exception e) {
+            //重新封装错误投出
+            log.error("创建用户错误： user:{} error:{}", user, e.getMessage());
+            throw new UserException("内部错误");
         }
-        //向客户端cookie中加入token
-        builder.addCookie(response, "token", token);
-        builder.addCookie(response, "nickname", ((User) currentUser.getPrincipal()).getNickname());
-        builder.addCookie(response, "img",
-                ((User) currentUser.getPrincipal()).getImg());
-
-        //跳转到登录前的页面
-        if (uri != null) {
-            uri = uri.split(",")[0];
-            if ("index".equals(uri)) {
-                uri = "/";
-            } else {
-                Pattern pattern = Pattern.compile("^[-\\+]?[\\d]*$");
-                if (pattern.matcher(uri).matches()) {
-                    uri = "/post/" + uri;
-                }
-            }
-            return builder.getMsg("redirect:" + uri);
-        }
-        return builder.getMsg("");
     }
 
     public void getErrors(BindingResult result, MsgBuilder builder) {
@@ -204,8 +183,42 @@ public class UserService {
         delUserCookie(response);
     }
 
-    public ModelAndView buildUserHome(Integer uid) throws Exception {
+    public ModelAndView userLogin(User user, String uri, HttpServletResponse response,
+                                  MsgBuilder builder) {
+        Subject currentUser = SecurityUtils.getSubject();
+        String token;
+        try {
+            token = verifyTokenByShiro(currentUser, user);
+        } catch (UserException e) {
+            builder.addData("errorMsg", "登录失败：" + e.getMessage());
+            return builder.getMsg("");
+        }
+        //向客户端cookie中加入token
+        builder.addCookie(response, "token", token);
+        builder.addCookie(response, "nickname", ((User) currentUser.getPrincipal()).getNickname());
+        builder.addCookie(response, "img",
+                ((User) currentUser.getPrincipal()).getImg());
 
+        //跳转到登录前的页面
+        if (!"".equals(uri)) {
+            uri = uri.split(",")[0];
+            if ("index".equals(uri)) {
+                uri = "/";
+            } else {
+                Pattern pattern = Pattern.compile("^[-\\+]?[\\d]*$");
+                if (pattern.matcher(uri).matches()) {
+                    uri = "/post/" + uri;
+                }
+            }
+            return builder.getMsg("redirect:" + uri);
+        }
+        return builder.getMsg("redirect:/");
+    }
+
+    public ModelAndView buildUserHome(Integer uid, int page, int rpage) throws Exception {
+        if (page < 1 || rpage < 1) {
+            throw new PageException("页码参数错误");
+        }
         MsgBuilder builder = new MsgBuilder();
         User user = getCurrentUser();
         Integer from = user == null ? null : user.getUid();
@@ -224,8 +237,18 @@ public class UserService {
             builder.addData("myself", 1);
         }
 
-        builder.addData("posts", getUserPost(uid));
-        builder.addData("replys", getUserReply(uid));
+        builder.addData("posts", getUserPost(uid, page - 1));
+        builder.addData("postNum", userMapper.getUserPostNum(uid));
+        List<Reply> userReplys = getUserReply(uid, rpage - 1);
+        userReplys.forEach(v -> {
+            v.setPage(MyUtil.getPage(replyMapper.getOffsetByFloor(v.getPostid(), v.getFloor()),
+                    replyStep));
+        });
+        builder.addData("replys", userReplys);
+        builder.addData("replyNum", userMapper.getUserReplyNum(uid));
+        builder.addData("page", page);
+        builder.addData("rpage", rpage);
+        builder.addData("uid", uid);
         return builder.getMsg("user/home");
     }
 
@@ -274,12 +297,12 @@ public class UserService {
         userMapper.delRelationship(getCurrentUser().getUid(), to);
     }
 
-    private List<Post> getUserPost(int uid) {
-        return userMapper.getUserPost(uid);
+    private List<Post> getUserPost(int uid, int page) {
+        return userMapper.getUserPost(uid, page * 10);
     }
 
-    private List<Reply> getUserReply(int uid) {
-        return userMapper.getUserReply(uid);
+    private List<Reply> getUserReply(int uid, int rpage) {
+        return userMapper.getUserReply(uid, rpage * 10);
     }
 
     public void addPostNum() {
@@ -321,4 +344,10 @@ public class UserService {
     public void createHistory(Integer uid, Integer pid, String title) {
         userMapper.createHistory(uid, pid, title);
     }
+
+    public void decreasePostnum(Integer uid) {
+        userMapper.decreasePostnum(uid);
+    }
+
+
 }

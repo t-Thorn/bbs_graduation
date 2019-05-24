@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>敏感词管理</title>
+    <link href="/res/layui/css/layui.css" rel="stylesheet">
+</head>
+<body>
+<form action="" class="layui-form layui-form-pane">
+    <div class="layui-inline">
+        <div class="layui-input-inline">
+            <input autocomplete="off" class="layui-input" id="search"
+                   placeholder="请输入敏感词关键字" type="text" value="">
+        </div>
+        <div class="layui-input-inline">
+            <button class="layui-btn" lay-filter="demo1" lay-submit="" onclick="reload()"
+                    type="button">搜索
+            </button>
+        </div>
+    </div>
+</form>
+<form action="" class="layui-form layui-form-pane">
+    <div class="layui-inline">
+        <div class="layui-input-inline">
+            <input autocomplete="off" class="layui-input" id="newSensitivity"
+                   placeholder="请输入敏感词" type="text" value="">
+        </div>
+        <div class="layui-input-inline">
+            <button class="layui-btn" lay-filter="demo1" lay-submit="" onclick="addSensitivity()"
+                    type="button">添加
+            </button>
+        </div>
+    </div>
+</form>
+<table class="layui-table"
+       lay-data="{url:'/admin/sensitivityTable', page:true, id:'demo'}"
+       lay-filter="sensitivity">
+    <thead>
+    <tr>
+        <th lay-data="{field:'id', sort: true, fixed: true}">ID</th>
+        <th lay-data="{field:'word'}">敏感词</th>
+        <th lay-data="{field:'time',templet: '#timeTpl'}">创建时间</th>
+        <th lay-data="{fixed: 'right', field:'available'}">启用</th>
+        <th lay-data="{fixed: 'right', align:'center',toolbar:'#barDemo'}"></th>
+    </tr>
+    </thead>
+</table>
+
+<script id="barDemo" type="text/html">
+    <a class="layui-btn layui-btn-xs" data-method="setTop" lay-event="edit"
+       onclick="set('{{d.id}}',{{d.available}})">
+        {{# if(d.available == true){ }}
+        禁用
+        {{# } else { }}
+        启用
+        {{# } }}
+    </a>
+</script>
+<script charset="utf-8" src="/res/layui/layui.js"></script>
+<script src="/res/js/jquery-3.3.1.min.js"></script>
+<script>
+    var layer;
+    layui.use(['element', 'layer'], function () {
+        layer = layui.layer;
+    });
+    var table;
+    layui.use('table', function () {
+        table = layui.table;
+    });
+
+    /**
+     * 重载页面
+     */
+    function reload() {
+        var param;
+        param = {'search': $('#search').val()};
+        table.reload('demo', {
+            url: '/admin/sensitivityTable'
+            , where: param
+            , method: 'get'
+            , page: {
+                curr: 1 //重新从第 1 页开始
+            }
+        });
+    }
+
+    function set(id, available) {
+        $.ajax({
+            url: '/admin/sensitivity/set/' + id,
+            type: 'patch',
+            dataType: 'json',
+            data: {"available": !available},
+            success: function () {
+                layer.msg("修改成功");
+            },
+            error: function (data) {
+                layer.msg('修改失败:' + JSON.parse(data.responseText).errorMsg);
+            }
+        })
+        table.reload('demo');
+    }
+
+    function addSensitivity() {
+        var param;
+        param = {'word': $('#newSensitivity').val()};
+        $.ajax({
+            url: '/admin/sensitivity/add',
+            type: 'post',
+            dataType: 'json',
+            data: param,
+            success: function () {
+                layer.msg("添加成功");
+            },
+            error: function (data) {
+                layer.msg('添加失败:' + JSON.parse(data.responseText).errorMsg);
+            }
+        })
+        table.reload('demo');
+    }
+</script>
+<script id="timeTpl" type="text/html">
+    {{#
+    var fn = function(){
+    var time =d.time;
+    var newDate = new Date();
+    newDate.setTime(time);
+    return newDate.toLocaleString()
+    }}}
+
+    {{ fn() }}
+</script>
+</body>
+</html>

@@ -33,6 +33,13 @@
             </div>
         </div>
         <div class="layui-form-item">
+            <label class="layui-form-label">用户密码</label>
+            <div class="layui-input-inline">
+                <input class="layui-input" name="password"
+                       th:value="${user.password}" type="text">
+            </div>
+        </div>
+        <div class="layui-form-item">
             <label class="layui-form-label">用户年龄</label>
             <div class="layui-input-inline">
                 <input class="layui-input" name="age"
@@ -53,9 +60,10 @@
         <label class="layui-form-label">权限</label>
         <div class="layui-input-inline">
             <select name="grade">
-                <option th:selected="${user.grade=='customer'}" value="customer">用户</option>
+                <option th:selected="${user.grade==3}" value="3">用户(禁言)</option>
+                <option th:selected="${user.grade==2}" value="2">用户</option>
                 <!--<option value="0" th:selected="${grade==1}">版主</option>-->
-                <option th:selected="${user.grade=='admin'}" value="admin">管理员</option>
+                <option th:selected="${user.grade==1}" value="1">管理员</option>
             </select>
         </div>
 
@@ -79,6 +87,7 @@
 <script src="/res/js/jquery-3.3.1.min.js"></script>
 <script>
     function zclose() {
+        parent.table.reload('demo');
         var index = parent.layer.getFrameIndex(window.name);
         parent.layer.close(index)
     }
@@ -108,6 +117,7 @@
                 data: $("#edit").serialize(),//表单数据
                 success: function (d) {
                     layer.msg("修改成功");
+
                     setTimeout('zclose()', 1500);
                 }, error: function (d) {
                     layer.msg("修改失败:" + JSON.parse(d.responseText).errorMsg);

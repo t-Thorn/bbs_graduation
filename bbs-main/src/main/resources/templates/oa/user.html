@@ -31,7 +31,7 @@
         <th lay-data="{width:80,field:'gender'}">性别</th>
         <th lay-data="{width:180,field:'regdate',templet: '#regTpl'}">注册时间</th>
         <th lay-data="{width:100,field:'postNum'}">发帖数</th>
-        <th lay-data="{width:100,field:'grade'}">身份</th>
+        <th lay-data="{width:150,field:'grade',templet: '#gradeTpl'}">身份</th>
         <th lay-data="{width:100,field:'available'}">有效性</th>
         <th lay-data="{fixed: 'right', align:'center', toolbar: '#barDemo'}"></th>
     </tr>
@@ -102,6 +102,19 @@
     }}}
 
     {{ fn() }}
+</script>
+<script id="gradeTpl" type="text/html">
+    {{#  if(d.grade == 1){ }}
+    管理员
+    {{#  } else { }}
+    {{#  if(d.grade == 2){ }}
+    普通用户
+    {{#  } else { }}
+    {{#  if(d.grade == 3){ }}
+    普通用户(禁言)
+    {{#  } }}
+    {{#  } }}
+    {{#  } }}
 </script>
 </body>
 </html>

@@ -47,4 +47,7 @@ public class Reply {
     String nickname;
 
     boolean zan;
+
+    //用于回复定位
+    int page;
 }

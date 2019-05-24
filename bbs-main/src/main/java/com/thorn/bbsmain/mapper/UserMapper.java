@@ -9,8 +9,8 @@ import java.util.List;
 @Mapper
 public interface UserMapper {
 
-    @Select(" select img,email,password,nickname,uid from user where email=#{email} " +
-            "limit 1")
+    @Select("select img,email,password,nickname,uid from user where email=#{email} and " +
+            " available=1 limit 1")
     User getUserByUserName(String email);
 
     @Insert({"insert into user (email,nickname,password) values(#{email},#{nickname},#{password})"})
@@ -47,12 +47,8 @@ public interface UserMapper {
     @Select("select email,nickname,age,gender,img from user where email=#{email} limit 1")
     User getInfo(String email);
 
-    @Select(" select user.*,r.rname grade from user  left join (select rname, uid" +
-            "                                                  from role," +
-            "                                                       user_role" +
-            "                                                  where role.rid = user_role.rid) r" +
-            "                                                 on r.uid = user.uid where user" +
-            ".uid=#{uid} limit 1")
+    @Select(" select user.*,rid grade from user  left join user_role" +
+            " on user_role.uid = user.uid where  user.uid=#{uid} limit 1")
     User getInfoByID(int uid);
 
     @Update("update user set nickname=#{nickname},gender=#{gender},age=#{age} where email=#{email}")
@@ -89,8 +85,8 @@ public interface UserMapper {
     void delRelationship(int from, int to);
 
     @Select("select pid,title,postTime,grade,replyNum,views from post where uid=#{uid} and " +
-            " available=1 order by pid desc limit 10")
-    List<Post> getUserPost(int uid);
+            " available=1 order by pid desc limit #{offset},10")
+    List<Post> getUserPost(int uid, int offset);
 
     @Select(" select nickname replyToNickname, replyDetail.*" +
             " from (select title, r.*" +
@@ -100,18 +96,18 @@ public interface UserMapper {
             "            from (select postid," +
             "                         floor," +
             "                         content_show," +
-            "                         replyTo" +
+            "                         replyTo,id" +
             "                  from reply" +
             "                  where replyer = 1" +
             "                    and reply.available = 1" +
             "                  order by id desc" +
-            "                  limit 5) r1" +
+            "                  limit #{offset},5) r1" +
             "                   left join reply rex" +
             "                             on rex.postid = r1.postid and r1.replyTo = rex.floor) r" +
             "             left join post on postid = pid" +
             "      where available = 1) replyDetail" +
             "       left join user on replyToId = uid")
-    List<Reply> getUserReply(int uid);
+    List<Reply> getUserReply(int uid, int offset);
 
     @Update("update user set postNum=postNum+1 where uid=#{uid}")
     void addPostNum(int uid);
@@ -139,24 +135,19 @@ public interface UserMapper {
     @Insert("insert into collection (uid,pid) values(#{uid},#{pid})")
     void Collect(Integer uid, Integer pid);
 
-    @Select("select user.*,r.rname grade" +
+    @Select("select user.*,rid grade" +
             " from user" +
-            "       left join (select rname, uid" +
-            "                  from role," +
-            "                       user_role" +
-            "                  where role.rid = user_role.rid) r" +
-            "                 on r.uid = user.uid" +
+            "       left join user_role" +
+            "                 on user_role.uid = user.uid" +
             " where nickname like concat" +
             "  ('%',#{target}, '%')" +
             "  and user.uid > #{offset} " +
             "  limit #{limit}")
     List<User> getUserByNickname(int offset, int limit, String target);
 
-    @Select("select user.*,r.rname grade from user " +
-            " left join (select rname, uid" +
-            " from role,user_role" +
-            " where role.rid = user_role.rid) r " +
-            " on r.uid = user.uid" +
+    @Select("select user.*,rid grade from user " +
+            " left join user_role" +
+            " on user_role.uid = user.uid" +
             " where user.uid>#{offset}  limit #{limit}")
     List<User> getUsersOfAdmin(int offset, int limit);
 
@@ -166,17 +157,16 @@ public interface UserMapper {
     @Select("select count(*) from user where nickname like concat('%',#{target},'%')")
     int getUserNumForTargetOfAdmin(String target);
 
-    @Update("update user,role" +
+    @Update("update user,user_role" +
             " set email=#{email}," +
             "    nickname=#{nickname}," +
             "    age=#{age}," +
             "    gender=#{gender}," +
-            "    rname=#{grade}," +
+            "    password=#{password}," +
+            "    rid=#{grade}," +
             "    available=#{available}" +
-            " where uid = #{uid}" +
-            "  and rid = (select rid" +
-            "             from user_role" +
-            "             where uid = #{uid})")
+            " where user.uid = #{uid}" +
+            "  and user_role.uid=#{uid}")
     int updateInfoByAdmin(User user);
 
     /**
@@ -201,4 +191,13 @@ public interface UserMapper {
 
     @Insert("insert into history (uid,pid,title) values(#{uid},#{pid},#{title})")
     void createHistory(Integer uid, Integer pid, String title);
+
+    @Select("select count(1) from post where uid=#{uid} and available=1")
+    int getUserPostNum(Integer uid);
+
+    @Select("select count(1) from reply where replyer=#{uid} and available=1")
+    int getUserReplyNum(Integer uid);
+
+    @Update("update user set postNum=postNum-1 where uid=#{uid} and postNum>0")
+    void decreasePostnum(Integer uid);
 }

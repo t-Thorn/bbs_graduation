@@ -20,6 +20,11 @@ public class Message {
 
     int floor;
 
+    //为了定位
+    int replyID;
+    //为了定位
+    int page;
+
 
     String postTitle;
 

@@ -2,7 +2,6 @@ package com.thorn.bbsmain.controller;
 
 
 import annotation.RefreshHotPost;
-import com.thorn.bbsmain.exceptions.DeleteReplyException;
 import com.thorn.bbsmain.exceptions.PageException;
 import com.thorn.bbsmain.exceptions.PostException;
 import com.thorn.bbsmain.exceptions.PostNotFoundException;
@@ -87,10 +86,10 @@ public class PostController {
         return replyService.imgUpload(imgs);
     }
 
-    @RefreshHotPost(HotPointManager.DELPOST)
     @ResponseBody
+    @RefreshHotPost(HotPointManager.DELPOST)
     @DeleteMapping("del/{pid}")
-    public String delPost(@PathVariable("pid") int pid) throws PostException, DeleteReplyException {
+    public String delPost(@PathVariable(value = "pid") Integer pid) throws PostException {
         return postService.delPost(pid);
     }
 }

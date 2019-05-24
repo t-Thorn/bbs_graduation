@@ -102,8 +102,13 @@ public class InfoService {
         List<Message> messages = userService.getMessages(user.getUid(),
                 (page - 1) * ONE_MESSAGE_PAGE_NUM, ONE_MESSAGE_PAGE_NUM);
         messages.forEach(v -> {
-            if (v.getType() != 2 && !replyService.isExist(v.getPid(), v.getFloor())) {
-                v.setContent("<p>此回复已被删除</p>");
+            if (v.getType() != 2) {
+                if (!replyService.isExist(v.getPid(), v.getFloor())) {
+                    v.setContent("<p>此回复已被删除</p>");
+                }
+                v.setReplyID(replyService.getReplyIDByFloor(v.getPid(), v.getFloor()));
+                v.setPage(MyUtil.getPage(replyService.getReplyOffsetByFloor(v.getPid(),
+                        v.getFloor()), replyService.getONE_PAGE_REPLY_NUM()));
             }
             messageService.checkMessage(v.getId());
         });

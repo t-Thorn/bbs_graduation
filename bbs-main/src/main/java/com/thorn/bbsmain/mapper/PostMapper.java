@@ -149,11 +149,11 @@ public interface PostMapper {
     @Select("select count(*) from post where uid=#{uid} and pid=#{pid} and available=true")
     int hasPermission(Integer uid, int pid);
 
-    @Select("select count(*) from post where pid=#{pid} and avaiable=1")
+    @Select("select count(*) from post where pid=#{pid} and available=1")
     int isExist(int pid);
 
     @Update("update post set available=0 where pid=#{pid} and available=1")
-    int invalidReply(int pid);
+    void invalidPost(int pid);
 
     @Update("update post set title=#{title} , type=#{type} , grade=#{grade}, " +
             "available=#{available} where pid=#{pid}")

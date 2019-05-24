@@ -40,7 +40,7 @@ public class User implements Serializable {
 
     Integer postNum;
 
-    String grade;
+    int grade;
 
     boolean available;
 

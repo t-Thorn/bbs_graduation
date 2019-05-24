@@ -96,12 +96,23 @@ public class UserController {
     @RequiresUser
     @GetMapping("home")
     public ModelAndView buildUserHome() throws Exception {
-        return userService.buildUserHome(null);
+        return userService.buildUserHome(null, 1, 1);
     }
 
-    @GetMapping("home/{uid}")
-    public ModelAndView buildUserHome(@PathVariable("uid") Integer uid) throws Exception {
-        return userService.buildUserHome(uid);
+    /**
+     * 构建用户主页
+     *
+     * @param uid   用户ID
+     * @param page  用户帖子页码
+     * @param rpage 用户回复页码
+     * @return 主页页面
+     * @throws Exception 数据库操作错误+各类错误
+     */
+    @GetMapping(value = {"home/{uid}/{page}/{rpage}", "home/{uid}"})
+    public ModelAndView buildUserHome(@PathVariable(value = "uid", required = false) Integer uid,
+                                      @PathVariable(value = "page", required = false) Integer page,
+                                      @PathVariable(value = "rpage", required = false) Integer rpage) throws Exception {
+        return userService.buildUserHome(uid, page == null ? 1 : page, rpage == null ? 1 : rpage);
     }
 
     @RequiresUser

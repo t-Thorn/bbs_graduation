@@ -7,6 +7,7 @@ import com.thorn.bbsmain.services.PostService;
 import com.thorn.bbsmain.services.ReplyService;
 import com.thorn.bbsmain.services.UserService;
 import com.thorn.bbsmain.utils.MsgBuilder;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.apache.shiro.authz.annotation.RequiresUser;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -49,6 +50,7 @@ public class ReplyController {
      * @return
      * @throws PostException
      */
+    @RequiresPermissions("reply")
     @PostMapping("addReply")
     public synchronized ModelAndView addReply(@Valid Reply reply, BindingResult result) throws PostException {
         return replyService.addReply(reply, result);

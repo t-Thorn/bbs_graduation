@@ -13,6 +13,7 @@ import com.thorn.bbsmain.mapper.entity.User;
 import com.thorn.bbsmain.utils.MsgBuilder;
 import com.thorn.bbsmain.utils.MyUtil;
 import com.thorn.bbsmain.utils.message.MessageObject;
+import com.thorn.bbsmain.utils.review.ReviewInfo;
 import impl.HotPointManager;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
@@ -228,7 +229,6 @@ public class ReplyService {
         //不给自己发消息
         if (postOwner != reply.getReplyer()) {
             addMessage(reply, postOwner);
-
         }
         if (reply.getReplyTo() != null) {
             int replyToID = replyMapper.getReplyOwner(reply.getReplyTo(), reply.getPostid());
@@ -236,6 +236,8 @@ public class ReplyService {
                 addMessage(reply, replyToID);
             }
         }
+        rabbitTemplate.convertAndSend("review",
+                ReviewInfo.builder().uid(reply.getReplyer()).pid(reply.getPostid()).floor(reply.getFloor()).content(reply.getContent()).build());
         return builder.getMsg("redirect:/post/" + reply.getPostid() + "/-1/" + reply.getId());
     }
 
@@ -266,7 +268,7 @@ public class ReplyService {
         if (!isExist(pid, floor)) {
             throw new DeleteReplyException("删除回复参数错误，不存在该帖子或者楼层");
         }
-        if (!userService.hasRole("admin") || replyMapper.hasPermission(user.getUid(), pid, floor) == 0) {
+        if (!userService.hasRole("admin") && replyMapper.hasPermission(user.getUid(), pid, floor) == 0) {
             throw new DeleteReplyException("没有权限删除");
         }
 
@@ -285,5 +287,17 @@ public class ReplyService {
 
     boolean isExist(int pid, int floor) {
         return replyMapper.isExist(pid, floor) > 0;
+    }
+
+    public int getReplyOffsetByFloor(int pid, int floor) {
+        return replyMapper.getOffsetByFloor(pid, floor);
+    }
+
+    public int getONE_PAGE_REPLY_NUM() {
+        return ONE_PAGE_REPLY_NUM;
+    }
+
+    public int getReplyIDByFloor(int pid, int floor) {
+        return replyMapper.getReplyIDByFloor(pid, floor);
     }
 }

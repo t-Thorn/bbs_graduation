@@ -55,15 +55,14 @@ public class AuthRealm extends AuthorizingRealm {
 
         User userBean = userMapper.getUserByUserName(email);
         if (userBean == null) {
-            throw new AuthenticationException("User didn't existed!");
+            throw new AuthenticationException("用户不存在或者被禁用");
         }
-/*        if (JWTUtil.isTokenExpired(token)) {
-            throw new AuthenticationException("token has expired");
-        }*/
+        if (JWTUtil.isTokenExpired(token)) {
+            throw new AuthenticationException("用户信息已经过期");
+        }
         if (!JWTUtil.verify(token, email, userBean.getPassword())) {
-            throw new AuthenticationException("token info not right");
+            throw new AuthenticationException("密码错误");
         }
-
         return new SimpleAuthenticationInfo(userBean, token, "authrealm");
     }
 
@@ -80,6 +79,8 @@ public class AuthRealm extends AuthorizingRealm {
             throw new AuthorizationException("用户信息保存错误,请尝试重新登录");
         }
         SimpleAuthorizationInfo simpleAuthorizationInfo = new SimpleAuthorizationInfo();
+        //System.out.println("roleMapper.getRoleByUserName(email) = " + roleMapper
+        // .getRoleByUserName(email));
         simpleAuthorizationInfo.addRole(roleMapper.getRoleByUserName(email));
         Set<String> permission = permissionMapper.getPermissionNameByUserName(email);
         simpleAuthorizationInfo.addStringPermissions(permission);

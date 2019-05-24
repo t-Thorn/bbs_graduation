@@ -11,7 +11,7 @@
     </parent>
     <groupId>com.thorn</groupId>
     <artifactId>bbs-main</artifactId>
-    <version>1.0</version>
+    <version>0.1</version>
     <name>bbs-main</name>
     <description>Demo project for Spring Boot</description>
     <packaging>jar</packaging>
