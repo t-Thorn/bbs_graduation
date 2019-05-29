@@ -6,6 +6,8 @@ import com.thorn.bbsmain.utils.MsgBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authz.AuthorizationException;
+import org.apache.shiro.authz.UnauthenticatedException;
+import org.apache.shiro.authz.UnauthorizedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -45,8 +47,7 @@ public class GlobalDefaultExceptionHandler {
      * @param e
      * @return
      */
-    @ExceptionHandler(AuthenticationException.class)
-    @ResponseBody
+    @ExceptionHandler({AuthenticationException.class, UnauthenticatedException.class})
     public ModelAndView defaultAuthorizedExceptionHandler(HttpServletRequest request, HttpServletResponse response, Exception e) {
         return defaultException(request, response, e);
     }
@@ -59,9 +60,7 @@ public class GlobalDefaultExceptionHandler {
      * @param e
      * @return
      */
-    @ExceptionHandler(AuthorizationException.class)
-    @ResponseBody
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ExceptionHandler({AuthorizationException.class, UnauthorizedException.class})
     public ModelAndView defaultunAuthorizedExceptionHandler(HttpServletRequest request,
                                                       HttpServletResponse response, Exception e) {
         return defaultException(request, response, e);
@@ -70,6 +69,12 @@ public class GlobalDefaultExceptionHandler {
 
     private ModelAndView defaultException(HttpServletRequest request, HttpServletResponse response,
                                           Exception msg) {
+
+        String uri = request.getHeader("Referer");
+        uri = uri.substring(uri.indexOf("/", uri.indexOf("/") + 2));
+        if (uri.indexOf("?") > 0) {
+            uri = uri.substring(0, uri.indexOf("?"));
+        }
         MsgBuilder builder = new MsgBuilder();
         builder.addData("errorMsg", msg.getMessage());
         if (msg instanceof AuthorizationException) {
@@ -82,11 +87,11 @@ public class GlobalDefaultExceptionHandler {
             if (!isAjax(request)) {
                 if (msg.getMessage().contains("The current Subject is not a user")) {
                     builder.addData("errorMsg", "请登录后再试");
-                    builder.addData("uri", request.getRequestURI());
+                    builder.addData("uri", uri);
                     return builder.getMsg("user/login");
                 }
                 //权限不够则跳转到主页
-                return builder.getMsg("forward:/");
+                return builder.getMsg("redirect:" + uri);
             } else {
                 return builder.getMsgForAjax();
             }
@@ -97,7 +102,7 @@ public class GlobalDefaultExceptionHandler {
             //用户访问只有游客才能访问的页面时则返回主页面，并且不提示
             if (!isAjax(request)) {
                 userService.delUserCookie(response);
-                return builder.getMsg(request.getRequestURI());
+                return builder.getMsg(request.getHeader("Referer"));
             } else {
                 return builder.getMsgForAjax();
             }

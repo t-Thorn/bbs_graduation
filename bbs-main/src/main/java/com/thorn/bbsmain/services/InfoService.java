@@ -174,7 +174,7 @@ public class InfoService {
         return msgBuilder.getMsg("user/set");
     }
 
-    public ModelAndView getMyPosts(Integer page, Integer cpage) throws Exception {
+    public ModelAndView getMyPosts(Integer page, Integer cpage, int apage, String loc) throws Exception {
         if (page < 1 || cpage < 1) {
             throw new Exception("非法参数");
         }
@@ -193,8 +193,18 @@ public class InfoService {
             builder.addData("collections", MyUtil.subList(myCollection, cpage, ONE_PAGE_POST_NUM));
             builder.addData("collectionsNum", myCollection.size());
         }
-
+        List<Attention> myAttetion = getMyAttention(user.getUid());
+        if (!Objects.equals(myAttetion, null) && myAttetion.size() > 0) {
+            builder.addData("currentApage", apage);
+            builder.addData("attentions", MyUtil.subList(myAttetion, apage, ONE_PAGE_POST_NUM));
+            builder.addData("attentionsNum", myAttetion.size());
+        }
+        builder.addData("loc", loc);
         return builder.getMsg("user/myPost");
+    }
+
+    private List<Attention> getMyAttention(Integer uid) {
+        return userMapper.getMyAttentions(uid);
     }
 
     /**

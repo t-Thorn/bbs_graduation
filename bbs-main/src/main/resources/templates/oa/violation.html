@@ -24,12 +24,14 @@
        lay-filter="violation">
     <thead>
     <tr>
-        <th lay-data="{field:'uid'}">用户ID</th>
+        <th lay-data="{field:'uid',templet: '#uidTpl'}">用户ID</th>
         <th lay-data="{field:'num'}">用户违规次数</th>
     </tr>
     </thead>
 </table>
-
+<script id="uidTpl" type="text/html">
+    <a href="/user/home/{{d.uid}}" target="_blank" class="layui-table-link">{{d.uid}}</a>
+</script>
 <script charset="utf-8" src="/res/layui/layui.js"></script>
 <script src="/res/js/jquery-3.3.1.min.js"></script>
 <script>

@@ -66,21 +66,36 @@ public class UserInfoController {
         return infoService.updateUserPassword(nowpass, user, result, repass, response);
     }
 
-    @GetMapping(value = {"myPost/{page}/{cpage}", "myPost"})
+    @GetMapping(value = {"myPost/{page}/{cpage}/{apage}", "myPost"})
     public ModelAndView getMyPost(
             @PathVariable(value = "page", required = false) Integer page,
-            @PathVariable(value = "cpage", required = false) Integer cpage) throws Exception {
-        return infoService.getMyPosts(page == null ? 1 : page, cpage == null ? 1 : cpage);
+            @PathVariable(value = "cpage", required = false) Integer cpage,
+            @PathVariable(value = "apage", required = false) Integer apage,
+            @RequestAttribute(value = "loc", required = false) String loc) throws Exception {
+        return infoService.getMyPosts(page == null ? 1 : page, cpage == null ? 1 : cpage,
+                apage == null ? 1 : apage, loc);
     }
 
-    @GetMapping(value = {"myCollection/{page}/{cpage}", "myCollection"})
+    @GetMapping(value = {"myCollection/{page}/{cpage}/{apage}", "myCollection"})
     public ModelAndView getMyCollection(
             @PathVariable(value = "page", required = false) Integer page,
-            @PathVariable(value = "cpage", required = false) Integer cpage) {
+            @PathVariable(value = "cpage", required = false) Integer cpage,
+            @PathVariable(value = "apage", required = false) Integer apage) {
         MsgBuilder builder = new MsgBuilder();
         //加入锚点
         builder.addData("loc", "#collection");
-        return builder.getMsg("forward:myPost/" + (page == null ? 1 : page) + "/" + (cpage == null ? 1 : cpage));
+        return builder.getMsg("forward:/info/myPost/" + (page == null ? 1 : page) + "/" + (cpage == null ? 1 : cpage) + "/" + (apage == null ? 1 : apage));
+    }
+
+    @GetMapping(value = {"myAttention/{page}/{cpage}/{apage}", "myAttention"})
+    public ModelAndView getMyAttention(
+            @PathVariable(value = "page", required = false) Integer page,
+            @PathVariable(value = "cpage", required = false) Integer cpage,
+            @PathVariable(value = "apage", required = false) Integer apage) {
+        MsgBuilder builder = new MsgBuilder();
+        //加入锚点
+        builder.addData("loc", "#attention");
+        return builder.getMsg("forward:/info/myPost/" + (page == null ? 1 : page) + "/" + (cpage == null ? 1 : cpage) + "/" + (apage == null ? 1 : apage));
     }
 
     @GetMapping("message")

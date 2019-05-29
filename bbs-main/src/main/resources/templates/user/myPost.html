@@ -12,7 +12,7 @@
 <div class="fly-header layui-bg-black">
     <div class="layui-container">
         <a class="fly-logo" href="/">
-            <img alt="layui" src="/res/images/logo.png">
+            <img alt="layui" src="/res/images/logo.png" style="width: 141px;height: 31px">
         </a>
         <ul class="layui-nav fly-nav-user">
             <!-- 登入后的状态 -->
@@ -101,8 +101,11 @@
                 <li class="layui-this" data-type="mine-jie" lay-id="index">我发的帖（<span
                         th:text="${mypostsNum==null?0:mypostsNum}"></span>）
                 </li>
-                <li data-type="collection" data-url="/collection/find/" lay-id="collection">
+                <li data-type="collection" lay-id="collection">
                     我收藏的帖（<span th:text="${collectionsNum==null?0:collectionsNum}"></span>）
+                </li>
+                <li data-type="attetion" lay-id="attetion">
+                    我关注的人（<span th:text="${attentionsNum==null?0:attentionsNum}"></span>）
                 </li>
             </ul>
             <div class="layui-tab-content" style="padding: 20px 0;">
@@ -132,11 +135,11 @@
 
                     <div style="text-align:center" th:if="${myposts!=null}">
                         <a class="layui-btn layui-btn-primary layui-btn-sm"
-                           th:href="${'/info/myPost/'+(currentPage -1)+'/'+currentCpage}"
+                           th:href="${'/info/myPost/'+(currentPage -1)+'/'+currentCpage+'/'+currentApage}"
                            th:if="${currentPage>1}">
                             <i class="layui-icon"></i></a>
                         <a class="layui-btn layui-btn-primary layui-btn-sm"
-                           th:href="${'/info/myPost/'+(currentPage+1)+'/'+currentCpage}"
+                           th:href="${'/info/myPost/'+(currentPage+1)+'/'+currentCpage+'/'+currentApage}"
                            th:if="${(mypostsNum%10!=0 && currentPage<mypostsNum/10+1) || (mypostsNum%10==0 && currentPage<mypostsNum/10)}">
                             <i class="layui-icon"></i>
                         </a>
@@ -157,12 +160,37 @@
                     <br/>
                     <div style="text-align:center" th:if="${collections!=null}">
                         <a class="layui-btn layui-btn-primary layui-btn-sm"
-                           th:href="${'/info/myCollection/'+currentPage+'/'+(currentCpage -1)}"
+                           th:href="${'/info/myCollection/'+currentPage+'/'+(currentCpage -1)+'/'+currentApage}"
                            th:if="${currentCpage>1}">
                             <i class="layui-icon"></i></a>
                         <a class="layui-btn layui-btn-primary layui-btn-sm"
-                           th:href="${'/info/myCollection/'+currentPage+'/'+(currentCpage)}"
+                           th:href="${'/info/myCollection/'+currentPage+'/'+(currentCpage+1)+'/'+currentApage}"
                            th:if="${(collectionsNum%10!=0 && currentCpage<collectionsNum/10+1) || (collectionsNum%10==0 && currentCpage<collectionsNum/10)}">
+                            <i class="layui-icon"></i></a>
+                    </div>
+                    <div id="LAY_page1"></div>
+                </div>
+                <div class="layui-tab-item">
+                    <div class="fly-none" th:if="${attentions==null||attentions.size()==0}">没有相关数据
+                    </div>
+                    <ul class="mine-view jie-row" th:each="attention:${attentions}">
+                        <li>
+                            <a class="jie-title" target="_blank"
+                               th:href="'/user/home/'+${attention.toUser}"
+                               th:text="${attention.toUserNickname}"/>
+                            <i
+                                    th:text="'关注于'+${#dates.format(attention.createTime,'yyyy-MM-dd hh:mm:ss')}"></i>
+                        </li>
+                    </ul>
+                    <br/>
+                    <div style="text-align:center" th:if="${attentions!=null}">
+                        <a class="layui-btn layui-btn-primary layui-btn-sm"
+                           th:href="${'/info/myAttention/'+currentPage+'/'+currentCpage+'/'+(currentApage -1)}"
+                           th:if="${currentApage>1}">
+                            <i class="layui-icon"></i></a>
+                        <a class="layui-btn layui-btn-primary layui-btn-sm"
+                           th:href="${'/info/myAttention/'+currentPage+'/'+currentCpage+'/'+(currentApage+1)}"
+                           th:if="${(attentionsNum%10!=0 && currentApage<attentionsNum/10+1) || (attentionsNum%10==0 && currentApage<attentionsNum/10)}">
                             <i class="layui-icon"></i></a>
                     </div>
                     <div id="LAY_page1"></div>
@@ -195,9 +223,15 @@
     if ("[[${loc}]]" == '#collection') {
         $(".layui-tab-title li:eq(0)").removeClass("layui-this");
         $(".layui-tab-title li:eq(1)").addClass("layui-this");
-        $('.layui-tab-content div:eq(0)').removeClass("layui-show");
-        $('.layui-tab-content div:eq(2)').addClass("layui-show");
+        $('.layui-tab-item:eq(0)').removeClass("layui-show");
+        $('.layui-tab-item:eq(1)').addClass("layui-show");
+    } else if ("[[${loc}]]" == '#attention') {
+        $(".layui-tab-title li:eq(0)").removeClass("layui-this");
+        $(".layui-tab-title li:eq(2)").addClass("layui-this");
+        $('.layui-tab-item:eq(0)').removeClass("layui-show");
+        $('.layui-tab-item:eq(2)').addClass("layui-show");
     }
 </script>
+<script src="/res/js/message.js"></script>
 </body>
 </html>

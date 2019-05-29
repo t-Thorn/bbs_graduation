@@ -200,4 +200,8 @@ public interface UserMapper {
 
     @Update("update user set postNum=postNum-1 where uid=#{uid} and postNum>0")
     void decreasePostnum(Integer uid);
+
+    @Select("select attention.*,nickname toUserNickname from attention left join user on " +
+            "uid=toUser  where fromUser=#{uid}")
+    List<Attention> getMyAttentions(Integer uid);
 }

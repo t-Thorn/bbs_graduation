@@ -36,7 +36,7 @@ public class BasicController {
     @ApiOperation(value = "主页显示", notes = "主页")
     @ApiImplicitParam(name = "type", value = "帖子类型", required = false,
             paramType = ".path", dataType = "int", defaultValue = "0")
-    @GetMapping(value = {"index/{type}/{page}/{search}", "index/{type}/{page}", "/"})
+    @RequestMapping(value = {"index/{type}/{page}/{search}", "index/{type}/{page}", "/"})
     public ModelAndView home(@PathVariable(value = "type", required = false) Integer type,
                              @PathVariable(value = "page", required = false) Integer page,
                              @PathVariable(value = "search", required = false) String search,

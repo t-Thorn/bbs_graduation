@@ -13,8 +13,38 @@
 <div class="fly-header layui-bg-black">
     <div class="layui-container">
         <a class="fly-logo" href="/">
-            <img alt="layui" src="/res/images/logo.png">
+            <img alt="layui" src="/res/images/logo.png" style="width: 141px;height: 31px">
         </a>
+        <ul class="layui-nav fly-nav-user">
+            <!-- 登入后的状态 -->
+            <li class="layui-nav-item">
+                <a class="fly-nav-avatar" href="javascript:">
+                    <cite class="layui-hide-xs"
+                          th:each="cookie :${#httpServletRequest.getCookies()}"
+                          th:if="${cookie.getName().equals('nickname')}"
+                          th:text="${cookie.getValue()}"/>
+                    <i class="iconfont icon-renzheng layui-hide-xs" title="认证信息"></i>
+                    <i class="layui-badge fly-badge-vip layui-hide-xs">VIP3</i>
+                    <img id="avator"
+                         th:each="cookie :${#httpServletRequest.getCookies()}"
+                         th:if="${cookie.getName().equals('img')}" th:src="${cookie.getValue()} ">
+                </a>
+                <dl class="layui-nav-child">
+                    <dd><a href="/info/setting"><i class="layui-icon">&#xe620;</i>基本设置</a></dd>
+                    <dd><a href="/info/history"><i class="iconfont icon-shichang"
+                                                   style="top: 4px;"></i>浏览历史
+                        <span class="layui-badge-dot" style="float:right"
+                              th:if="${hasMessage==true}"></span></a></dd>
+                    <dd><a href="/info/message"><i class="iconfont icon-tongzhi"
+                                                   style="top: 4px;"></i>我的消息</a></dd>
+                    <dd><a href="/user/home"><i class="layui-icon"
+                                                style="margin-left: 2px; font-size: 22px;">&#xe68e;</i>我的主页</a>
+                    </dd>
+                    <hr style="margin: 5px 0;">
+                    <dd><a href="/user/logout" style="text-align: center;">退出</a></dd>
+                </dl>
+            </li>
+        </ul>
     </div>
 </div>
 
@@ -55,6 +85,6 @@
     });
 
 </script>
-
+<script src="/res/js/message.js"></script>
 </body>
 </html>

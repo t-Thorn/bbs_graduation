@@ -43,7 +43,6 @@ public class ReplyController {
     }
 
     /**
-     * 需要同步，保证不会插入相同楼层
      *
      * @param reply
      * @param result
@@ -52,7 +51,7 @@ public class ReplyController {
      */
     @RequiresPermissions("reply")
     @PostMapping("addReply")
-    public synchronized ModelAndView addReply(@Valid Reply reply, BindingResult result) throws PostException {
+    public ModelAndView addReply(@Valid Reply reply, BindingResult result) throws PostException {
         return replyService.addReply(reply, result);
     }
 

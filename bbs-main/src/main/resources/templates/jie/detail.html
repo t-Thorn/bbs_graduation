@@ -8,11 +8,12 @@
     <link href="/res/layui/css/layui.css" rel="stylesheet">
     <link href="/res/css/global.css" rel="stylesheet">
 </head>
-<body style="overflow: hidden">
+<body onload="msg('/')" style="overflow: hidden">
+<input id="msg" th:value="${param.errorMsg}" type="hidden">
 <div class="fly-header layui-bg-black">
     <div class="layui-container">
         <a class="fly-logo" href="/">
-            <img alt="layui" src="/res/images/logo.png">
+            <img alt="layui" src="/res/images/logo.png" style="width: 141px;height: 31px">
         </a>
         <ul class="layui-nav fly-nav-user">
             <shiro:guest>
@@ -350,5 +351,6 @@
     }
     var editor = createEditor();
 </script>
+<script src="/res/js/message.js"></script>
 </body>
 </html>

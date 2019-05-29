@@ -132,6 +132,8 @@ public class PostService {
      * @param response
      * @return
      */
+
+
     @Transactional
     public ModelAndView createPost(Post post, BindingResult result, Reply reply,
                                    HttpServletResponse response) {
@@ -221,7 +223,7 @@ public class PostService {
     @RefreshHotPost()
     public ModelAndView viewPost(Integer pid, Integer replyID, int page, String errorMsg) throws PostNotFoundException,
             PageException {
-        if (page < 1) {
+        if (page < 1 && page != -1) {
             throw new PageException("页数参数错误");
         }
         MsgBuilder builder = new MsgBuilder();

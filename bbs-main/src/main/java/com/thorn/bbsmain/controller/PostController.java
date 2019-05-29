@@ -79,7 +79,6 @@ public class PostController {
     }
 
 
-    @RequiresPermissions("reply")
     @PostMapping("imgUpload")
     @ResponseBody
     public String imgUpload(@RequestParam("img") MultipartFile[] imgs) {

@@ -27,7 +27,7 @@ public class JWTFilter extends BasicHttpAuthenticationFilter {
     @Override
     protected boolean isAccessAllowed(ServletRequest request, ServletResponse response, Object mappedValue) {
         HttpServletRequest servletRequest = (HttpServletRequest) request;
-        log.info("放行鉴定 uri：" + servletRequest.getRequestURI());
+        //log.info("放行鉴定 uri：" + servletRequest.getRequestURI());
         if (this.isLoginRequest(request, response)) {
             return true;
         }
@@ -80,7 +80,7 @@ public class JWTFilter extends BasicHttpAuthenticationFilter {
      */
     @Override
     protected boolean onLoginSuccess(AuthenticationToken token, Subject subject, ServletRequest request, ServletResponse response) throws Exception {
-        log.info("认证成功");
+        //log.info("认证成功");
         HttpServletResponse httpResponse = WebUtils.toHttp(response);
         String newToken = null;
         if (token instanceof JWTToken) {
