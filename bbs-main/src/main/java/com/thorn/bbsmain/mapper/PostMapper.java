@@ -46,12 +46,12 @@ public interface PostMapper {
 
     @Select("select user.uid,pid,title,user.nickname,type,grade,postTime,lastReplyTime,replyNum," +
             "img from user inner join post on  post.uid=user.uid where  type!=4 and grade>=2 and " +
-            "post.available=true and user.available=true limit 8")
+            "post.available=true and user.available=true order by postTime desc limit 8")
     @Cacheable(value = "posts", key = "'topposts'", unless = "#result==null")
     List<Post> getTopPosts();
 
     @Select("select pid,title,type,grade,lastReplyTime,replyNum from post where type=4 " +
-            "and available=true order by pid")
+            "and available=true order by postTime desc limit 8")
     @Cacheable(value = "posts", key = "'announcements'", unless = "#result==null")
     List<Post> getAnnouncements();
 
@@ -66,7 +66,7 @@ public interface PostMapper {
             " from post" +
             "       left JOIN user on post.uid = user.uid" +
             " where type != 4" +
-            "  and grade = 1" +
+            "  and (grade = 1 or grade =3)" +
             "  and post.available = true and user.available=true and pid<=(select pid from post " +
             "where available=true order by pid desc" +
             " limit #{offset},1)" +

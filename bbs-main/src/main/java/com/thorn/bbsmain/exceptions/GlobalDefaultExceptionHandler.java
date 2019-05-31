@@ -3,6 +3,7 @@ package com.thorn.bbsmain.exceptions;
 
 import com.thorn.bbsmain.services.UserService;
 import com.thorn.bbsmain.utils.MsgBuilder;
+import com.thorn.bbsmain.utils.MyUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authz.AuthorizationException;
@@ -70,7 +71,7 @@ public class GlobalDefaultExceptionHandler {
     private ModelAndView defaultException(HttpServletRequest request, HttpServletResponse response,
                                           Exception msg) {
 
-        String uri = getReferer(request);
+        String uri = MyUtil.getReferer(request);
         MsgBuilder builder = new MsgBuilder();
         builder.addData("errorMsg", msg.getMessage());
         if (msg instanceof AuthorizationException) {
@@ -103,15 +104,6 @@ public class GlobalDefaultExceptionHandler {
                 return builder.getMsgForAjax();
             }
         }
-    }
-
-    private String getReferer(HttpServletRequest request) {
-        String uri = request.getHeader("Referer");
-        uri = uri.substring(uri.indexOf("/", uri.indexOf("/") + 2));
-        if (uri.indexOf("?") > 0) {
-            uri = uri.substring(0, uri.indexOf("?"));
-        }
-        return uri;
     }
 
 
@@ -189,6 +181,7 @@ public class GlobalDefaultExceptionHandler {
         if (isAjax(request)) {
             return builder.getMsgForAjax();
         }
-        return builder.getMsg("redirect:" + ("".equals(getReferer(request)) ? "/" : getReferer(request)));
+        return builder.getMsg("redirect:" + ("".equals(MyUtil.getReferer(request)) ? "/" :
+                MyUtil.getReferer(request)));
     }
 }

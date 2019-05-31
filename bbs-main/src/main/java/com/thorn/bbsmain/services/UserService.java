@@ -22,6 +22,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.Optional;
@@ -39,7 +40,7 @@ public class UserService {
     private ReplyMapper replyMapper;
 
     public ModelAndView userReg(User user, BindingResult result, String uri, String repass,
-                                HttpServletResponse response) throws UserException {
+                                HttpServletRequest request, HttpServletResponse response) throws UserException {
         MsgBuilder builder = new MsgBuilder();
         user.setNickname(user.getNickname().replace(" ", ""));
         //规范验证
@@ -58,7 +59,7 @@ public class UserService {
 
 
         createNewUser(user);
-        return userLogin(user, uri, response, builder);
+        return userLogin(user, uri, request, response, builder);
     }
 
     /**
@@ -187,21 +188,13 @@ public class UserService {
         delUserCookie(response);
     }
 
-    public ModelAndView userLogin(User user, String uri, HttpServletResponse response,
+    public ModelAndView userLogin(User user, String uri, HttpServletRequest request,
+                                  HttpServletResponse response,
                                   MsgBuilder builder) {
         Subject currentUser = SecurityUtils.getSubject();
         String token;
-        if (!"".equals(uri)) {
-            uri = uri.split(",")[0];
-            if ("index".equals(uri)) {
-                uri = "/";
-            } else {
-                Pattern pattern = Pattern.compile("^[-\\+]?[\\d]*$");
-                if (pattern.matcher(uri).matches()) {
-                    uri = "/post/" + uri;
-                }
-            }
-        }
+        String url = MyUtil.getReferer(request);
+
         try {
             token = verifyTokenByShiro(currentUser, user);
         } catch (UserException e) {
@@ -215,7 +208,26 @@ public class UserService {
                 ((User) currentUser.getPrincipal()).getImg());
 
         //跳转到登录前的页面
-        if (!"".equals(uri)) {
+        if (!"".equals(url)) {
+            if (url.contains("/user/login") || url.contains("/user/reg")) {
+                //放回之前的页面 主页或者帖子详情页
+                if (!"".equals(uri)) {
+                    uri = uri.split(",")[0];
+                    if ("index".equals(uri)) {
+                        uri = "/";
+                    } else {
+                        //检测是否是数字
+                        Pattern pattern = Pattern.compile("^[-\\+]?[\\d]*$");
+                        if (pattern.matcher(uri).matches()) {
+                            uri = "/post/" + uri;
+                        } else {
+                            uri = "/";
+                        }
+                    }
+                }
+            } else {
+                uri = url;
+            }
             return builder.getMsg("redirect:" + uri);
         }
         return builder.getMsg("redirect:/");
