@@ -3,6 +3,7 @@ package com.thorn.bbsmain.services.oa;
 import com.thorn.bbsmain.mapper.PostMapper;
 import com.thorn.bbsmain.mapper.entity.Post;
 import com.thorn.bbsmain.services.PostService;
+import com.thorn.bbsmain.services.UserService;
 import com.thorn.bbsmain.utils.MsgBuilder;
 import org.springframework.stereotype.Service;
 
@@ -14,9 +15,12 @@ public class PostOAService implements OAService<Post> {
 
     private PostMapper postMapper;
 
-    public PostOAService(PostService postService, PostMapper postMapper) {
+    private UserService userService;
+
+    public PostOAService(PostService postService, PostMapper postMapper, UserService userService) {
         this.postService = postService;
         this.postMapper = postMapper;
+        this.userService = userService;
     }
 
     public Post getPostInfo(int pid) {
@@ -47,11 +51,20 @@ public class PostOAService implements OAService<Post> {
         if (post.getAvailable() == null) {
             post.setAvailable(false);
         }
-        postMapper.updatePost(post);
-        if (!post.getAvailable()) {
-            postService.delPostOfHotPoint(post.getPid());
+        if (postMapper.isAvailable(post.getPid())) {
+            if (!post.getAvailable()) {
+                postMapper.disablePost(post.getPid());
+                userService.decreasePostnum(post.getUid());
+                postService.delPostOfHotPoint(post.getPid());
+            }
+        } else {
+            if (post.getAvailable()) {
+                userService.increasePostNum(post.getUid());
+                postMapper.enablePost(post.getPid());
+            }
         }
-        return false;
+        postMapper.updatePost(post);
+        return true;
     }
 
     @Override

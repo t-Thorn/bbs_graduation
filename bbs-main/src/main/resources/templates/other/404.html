@@ -79,6 +79,7 @@
     }).use('fly');
     layui.use(['element', 'layer'], function () {
         var layer = layui.layer;
+        alert("[[${errorMsg}]]");
         if ("[[${errorMsg}]]" != "") {
             layer.msg("[[${errorMsg}]]");
         }

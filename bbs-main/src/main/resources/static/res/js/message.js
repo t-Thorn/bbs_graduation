@@ -82,7 +82,8 @@ $(function () {
                         //显示公告
                         show(msg.content);
                     }
-                    document.cookie = "messageNum=" + num;
+
+                    document.cookie = "messageNum=" + num + ";path=/";
                 }
             }
             socket.onopen = function (ev) {

@@ -155,7 +155,7 @@ public class PostService {
         }
 
         //用户帖子数+1
-        userService.addPostNum();
+        userService.increasePostNum();
         User user = userService.getCurrentUser();
         //post表新增
         post.setUid(user.getUid());
@@ -232,7 +232,10 @@ public class PostService {
          */
         Post post = postMapper.getPost(pid);
 
-        if (post == null) {
+        /**
+         * 帖子未找到或者帖子作者被禁用则页面无法被找到
+         */
+        if (post == null || !userService.getStatus(post.getUid())) {
             throw new PostNotFoundException("未找到页面");
         }
         User currentUser = userService.getCurrentUser();

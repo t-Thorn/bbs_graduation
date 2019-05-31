@@ -70,11 +70,7 @@ public class GlobalDefaultExceptionHandler {
     private ModelAndView defaultException(HttpServletRequest request, HttpServletResponse response,
                                           Exception msg) {
 
-        String uri = request.getHeader("Referer");
-        uri = uri.substring(uri.indexOf("/", uri.indexOf("/") + 2));
-        if (uri.indexOf("?") > 0) {
-            uri = uri.substring(0, uri.indexOf("?"));
-        }
+        String uri = getReferer(request);
         MsgBuilder builder = new MsgBuilder();
         builder.addData("errorMsg", msg.getMessage());
         if (msg instanceof AuthorizationException) {
@@ -102,11 +98,20 @@ public class GlobalDefaultExceptionHandler {
             //用户访问只有游客才能访问的页面时则返回主页面，并且不提示
             if (!isAjax(request)) {
                 userService.delUserCookie(response);
-                return builder.getMsg(request.getHeader("Referer"));
+                return builder.getMsg("redirect:" + ("".equals(uri) ? "/" : uri));
             } else {
                 return builder.getMsgForAjax();
             }
         }
+    }
+
+    private String getReferer(HttpServletRequest request) {
+        String uri = request.getHeader("Referer");
+        uri = uri.substring(uri.indexOf("/", uri.indexOf("/") + 2));
+        if (uri.indexOf("?") > 0) {
+            uri = uri.substring(0, uri.indexOf("?"));
+        }
+        return uri;
     }
 
 
@@ -119,41 +124,36 @@ public class GlobalDefaultExceptionHandler {
     }
 
     @ExceptionHandler(UserInfoException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ModelAndView userInfoExceptionHandler(HttpServletRequest request, HttpServletResponse response,
                                                  Throwable ex) {
-        return defualtHandler(request, response, ex);
+        return defaultHandler(request, response, ex);
     }
 
     @ExceptionHandler(UserException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ModelAndView userExceptionHandler(HttpServletRequest request, HttpServletResponse response,
                                              Throwable ex) {
 
-        return defualtHandler(request, response, ex);
+        return defaultHandler(request, response, ex);
     }
 
     @ExceptionHandler(PageException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ModelAndView pageExceptionHandler(HttpServletRequest request, HttpServletResponse response,
                                              Throwable ex) {
 
-        return defualtHandler(request, response, ex);
+        return defaultHandler(request, response, ex);
     }
 
     @ExceptionHandler(PostException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ModelAndView postExceptionHandler(HttpServletRequest request, HttpServletResponse response,
                                              Throwable ex) {
-        return defualtHandler(request, response, ex);
+        return defaultHandler(request, response, ex);
     }
 
     @ExceptionHandler(PostNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
     public ModelAndView postNotFoundExceptionHandler(HttpServletRequest request,
                                                      HttpServletResponse response,
                                                      Throwable ex) {
-        return defualtHandler(request, response, ex);
+        return defaultHandler(request, response, ex);
     }
 
     @ResponseBody
@@ -162,7 +162,7 @@ public class GlobalDefaultExceptionHandler {
     public ModelAndView delReplyExceptionHandler(HttpServletRequest request,
                                                  HttpServletResponse response,
                                                  Throwable ex) {
-        return defualtHandler(request, response, ex);
+        return defaultHandler(request, response, ex);
     }
 
 
@@ -170,7 +170,6 @@ public class GlobalDefaultExceptionHandler {
      * 捕捉其他所有异常
      */
     @ExceptionHandler(Exception.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ModelAndView globalException(HttpServletRequest request, HttpServletResponse response,
                                         Throwable ex) {
         MsgBuilder builder = new MsgBuilder();
@@ -182,7 +181,7 @@ public class GlobalDefaultExceptionHandler {
     }
 
 
-    private ModelAndView defualtHandler(HttpServletRequest request, HttpServletResponse response,
+    private ModelAndView defaultHandler(HttpServletRequest request, HttpServletResponse response,
                                         Throwable ex) {
         MsgBuilder builder = new MsgBuilder();
         builder.addData("errorMsg", ex.getMessage());
@@ -190,6 +189,6 @@ public class GlobalDefaultExceptionHandler {
         if (isAjax(request)) {
             return builder.getMsgForAjax();
         }
-        return builder.getMsg(request.getRequestURI());
+        return builder.getMsg("redirect:" + ("".equals(getReferer(request)) ? "/" : getReferer(request)));
     }
 }

@@ -259,7 +259,7 @@
     <p><a href="" target="_blank">Fly社区</a> 2019 &copy; <a
             href="" target="_blank">Thorn 出品</a></p>
 </div>
-<input id="msg" th:value="${errorMsg}" type="hidden">
+<input id="msg" th:value="${errorMsg}==null?${param.errorMsg}:${errorMsg}" type="hidden">
 
 <script src="/res/layui/layui.js"></script>
 

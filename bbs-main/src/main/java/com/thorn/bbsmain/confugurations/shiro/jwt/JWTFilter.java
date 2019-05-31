@@ -28,15 +28,14 @@ public class JWTFilter extends BasicHttpAuthenticationFilter {
     protected boolean isAccessAllowed(ServletRequest request, ServletResponse response, Object mappedValue) {
         HttpServletRequest servletRequest = (HttpServletRequest) request;
         //log.info("放行鉴定 uri：" + servletRequest.getRequestURI());
-        if (this.isLoginRequest(request, response)) {
+/*       if (this.isLoginRequest(request, response)) {
             return true;
-        }
+        }*/
         boolean allowed = false;
 
         if (Objects.equals(getRequestToken(servletRequest),
                 null)) {
             return super.isPermissive(mappedValue);
-
         }
         try {
             allowed = executeLogin(request, response);
@@ -62,18 +61,6 @@ public class JWTFilter extends BasicHttpAuthenticationFilter {
         return jwtToken != null && !"".equals(jwtToken);
     }
 
-    /**
-     * 如果这个Filter在之前isAccessAllowed（）方法中返回false,则会进入这个方法。我们这里直接返回错误的response
-     */
-    @Override
-    protected boolean onAccessDenied(ServletRequest servletRequest, ServletResponse servletResponse) throws Exception {
-        HttpServletResponse httpResponse = WebUtils.toHttp(servletResponse);
-        httpResponse.setCharacterEncoding("UTF-8");
-        httpResponse.setContentType("application/json;charset=UTF-8");
-        httpResponse.setStatus(401);
-        httpResponse.getWriter().write("你没有权限访问该页面");
-        return false;
-    }
 
     /**
      * 如果Shiro Login认证成功，会进入该方法，等同于用户名密码登录成功，我们这里还判断了是否要刷新Token

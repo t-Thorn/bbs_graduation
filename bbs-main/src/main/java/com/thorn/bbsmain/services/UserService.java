@@ -72,7 +72,11 @@ public class UserService {
             throw new UserException("不存在或该用户不可用");
         }
         String token = JWTUtil.sign(user.getEmail(), user.getPassword());
-        currentUser.login(new JWTToken(token));
+        try {
+            currentUser.login(new JWTToken(token));
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
         return token;
     }
 
@@ -187,19 +191,6 @@ public class UserService {
                                   MsgBuilder builder) {
         Subject currentUser = SecurityUtils.getSubject();
         String token;
-        try {
-            token = verifyTokenByShiro(currentUser, user);
-        } catch (UserException e) {
-            builder.addData("errorMsg", "登录失败：" + e.getMessage());
-            return builder.getMsg("");
-        }
-        //向客户端cookie中加入token
-        builder.addCookie(response, "token", token);
-        builder.addCookie(response, "nickname", ((User) currentUser.getPrincipal()).getNickname());
-        builder.addCookie(response, "img",
-                ((User) currentUser.getPrincipal()).getImg());
-
-        //跳转到登录前的页面
         if (!"".equals(uri)) {
             uri = uri.split(",")[0];
             if ("index".equals(uri)) {
@@ -210,6 +201,21 @@ public class UserService {
                     uri = "/post/" + uri;
                 }
             }
+        }
+        try {
+            token = verifyTokenByShiro(currentUser, user);
+        } catch (UserException e) {
+            builder.addData("errorMsg", "登录失败：" + e.getMessage());
+            return builder.getMsg("redirect:/user/login" + uri);
+        }
+        //向客户端cookie中加入token
+        builder.addCookie(response, "token", token);
+        builder.addCookie(response, "nickname", ((User) currentUser.getPrincipal()).getNickname());
+        builder.addCookie(response, "img",
+                ((User) currentUser.getPrincipal()).getImg());
+
+        //跳转到登录前的页面
+        if (!"".equals(uri)) {
             return builder.getMsg("redirect:" + uri);
         }
         return builder.getMsg("redirect:/");
@@ -305,8 +311,12 @@ public class UserService {
         return userMapper.getUserReply(uid, rpage * 10);
     }
 
-    public void addPostNum() {
+    public void increasePostNum() {
         userMapper.addPostNum(getCurrentUser().getUid());
+    }
+
+    public void increasePostNum(int uid) {
+        userMapper.addPostNum(uid);
     }
 
     public void updateBasicInfo(User user) {
@@ -349,5 +359,13 @@ public class UserService {
         userMapper.decreasePostnum(uid);
     }
 
-
+    /**
+     * 获取用户状态
+     *
+     * @param uid 用户id
+     * @return 是否启用
+     */
+    public boolean getStatus(Integer uid) {
+        return userMapper.getStatus(uid);
+    }
 }

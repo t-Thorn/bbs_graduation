@@ -71,7 +71,7 @@ public interface UserMapper {
     User getUserInfoOfHome(@Param("uid") int uid);
 
     @ResultType(Integer.class)
-    @Select("select count(*) from user where uid=#{uid}")
+    @Select("select count(*) from user where uid=#{uid} and available=true")
     Integer checkExistOfUid(int uid);
 
     @ResultType(Integer.class)
@@ -204,4 +204,7 @@ public interface UserMapper {
     @Select("select attention.*,nickname toUserNickname from attention left join user on " +
             "uid=toUser  where fromUser=#{uid}")
     List<Attention> getMyAttentions(Integer uid);
+
+    @Select("select available from user where uid=#{uid}")
+    boolean getStatus(Integer uid);
 }

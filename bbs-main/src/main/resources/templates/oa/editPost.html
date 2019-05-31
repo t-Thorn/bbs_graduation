@@ -31,7 +31,7 @@
             <div class="layui-input-inline">
                 <input class="layui-input" lay-verify="title" name="nickname" readonly
                        th:value="${post.nickname}" type="text">
-                <input th:value="${post.uid}" type="hidden">
+                <input name="uid" th:value="${post.uid}" type="hidden">
             </div>
         </div>
     </div>
