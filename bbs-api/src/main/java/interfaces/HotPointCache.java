@@ -16,6 +16,7 @@ public interface HotPointCache extends HotPostCache<Integer, HotPoint> {
 
     Map<Integer, HotPoint> getMap();
 
+    @Override
     HotPointCache refresh();
 
     void delReply(int pid);

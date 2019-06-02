@@ -188,7 +188,7 @@ public class PostService {
         List<Post> postList;
         builder.addData("announcements", getAnnouncements());
         builder.addData("topPosts", getTopPosts());
-        if (target.equals("")) {
+        if ("".equals(target)) {
             if (type == 0) {
                 postList = getPosts(page - 1);
                 builder.addData("pageNum", MyUtil.getPage(getPostNum(), ONE_PAGE_POST_NUM));
@@ -271,15 +271,15 @@ public class PostService {
         return builder.getMsg("jie/detail");
     }
 
-    public int getPostNum() {
+    private int getPostNum() {
         return postMapper.getPostNum();
     }
 
-    public int getPostNum(String target) {
+    private int getPostNum(String target) {
         return postMapper.getPostNumOfTarget(target);
     }
 
-    public int getGoodPostNum() {
+    private int getGoodPostNum() {
         return postMapper.getGoodPostNum();
     }
 

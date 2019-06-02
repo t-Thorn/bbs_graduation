@@ -19,7 +19,7 @@ public class Reply {
 
     String content_show;
 
-    @Length(min = 1, max = 65535, message = "内容太长")
+    @Length(max = 65535, message = "内容长度不符合要求")
     String content;
 
     @Range(min = 1, max = Integer.MAX_VALUE, message = "参数错误")

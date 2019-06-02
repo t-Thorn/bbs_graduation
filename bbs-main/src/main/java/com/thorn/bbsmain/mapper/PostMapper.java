@@ -6,7 +6,6 @@ import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Options;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
-import org.springframework.cache.annotation.Cacheable;
 
 import java.util.List;
 
@@ -21,7 +20,7 @@ public interface PostMapper {
             "       replyNum," +
             "       img from post" +
             "       left JOIN user on post.uid = user.uid" +
-            " where grade < 2" +
+            " where grade < 2 and type!=4" +
             "  and post.available = true and user.available=true and pid<=(select pid from post " +
             "where available=true " +
             "order by pid desc limit #{offset},1)" +
@@ -47,12 +46,12 @@ public interface PostMapper {
     @Select("select user.uid,pid,title,user.nickname,type,grade,postTime,lastReplyTime,replyNum," +
             "img from user inner join post on  post.uid=user.uid where  type!=4 and grade>=2 and " +
             "post.available=true and user.available=true order by postTime desc limit 8")
-    @Cacheable(value = "posts", key = "'topposts'", unless = "#result==null")
+//    @Cacheable(value = "posts", key = "'topposts'", unless = "#result==null")
     List<Post> getTopPosts();
 
     @Select("select pid,title,type,grade,lastReplyTime,replyNum from post where type=4 " +
             "and available=true order by postTime desc limit 8")
-    @Cacheable(value = "posts", key = "'announcements'", unless = "#result==null")
+//    @Cacheable(value = "posts", key = "'announcements'", unless = "#result==null")
     List<Post> getAnnouncements();
 
     @Select("select user.uid,pid," +

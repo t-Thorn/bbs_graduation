@@ -22,7 +22,7 @@
         <ul class="layui-nav fly-nav-user">
             <li class="layui-nav-item">
                 <a class="fly-nav-avatar" href="javascript:;">
-                    <cite class="layui-hide-xs"
+                    <cite class="layui-hide-xs" id="nickname"
                           th:each="cookie :${#httpServletRequest.getCookies()}"
                           th:if="${cookie.getName().equals('nickname')}"
                           th:text="${cookie.getValue()}"/>
@@ -36,8 +36,8 @@
                                                    style="top: 4px;"></i>浏览历史
                         <span class="layui-badge-dot" style="float:right"
                               th:if="${hasMessage==true}"></span></a></dd>
-                    <dd><a href="/info/message"><i class="iconfont icon-tongzhi"
-                                                   style="top: 4px;"></i>我的消息
+                    <dd><a href="/info/message" id="message"><i class="iconfont icon-tongzhi"
+                                                                style="top: 4px;"></i>我的消息
                         <span class="layui-badge-dot" style="float:right"
                               th:if="${hasMessage==true}"></span></a></dd>
                     <dd><a href="/user/home"><i class="layui-icon"

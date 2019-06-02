@@ -134,7 +134,7 @@ public class CustomCache<K, V> implements Cache<K, V> {
     public Set keys() {
         Set<byte[]> keys = null;
         try {
-            keys = JedisUtil.getJedis().keys(new String("*").getBytes());
+            keys = Objects.requireNonNull(JedisUtil.getJedis()).keys("*".getBytes());
         } catch (Exception e) {
             return null;
         }

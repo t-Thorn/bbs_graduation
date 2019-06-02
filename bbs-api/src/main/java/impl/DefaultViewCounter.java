@@ -8,6 +8,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Objects;
 
 public class DefaultViewCounter implements ViewCounter {
     @Override
@@ -19,8 +20,8 @@ public class DefaultViewCounter implements ViewCounter {
         //利用ip地址的负数作为id
         RequestAttributes ra = RequestContextHolder.getRequestAttributes();
         ServletRequestAttributes sra = ((ServletRequestAttributes) ra);
-        HttpServletRequest request = sra.getRequest();
-        return Math.negateExact(Integer.valueOf(getIpAddress((request)).replace(".",
+        HttpServletRequest request = Objects.requireNonNull(sra).getRequest();
+        return Math.negateExact(Integer.parseInt(getIpAddress((request)).replace(".",
                 "").replace(":", ""))) + ":" + pid;
     }
 

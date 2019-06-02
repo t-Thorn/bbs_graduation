@@ -3,7 +3,6 @@ package com.thorn.bbsmain.services;
 
 import annotation.RefreshHotPost;
 import com.thorn.bbsmain.exceptions.DeleteReplyException;
-import com.thorn.bbsmain.exceptions.PageException;
 import com.thorn.bbsmain.exceptions.PostException;
 import com.thorn.bbsmain.mapper.PostMapper;
 import com.thorn.bbsmain.mapper.ReplyMapper;
@@ -104,8 +103,10 @@ public class ReplyService {
                 }
             }
             img.transferTo(imgFile);
-            String imgFileOfCompress = MyUtil.CompressImg(img, fileType, imgFile, imgPath);
-            if (imgFileOfCompress != null) return "/img/replyImg/" + imgFileOfCompress;
+            String imgFileOfCompress = MyUtil.compressImg(img, fileType, imgFile, imgPath);
+            if (imgFileOfCompress != null) {
+                return "/img/replyImg/" + imgFileOfCompress;
+            }
         } catch (IOException e) {
             return null;
         }
@@ -126,7 +127,6 @@ public class ReplyService {
     //@cacheable
     private List<Reply> getReplyByPid(int pid, int page) {
         int offset = page * ONE_PAGE_REPLY_NUM;
-        offset = offset == 0 ? 1 : offset;
         return replyMapper.getReplyByPID(pid, offset,
                 ONE_PAGE_REPLY_NUM);
     }
@@ -162,9 +162,10 @@ public class ReplyService {
         return replyMapper.getLikesNum(pid, floor);
     }
 
-    List<Reply> getReplies(Integer pid, MsgBuilder builder, int page) throws PageException {
+    List<Reply> getReplies(Integer pid, MsgBuilder builder, int page) {
         int replyNum;
-        replyNum = replyMapper.getReplyNum(pid);
+        //减一是去掉顶楼回复
+        replyNum = replyMapper.getReplyNum(pid) - 1;
         if (page == -1) {
             //提供给新增回复一个接口跳转到最后一页
             page = MyUtil.getPage(replyNum, ONE_PAGE_REPLY_NUM);

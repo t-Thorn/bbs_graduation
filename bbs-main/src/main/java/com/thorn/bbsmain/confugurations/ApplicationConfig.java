@@ -7,19 +7,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 /**
  * 新的实现会造成资源文件mapping错误
  */
+@SuppressWarnings("All")
 @Configuration
 public class ApplicationConfig extends WebMvcConfigurerAdapter {
 
-    /* @Bean
-     public static PropertySourcesPlaceholderConfigurer properties() {
-         PropertySourcesPlaceholderConfigurer configurer = new PropertySourcesPlaceholderConfigurer();
-         YamlPropertiesFactoryBean yaml = new YamlPropertiesFactoryBean();
-         //yaml.setResources(new FileSystemResource("config.yml"));//File引入
-         yaml.setResources(new ClassPathResource("application-setting.yml"));//class引入
-         configurer.setProperties(yaml.getObject());
-         return configurer;
-     }
- */
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
 

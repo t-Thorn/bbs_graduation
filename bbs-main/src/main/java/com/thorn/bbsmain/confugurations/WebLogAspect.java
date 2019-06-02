@@ -31,5 +31,6 @@ public class WebLogAspect {
     public void doAfterReturning(Object ret) throws Throwable {
         // 处理完请求，返回内容
         log.info("SPEND TIME : " + (System.currentTimeMillis() - startTime.get()));
+        startTime.remove();
     }
 }

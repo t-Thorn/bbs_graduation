@@ -3,7 +3,6 @@ package com.thorn.bbsmain.services.oa;
 import com.thorn.bbsmain.exceptions.UserInfoException;
 import com.thorn.bbsmain.mapper.UserMapper;
 import com.thorn.bbsmain.mapper.entity.User;
-import com.thorn.bbsmain.services.UserService;
 import com.thorn.bbsmain.utils.MsgBuilder;
 import org.springframework.stereotype.Service;
 
@@ -12,11 +11,9 @@ import java.util.List;
 @Service
 public class UserOAService {
     private UserMapper userMapper;
-    private UserService userService;
 
-    public UserOAService(UserMapper userMapper, UserService userService) {
+    public UserOAService(UserMapper userMapper) {
         this.userMapper = userMapper;
-        this.userService = userService;
     }
 
     public User getUserInfo(int uid) {

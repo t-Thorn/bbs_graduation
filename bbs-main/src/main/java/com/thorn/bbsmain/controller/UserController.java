@@ -1,10 +1,11 @@
 package com.thorn.bbsmain.controller;
 
 
-import com.thorn.bbsmain.exceptions.UserException;
+import com.thorn.bbsmain.exceptions.UserRegException;
 import com.thorn.bbsmain.mapper.entity.User;
 import com.thorn.bbsmain.services.UserService;
 import com.thorn.bbsmain.utils.MsgBuilder;
+import com.thorn.bbsmain.utils.MyUtil;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authz.annotation.RequiresGuest;
@@ -44,14 +45,15 @@ public class UserController {
 
     @RequiresGuest
     @PostMapping("login")
-    public ModelAndView login(@Valid User user, BindingResult result,
-                              String uri,
+    public ModelAndView login(@Valid User user, BindingResult result, String uri,
+                              HttpServletRequest request,
                               HttpServletResponse response, @Autowired MsgBuilder builder) {
         if (result.hasErrors()) {
             userService.getErrors(result, builder);
+            builder.addData("uri", uri);
             return builder.getMsg("user/login");
         }
-        return userService.userLogin(user, uri, response, builder);
+        return userService.userLogin(user, uri, request, response, builder);
     }
 
 
@@ -66,8 +68,8 @@ public class UserController {
     @RequiresGuest
     @PostMapping("reg")
     public ModelAndView reg(@Valid User user, BindingResult result, String uri, @RequestParam String repass,
-                            HttpServletResponse response) throws UserException {
-        return userService.userReg(user, result, uri, repass, response);
+                            HttpServletResponse response, HttpServletRequest request) throws UserRegException {
+        return userService.userReg(user, result, uri, repass, request, response);
     }
 
 
@@ -90,7 +92,7 @@ public class UserController {
     public String logout(HttpServletRequest request, HttpServletResponse response) {
         //单点登录需要在redis中缓存最新ip
         userService.logout(response);
-        return "redirect:/";
+        return "redirect:" + MyUtil.getReferer(request);
     }
 
     @RequiresUser

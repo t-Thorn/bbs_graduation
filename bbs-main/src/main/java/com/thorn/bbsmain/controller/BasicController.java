@@ -14,14 +14,7 @@ import org.springframework.web.servlet.ModelAndView;
 @Controller
 public class BasicController {
 
-    /**
-     * 1.更新判断用户是否存在/可用的的逻辑
-     * 2.修复帖子禁用启用时用户发帖数不变
-     * 3.更新帖子浏览时判断帖子是否存在的条件，用户被禁用则所有相关帖子不能显示
-     * 4.修复跳转页面
-     * 5.修复登录失败时的跳转页面
-     * 6.更新主页帖子的筛选规则，
-     */
+
     private PostService postService;
 
     /**

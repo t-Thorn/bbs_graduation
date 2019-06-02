@@ -6,6 +6,7 @@ import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
+import javax.servlet.http.HttpServletRequest;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -52,16 +53,19 @@ public class MyUtil {
         return num / step + 1;
     }
 
-    public static String CompressImg(MultipartFile img, String fileType, File imgFile,
+    public static String compressImg(MultipartFile img, String fileType, File imgFile,
                                      String imgPath) throws IOException {
         //文件大小小于50k，并且不是png 压缩图片
         if (img.getSize() / 1024 >= 50 && !"png".equalsIgnoreCase(fileType)) {
             int width = 0;
             int height = 0;
             BufferedImage image = ImageIO.read(img.getInputStream());
-            if (image != null) {//如果image=null 表示上传的不是图片格式
-                width = image.getWidth();//获取图片宽度，单位px
-                height = image.getHeight();//获取图片高度，单位px
+            //如果image=null 表示上传的不是图片格式
+            if (image != null) {
+                //获取图片宽度，单位px
+                width = image.getWidth();
+                //获取图片高度，单位px
+                height = image.getHeight();
             }
             File imgFileOfCompress = new File(imgPath + UUID.randomUUID() + fileType);
             float size = width * height;
@@ -71,10 +75,31 @@ public class MyUtil {
                         .scale(rate)
                         .outputQuality(0.5f)
                         .toFile(imgFileOfCompress);
-                if (!imgFile.delete()) log.error("删除压缩前的图片错误.");
+                if (!imgFile.delete()) {
+                    log.error("删除压缩前的图片错误.");
+                }
                 return imgFileOfCompress.getName();
             }
         }
         return null;
+    }
+
+
+    /**
+     * 获取访问页url
+     *
+     * @param request
+     * @return
+     */
+    public static String getReferer(HttpServletRequest request) {
+        String uri = request.getHeader("Referer");
+        if (uri == null) {
+            return "/";
+        }
+        uri = uri.substring(uri.indexOf("/", uri.indexOf("/") + 2));
+        if (uri.indexOf("?") > 0) {
+            uri = uri.substring(0, uri.indexOf("?"));
+        }
+        return "".equals(uri) ? "/" : uri;
     }
 }

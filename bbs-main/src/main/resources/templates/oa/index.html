@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>论坛后台管理</title>
@@ -7,15 +7,45 @@
     <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
     <meta content="width=device-width, initial-scale=1, maximum-scale=1" name="viewport">
     <link href="/res/layui/css/layui.css" media="all" rel="stylesheet">
+    <link href="/res/css/global.css" media="all" rel="stylesheet">
 </head>
 <body class="layui-layout-body">
+<div class="fly-header layui-bg-black">
+    <a class="fly-logo" href="/">
+        <img alt="layui" src="/res/images/logo.png"
+             style="width: 141px;height: 31px;padding-top: 10px;padding-left: 5px">
+    </a>
+    <ul class="layui-nav fly-nav-user" style="float: right">
+        <li class="layui-nav-item">
+            <a class="fly-nav-avatar" href="javascript:;">
+                <cite class="layui-hide-xs" id="nickname"
+                      th:each="cookie :${#httpServletRequest.getCookies()}"
+                      th:if="${cookie.getName().equals('nickname')}"
+                      th:text="${cookie.getValue()}">
+                </cite>
+                <img th:each="cookie :${#httpServletRequest.getCookies()}"
+                     th:if="${cookie.getName().equals('img')}"
+                     th:src="${cookie.getValue()}">
+            </a>
+            <dl class="layui-nav-child">
+                <dd><a href="/info/setting"><i class="layui-icon">&#xe620;</i>基本设置</a></dd>
+                <dd><a href="/info/history"><i class="iconfont icon-shichang"
+                                               style="top: 4px;"></i>浏览历史
+                </a></dd>
+                <dd><a href="/info/message" id="message"><i class="iconfont icon-tongzhi"
+                                                            style="top: 4px;"></i>我的消息
+                </a></dd>
+                <dd><a href="/user/home"><i class="layui-icon"
+                                            style="margin-left: 2px; font-size: 22px;">&#xe68e;</i>我的主页</a>
+                </dd>
+                <hr style="margin: 5px 0;">
+                <dd><a href="/user/logout" style="text-align: center;">退出</a></dd>
+            </dl>
+        </li>
+    </ul>
+</div>
 <div class="layui-layout layui-layout-admin">
-    <div class="layui-header">
-        <a class="fly-logo" href="/">
-            <img alt="layui" src="/res/images/logo.png"
-                 style="width: 141px;height: 31px;padding-top: 10px;padding-left: 5px">
-        </a>
-    </div>
+
 
     <div class="layui-side layui-bg-black">
         <div class="layui-side-scroll">
@@ -92,5 +122,7 @@
         document.getElementById('detail').src = '/admin/violationRecord'
     }
 </script>
+<script src="/res/js/jquery-3.3.1.min.js"></script>
+<script src="/res/js/message.js"></script>
 </body>
 </html>

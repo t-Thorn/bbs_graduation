@@ -36,7 +36,7 @@ public class RabbitConfig {
      * @return
      */
     @Bean
-    public Queue ReviewQueue() {
+    public Queue reviewQueue() {
         return new Queue("review");
     }
 

@@ -39,6 +39,7 @@ public class ViolationService {
         } catch (Exception e) {
             throw new SqlException("数据库执行失败");
         }
+        reviewProcess.setNeedToRefresh(true);
         return new MsgBuilder().getMsg();
     }
 

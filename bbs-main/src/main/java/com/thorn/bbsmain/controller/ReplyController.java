@@ -3,7 +3,6 @@ package com.thorn.bbsmain.controller;
 import com.thorn.bbsmain.exceptions.DeleteReplyException;
 import com.thorn.bbsmain.exceptions.PostException;
 import com.thorn.bbsmain.mapper.entity.Reply;
-import com.thorn.bbsmain.services.PostService;
 import com.thorn.bbsmain.services.ReplyService;
 import com.thorn.bbsmain.services.UserService;
 import com.thorn.bbsmain.utils.MsgBuilder;
@@ -23,12 +22,10 @@ import javax.validation.Valid;
 public class ReplyController {
     private ReplyService replyService;
     private UserService userService;
-    private PostService postService;
 
-    public ReplyController(ReplyService replyService, UserService userService, PostService postService) {
+    public ReplyController(ReplyService replyService, UserService userService) {
         this.replyService = replyService;
         this.userService = userService;
-        this.postService = postService;
     }
 
     @ResponseStatus(HttpStatus.OK)

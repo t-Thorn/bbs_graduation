@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class DefaultHotPointCache implements HotPointCache {
 
-    public static final long REPLY_INCREASEMENT = 4l;
+    public static final long REPLY_INCREASEMENT = 4L;
     private final ConcurrentHashMap<Integer, HotPoint> CACHE = new ConcurrentHashMap<Integer,
             HotPoint>();
 
@@ -18,7 +18,8 @@ public class DefaultHotPointCache implements HotPointCache {
         CACHE.computeIfPresent(pid, (k, v) -> {
             if (v.getReply() > 0) {
                 v.setReply(v.getReply() - 1);
-                v.setTotal(v.getTotal() - REPLY_INCREASEMENT);
+                //删回复不改变热度
+                //v.setTotal(v.getTotal() - REPLY_INCREASEMENT);
             }
             return v;
         });

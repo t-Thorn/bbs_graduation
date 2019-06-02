@@ -29,7 +29,7 @@
                 <div class="layui-tab-item layui-show">
                     <div class="layui-form layui-form-pane">
                         <form action="/user/reg" method="post">
-                            <span th:text="${errorMsg}"/>
+                            <span th:text="${errorMsg==null?param.errorMsg:errorMsg}"/>
                             <div class="layui-form-item">
                                 <label class="layui-form-label" for="L_email">邮箱</label>
                                 <div class="layui-input-inline">
@@ -81,7 +81,7 @@
                                               <span style="color: #c00;">{{d.vercode}}</span>
                                             </div>
                                           </div>-->
-                            <input name="uri" th:value="${uri}" type="hidden"/>
+                            <input name="uri" th:value="${uri==null?param.uri:uri}" type="hidden"/>
                             <div class="layui-form-item">
                                 <input class="layui-btn" lay-filter="*" lay-submit
                                        th:type="submit" th:value="立即注册"/>

@@ -6,6 +6,7 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 @Component
@@ -16,22 +17,22 @@ public class ReviewProcess {
     /**
      * 提供一个接口给外部提交更新请求
      */
-    private boolean needToRefresh = true;
+    private AtomicBoolean needToRefresh = new AtomicBoolean(true);
 
     public ReviewProcess(ViolationMapper violationMapper) {
         this.violationMapper = violationMapper;
     }
 
     public void setNeedToRefresh(boolean needToRefresh) {
-        this.needToRefresh = needToRefresh;
+        this.needToRefresh.set(needToRefresh);
     }
 
     @RabbitListener(queues = "review")
     @RabbitHandler
     public void process(ReviewInfo msg) {
-        if (needToRefresh || sensitivities == null) {
-            RefreshSensitivities();
-            needToRefresh = false;
+        if (needToRefresh.get() || sensitivities == null) {
+            needToRefresh.set(false);
+            refreshSensitivities();
         }
         String content = msg.getContent();
         StringBuffer words = new StringBuffer();
@@ -49,7 +50,7 @@ public class ReviewProcess {
         }
     }
 
-    private void RefreshSensitivities() {
+    private void refreshSensitivities() {
         sensitivities = violationMapper.getSensitiveWord();
     }
 }

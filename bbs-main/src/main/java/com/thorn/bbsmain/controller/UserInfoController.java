@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
@@ -62,8 +63,8 @@ public class UserInfoController {
     @PatchMapping("password")
     public ModelAndView updatePassword(@RequestParam("nowpass") String nowpass,
                                        @Valid User user, BindingResult result, @RequestParam("repass") String repass
-            , HttpServletResponse response) throws UserInfoException {
-        return infoService.updateUserPassword(nowpass, user, result, repass, response);
+            , HttpServletRequest request, HttpServletResponse response) throws UserInfoException {
+        return infoService.updateUserPassword(nowpass, user, result, repass, request, response);
     }
 
     @GetMapping(value = {"myPost/{page}/{cpage}/{apage}", "myPost"})

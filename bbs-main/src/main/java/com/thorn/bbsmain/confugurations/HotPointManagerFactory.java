@@ -53,8 +53,8 @@ public class HotPointManagerFactory {
     }
 
     @Bean
-    public DefaultDataSaver getMybatisDataSaver(PostMapper postMapper) {
-        return new DefaultDataSaver() {
+    public AbstractDefaultDataSaver getMybatisDataSaver(PostMapper postMapper) {
+        return new AbstractDefaultDataSaver() {
             @Override
             public void save(Object id, Object hotPoint) {
                 if ((int) id > 0) {
@@ -82,7 +82,7 @@ public class HotPointManagerFactory {
     }
 
     @Bean
-    public HotPointManager<Post> getHotPointManager(DefaultDataSaver saver,
+    public HotPointManager<Post> getHotPointManager(AbstractDefaultDataSaver saver,
                                                     DefaultHotPostHandler<Post> hotPostHandler) {
         HotPointManager<Post> manager = new HotPointManager<>(hotPostHandler);
         manager.addCycleSaveForReloadTask(reload, TimeUnit.SECONDS, reloadPath);

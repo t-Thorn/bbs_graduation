@@ -15,7 +15,7 @@ public interface ViolationMapper {
             "#{step}")
     List<Sensitivity> getSensitivities(int offset, int step, String search);
 
-    @Select("select word from sensitivity")
+    @Select("select word from sensitivity where available=true")
     List<String> getSensitiveWord();
 
     @Select("select count(1) from sensitivity where word like concat('%',#{search},'%')")

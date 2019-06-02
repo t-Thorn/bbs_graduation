@@ -5,6 +5,7 @@ import com.thorn.bbsmain.confugurations.shiro.jwt.JWTToken;
 import com.thorn.bbsmain.exceptions.PageException;
 import com.thorn.bbsmain.exceptions.UserException;
 import com.thorn.bbsmain.exceptions.UserInfoException;
+import com.thorn.bbsmain.exceptions.UserRegException;
 import com.thorn.bbsmain.mapper.ReplyMapper;
 import com.thorn.bbsmain.mapper.UserMapper;
 import com.thorn.bbsmain.mapper.entity.*;
@@ -24,6 +25,7 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -40,8 +42,9 @@ public class UserService {
     private ReplyMapper replyMapper;
 
     public ModelAndView userReg(User user, BindingResult result, String uri, String repass,
-                                HttpServletRequest request, HttpServletResponse response) throws UserException {
+                                HttpServletRequest request, HttpServletResponse response) throws UserRegException {
         MsgBuilder builder = new MsgBuilder();
+        builder.addData("uri", uri);
         user.setNickname(user.getNickname().replace(" ", ""));
         //规范验证
         boolean hasError = false;
@@ -54,11 +57,12 @@ public class UserService {
             hasError = true;
         }
         if (hasError) {
+
             return builder.getMsg("user/reg");
         }
 
 
-        createNewUser(user);
+        createNewUser(user, uri);
         return userLogin(user, uri, request, response, builder);
     }
 
@@ -68,7 +72,7 @@ public class UserService {
      * @param user 登录的user
      * @return
      */
-    public String verifyTokenByShiro(Subject currentUser, User user) throws UserException {
+    private String verifyTokenByShiro(Subject currentUser, User user) throws UserException {
         if (userMapper.checkValidOfEmail(user.getEmail()) == 0) {
             throw new UserException("不存在或该用户不可用");
         }
@@ -106,23 +110,21 @@ public class UserService {
         this.replyMapper = replyMapper;
     }
 
-    public void isNicknameExist(User user) throws UserException {
+    void isNicknameExist(User user) throws UserException {
         if (userMapper.checkExistOfNN(user.getNickname()) > 0 && !getCurrentUser().getNickname().equals(user.getNickname())) {
             throw new UserException("昵称已存在");
         }
     }
 
-    private void isEmailExist(User user) throws UserException {
-        if (userMapper.checkExistOfEmail(user.getEmail()) > 0) {
-            throw new UserException("用户名已存在");
-        }
-    }
 
-    public void createNewUser(User user) throws UserException {
+    private void createNewUser(User user, String url) throws UserRegException {
+
         //检验user合法性
-        isEmailExist(user);
+        if (userMapper.checkExistOfEmail(user.getEmail()) > 0) {
+            throw new UserRegException("用户名已存在." + url);
+        }
         if (userMapper.checkExistOfNN(user.getNickname()) > 0) {
-            throw new UserException("昵称已存在");
+            throw new UserRegException("昵称已存在." + url);
         }
         try {
             userMapper.createNewUser(user);
@@ -130,7 +132,7 @@ public class UserService {
         } catch (Exception e) {
             //重新封装错误投出
             log.error("创建用户错误： user:{} error:{}", user, e.getMessage());
-            throw new UserException("内部错误");
+            throw new UserRegException("内部错误." + url);
         }
     }
 
@@ -168,12 +170,12 @@ public class UserService {
      *
      * @return
      */
-    public boolean hasRole(String roleName) {
+    boolean hasRole(String roleName) {
         Subject currentUser = SecurityUtils.getSubject();
         return currentUser.hasRole(roleName);
     }
 
-    public void updatePassword(String email, String password) throws UserInfoException {
+    void updatePassword(String email, String password) throws UserInfoException {
         try {
             userMapper.updatePassword(email, password);
         } catch (Exception e) {
@@ -208,29 +210,29 @@ public class UserService {
                 ((User) currentUser.getPrincipal()).getImg());
 
         //跳转到登录前的页面
-        if (!"".equals(url)) {
-            if (url.contains("/user/login") || url.contains("/user/reg")) {
-                //放回之前的页面 主页或者帖子详情页
-                if (!"".equals(uri)) {
-                    uri = uri.split(",")[0];
-                    if ("index".equals(uri)) {
-                        uri = "/";
+
+        if (url.contains("/user/login") || url.contains("/user/reg")) {
+            //放回之前的页面 主页或者帖子详情页
+            if (!"".equals(uri)) {
+                uri = uri.split(",")[0];
+                if ("home".equals(uri)) {
+                    uri = "/";
+                } else {
+                    //检测是否是数字
+                    Pattern pattern = Pattern.compile("^[-\\+]?[\\d]*$");
+                    if (pattern.matcher(uri).matches()) {
+                        uri = "/post/" + uri;
                     } else {
-                        //检测是否是数字
-                        Pattern pattern = Pattern.compile("^[-\\+]?[\\d]*$");
-                        if (pattern.matcher(uri).matches()) {
-                            uri = "/post/" + uri;
-                        } else {
-                            uri = "/";
-                        }
+                        uri = "/";
                     }
                 }
             } else {
-                uri = url;
+                uri = "/";
             }
-            return builder.getMsg("redirect:" + uri);
+        } else {
+            uri = url;
         }
-        return builder.getMsg("redirect:/");
+        return builder.getMsg("redirect:" + uri);
     }
 
     public ModelAndView buildUserHome(Integer uid, int page, int rpage) throws Exception {
@@ -241,6 +243,9 @@ public class UserService {
         User user = getCurrentUser();
         Integer from = user == null ? null : user.getUid();
         if (!Optional.ofNullable(uid).isPresent()) {
+            if (from == null) {
+                throw new UserInfoException("请登录后使用");
+            }
             uid = from;
             builder.addData("myself", 1);
         }
@@ -258,6 +263,7 @@ public class UserService {
         builder.addData("posts", getUserPost(uid, page - 1));
         builder.addData("postNum", userMapper.getUserPostNum(uid));
         List<Reply> userReplys = getUserReply(uid, rpage - 1);
+        //设置回复所在的页面数（为了定位）
         userReplys.forEach(v -> {
             v.setPage(MyUtil.getPage(replyMapper.getOffsetByFloor(v.getPostid(), v.getFloor()),
                     replyStep));
@@ -323,7 +329,7 @@ public class UserService {
         return userMapper.getUserReply(uid, rpage * 10);
     }
 
-    public void increasePostNum() {
+    void increasePostNum() {
         userMapper.addPostNum(getCurrentUser().getUid());
     }
 
@@ -331,40 +337,44 @@ public class UserService {
         userMapper.addPostNum(uid);
     }
 
-    public void updateBasicInfo(User user) {
+    void updateBasicInfo(User user) {
         userMapper.updateBasicInfo(user);
     }
 
-    public List<Message> getMessages(Integer uid, int page, int step) {
+    List<Message> getMessages(Integer uid, int page, int step) {
         return userMapper.getMessages(uid, page, step);
     }
 
-    public int getMessageNum(Integer uid) {
+    int getMessageNum(Integer uid) {
         return userMapper.getMessageNum(uid);
     }
 
-    public User getInfo(String email) {
+    User getInfo(String email) {
         return userMapper.getInfo(email);
     }
 
-    public void updateAvator(String email, String s) {
+    void updateAvator(String email, String s) {
         userMapper.updateAvator(email, s);
     }
 
-    public List<History> getHistories(Integer uid, int offset, int step) {
+    List<History> getHistories(Integer uid, int offset, int step) {
         return userMapper.getHistories(uid, offset, step);
     }
 
-    public int getHistoryNum(int uid) {
+    int getHistoryNum(int uid) {
         return userMapper.getHistoryNum(uid);
     }
 
-    public boolean collectRelationshipIsExist(Integer uid, Integer pid) {
+    boolean collectRelationshipIsExist(Integer uid, Integer pid) {
         return userMapper.collectRelationshipIsExist(uid, pid) > 0;
     }
 
-    public void createHistory(Integer uid, Integer pid, String title) {
-        userMapper.createHistory(uid, pid, title);
+    void createHistory(Integer uid, Integer pid, String title) {
+        if (userMapper.hasHistory(uid, pid) > 0) {
+            userMapper.updateHistory(uid, pid, new Date());
+        } else {
+            userMapper.createHistory(uid, pid, title);
+        }
     }
 
     public void decreasePostnum(Integer uid) {
@@ -377,7 +387,7 @@ public class UserService {
      * @param uid 用户id
      * @return 是否启用
      */
-    public boolean getStatus(Integer uid) {
+    boolean getStatus(Integer uid) {
         return userMapper.getStatus(uid);
     }
 }

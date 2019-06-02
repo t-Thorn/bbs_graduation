@@ -74,9 +74,8 @@ public abstract class AbstractHotPostHandler<E> {
      * 计算浏览量
      *
      * @param pid
-     * @param object 保留参数，默认实现是request请求来获取IP地址
      */
-    protected abstract void computeViewNum(int pid, Object object);
+    protected abstract void computeViewNum(int pid);
 
     protected abstract void addReplyNum(int pid);
 

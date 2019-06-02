@@ -4,6 +4,7 @@ package com.thorn.bbsmain.mapper;
 import com.thorn.bbsmain.mapper.entity.*;
 import org.apache.ibatis.annotations.*;
 
+import java.util.Date;
 import java.util.List;
 
 @Mapper
@@ -98,14 +99,14 @@ public interface UserMapper {
             "                         content_show," +
             "                         replyTo,id" +
             "                  from reply" +
-            "                  where replyer = 1" +
-            "                    and reply.available = 1" +
+            "                  where replyer = #{uid}" +
+            "                    and reply.available = true" +
             "                  order by id desc" +
             "                  limit #{offset},5) r1" +
             "                   left join reply rex" +
             "                             on rex.postid = r1.postid and r1.replyTo = rex.floor) r" +
             "             left join post on postid = pid" +
-            "      where available = 1) replyDetail" +
+            "      where available = true) replyDetail" +
             "       left join user on replyToId = uid")
     List<Reply> getUserReply(int uid, int offset);
 
@@ -120,7 +121,7 @@ public interface UserMapper {
             " from history" +
             " where uid = #{uid}" +
             "  and id<=(select id from history where uid=#{uid} order by id desc limit #{offset}," +
-            "1) order by id desc limit #{step} ")
+            "1) order by time desc limit #{step} ")
     List<History> getHistories(Integer uid, int offset, int step);
 
     @Select("select count(*) from history where uid=#{uid}")
@@ -133,7 +134,7 @@ public interface UserMapper {
     void delCollect(Integer uid, Integer pid);
 
     @Insert("insert into collection (uid,pid) values(#{uid},#{pid})")
-    void Collect(Integer uid, Integer pid);
+    void collect(Integer uid, Integer pid);
 
     @Select("select user.*,rid grade" +
             " from user" +
@@ -207,4 +208,10 @@ public interface UserMapper {
 
     @Select("select available from user where uid=#{uid}")
     boolean getStatus(Integer uid);
+
+    @Select("select count(1) from history where uid=#{uid} and pid=#{pid}")
+    int hasHistory(Integer uid, Integer pid);
+
+    @Update("update history set time=#{time} where uid=#{uid} and pid=#{pid}")
+    void updateHistory(Integer uid, Integer pid, Date time);
 }

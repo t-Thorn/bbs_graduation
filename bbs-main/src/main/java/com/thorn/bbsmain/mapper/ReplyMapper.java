@@ -7,8 +7,8 @@ import org.apache.ibatis.annotations.*;
 import java.util.List;
 
 public interface ReplyMapper {
-    @Insert("insert into reply (postid,content,content_show,replyer) values(#{postid},#{content}," +
-            "#{content_show},#{replyer})")
+    @Insert("insert into reply (postid,content,content_show,replyer,floor) values(#{postid}," +
+            "#{content},#{content_show},#{replyer},0)")
     void createPostTopReply(Reply reply);
 
     @Select("SELECT" +
@@ -25,7 +25,7 @@ public interface ReplyMapper {
             "     left join user on uid=replyer" +
             "    WHERE" +
             "        postid = #{pid}" +
-            "      AND id >= ( SELECT id FROM reply WHERE postid = #{pid} AND available = 1 ORDER BY" +
+            "      AND id > ( SELECT id FROM reply WHERE postid = #{pid} AND available = 1 ORDER BY" +
             "     id" +
             "     LIMIT" +
             "        #{offset}, 1 )" +
@@ -52,7 +52,7 @@ public interface ReplyMapper {
             "          reply" +
             "        WHERE" +
             "            postid = #{pid}" +
-            "          AND id >= ( SELECT id FROM reply WHERE postid = #{pid} AND available = 1" +
+            "          AND id > ( SELECT id FROM reply WHERE postid = #{pid} AND available = 1" +
             "          ORDER BY id  LIMIT" +
             "            #{offset}, 1 )" +
             "        LIMIT #{step}" +
@@ -121,8 +121,8 @@ public interface ReplyMapper {
     @Select("select count(*) from reply where postid=#{pid} and available=true")
     int getReplyNum(Integer pid);
 
-    @Select("select content,content_show,replyer,floor,postid from reply where postid=#{pid} " +
-            "limit 1")
+    @Select("select content,content_show,replyer,floor,postid from reply where postid=#{pid} and " +
+            "floor=0 limit 1")
     Reply getTopReply(Integer pid);
 
     @Select("select replyer from reply where floor=#{replyTo} and postid=#{pid}")

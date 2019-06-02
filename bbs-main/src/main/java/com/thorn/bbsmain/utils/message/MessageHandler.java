@@ -29,13 +29,11 @@ public class MessageHandler extends SimpleChannelInboundHandler<TextWebSocketFra
         //返回的时候也必须要是TextWebSocketFrame对象而不能是普通的字符串
         //若是refresh存在说明只是刷新token,此handler不做不做其他处理
         if (json.getString("refresh") == null) {
-            //System.out.println("获取未读消息");
             rabbitTemplate.convertAndSend("unCheckedMsg",
                     MessageObject.builder().uid(uid).num(MysqlJdbc.getUncheckedMessage(uid)).build());
 /*            rabbitTemplate.convertAndSend("newMsg",
                     MessageObject.builder().uid(uid).content("<p>测试系统消息</p>").build());*/
         } else {
-            // System.out.println("再次请求发送消息");
             //触发再次发送新消息事件
             rabbitTemplate.convertAndSend("newMsgAgain", uid);
         }
@@ -63,7 +61,6 @@ public class MessageHandler extends SimpleChannelInboundHandler<TextWebSocketFra
         String password =
                 MysqlJdbc.getPassword(email);
         if (!JWTUtil.verify(token, email, password)) {
-            //log.warn("token验证错误，ip：{}", ctx.channel().remoteAddress());
             throw new IllegalRequestException("token验证错误");
         }
         Integer uid = MysqlJdbc.getUID(email);

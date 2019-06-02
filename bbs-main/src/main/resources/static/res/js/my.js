@@ -174,7 +174,6 @@ function createEditor() {
         'strikeThrough',  // 删除线
         'foreColor',  // 文字颜色
         'link',  // 插入链接
-        'list',  // 列表
         'justify',  // 对齐方式
         'quote',  // 引用
         'emoticon',  // 表情
@@ -250,11 +249,12 @@ function dianzan(index) {
  * 新增回复
  */
 function submitReply() {
-    if ("" == editor.txt.text()) {
+    if ("" == editor.txt.text() && editor.txt.html().search(/<img /i) < 0) {
         layer.msg("请输入回复内容");
         return false;
     }
-    $("#content").val(editor.txt.text());
+    alert(editor.txt.text() == "");
+    $("#content").val(editor.txt.text() == "" ? "" : editor.txt.text());
     $("#content_show").val(editor.txt.html());
     $("#addReply").submit();
 }
@@ -274,7 +274,6 @@ function delReply(index) {
         success: function () {
             layer.msg("删除成功");
             setTimeout("  window.location.href = '/post/' + reply.data(\"pid\")", 3000);
-
         },
         error: function (data) {
             layer.msg('删除失败:' + JSON.parse(data.responseText).errorMsg);

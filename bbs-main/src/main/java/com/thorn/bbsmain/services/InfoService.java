@@ -13,13 +13,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
@@ -65,7 +65,7 @@ public class InfoService {
         this.messageService = messageService;
     }
 
-    public void updateBasicInfo(User user) throws UserException {
+    void updateBasicInfo(User user) throws UserException {
         userService.isNicknameExist(user);
         userService.updateBasicInfo(user);
     }
@@ -76,8 +76,8 @@ public class InfoService {
      * @param uid
      * @return
      */
-    @Cacheable(value = "posts", key = "'mypost_'+#uid", unless = "#result==null")
-    public List<Post> getMyPost(int uid) throws Exception {
+//    @Cacheable(value = "posts", key = "'mypost_'+#uid", unless = "#result==null")
+    List<Post> getMyPost(int uid) throws Exception {
         return postMapper.getMyPost(uid);
     }
 
@@ -87,8 +87,8 @@ public class InfoService {
      * @param uid 用户id
      * @return
      */
-    @Cacheable(value = "posts", key = "'collect_'+#uid", unless = "#result==null")
-    public List<Collect> getMyCollection(Integer uid) throws Exception {
+//    @Cacheable(value = "posts", key = "'collect_'+#uid", unless = "#result==null")
+    private List<Collect> getMyCollection(Integer uid) {
         return postMapper.getMyColletction(uid);
     }
 
@@ -119,7 +119,9 @@ public class InfoService {
     }
 
     public ModelAndView updateUserPassword(String nowpass, User user, BindingResult result,
-                                           String repass, HttpServletResponse response) throws UserInfoException {
+                                           String repass,
+                                           HttpServletRequest request,
+                                           HttpServletResponse response) throws UserInfoException {
         User currentUser = userService.getCurrentUser();
         MsgBuilder builder = new MsgBuilder();
         boolean error = false;
@@ -151,7 +153,7 @@ public class InfoService {
         userService.logout(response);
         //重新登录shiro
         currentUser.setPassword(user.getPassword());
-        userService.userLogin(currentUser, null, response, builder);
+        userService.userLogin(currentUser, null, request, response, builder);
         builder.addData("errorMsg", "密码修改成功");
         builder.addDatas(getInfo(currentUser.getEmail()));
         builder.addData("loc", "password");
@@ -245,7 +247,7 @@ public class InfoService {
         }
 
         File imgFile = new File(IMG + user.getEmail() + "_" + UUID.randomUUID() + fileType);
-        String filename = null;
+        String filename;
         try {
             if (!imgFile.exists()) {
                 if (!imgFile.createNewFile()) {
@@ -253,7 +255,7 @@ public class InfoService {
                 }
             }
             img.transferTo(imgFile);
-            if ((filename = MyUtil.CompressImg(img, fileType, imgFile, IMG)) == null) {
+            if ((filename = MyUtil.compressImg(img, fileType, imgFile, IMG)) == null) {
                 filename = imgFile.getName();
             }
         } catch (IOException e) {
@@ -282,7 +284,7 @@ public class InfoService {
 
     public ModelAndView getMyHistory(int page) {
 
-        int pageNum = 0;
+        int pageNum;
         int uid = userService.getCurrentUser().getUid();
         List<History> histories;
         MsgBuilder builder = new MsgBuilder();
@@ -319,7 +321,7 @@ public class InfoService {
             throw new PostException("已收藏该帖子");
         }
         //新建收藏
-        userMapper.Collect(uid, pid);
+        userMapper.collect(uid, pid);
         //帖子收藏数+1
         postMapper.increaseCollectNum(pid);
     }

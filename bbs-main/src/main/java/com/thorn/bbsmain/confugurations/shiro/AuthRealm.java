@@ -79,8 +79,6 @@ public class AuthRealm extends AuthorizingRealm {
             throw new AuthorizationException("用户信息保存错误,请尝试重新登录");
         }
         SimpleAuthorizationInfo simpleAuthorizationInfo = new SimpleAuthorizationInfo();
-        //System.out.println("roleMapper.getRoleByUserName(email) = " + roleMapper
-        // .getRoleByUserName(email));
         simpleAuthorizationInfo.addRole(roleMapper.getRoleByUserName(email));
         Set<String> permission = permissionMapper.getPermissionNameByUserName(email);
         simpleAuthorizationInfo.addStringPermissions(permission);

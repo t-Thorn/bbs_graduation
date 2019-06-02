@@ -78,7 +78,7 @@ public class RedisConfig {
     }
 
     private Map<String, RedisCacheConfiguration> getRedisCacheConfigurationMap() {
-        Map<String, RedisCacheConfiguration> redisCacheConfigurationMap = new HashMap<>();
+        Map<String, RedisCacheConfiguration> redisCacheConfigurationMap = new HashMap<>(16);
         //SsoCache和BasicDataCache进行过期时间配置
         redisCacheConfigurationMap.put("SsoCache", this.getRedisCacheConfigurationWithTtl(24 * 60 * 60));
         redisCacheConfigurationMap.put("BasicDataCache", this.getRedisCacheConfigurationWithTtl(30 * 60));
@@ -115,7 +115,6 @@ public class RedisConfig {
                 }
                 String join = String.join("&", Arrays.stream(params).map(Object::toString).collect(Collectors.toList()));
                 String format = String.format("%s{%s}", sb.toString(), join);
-                //log.info("缓存key：" + format);
                 return format;
             }
         };

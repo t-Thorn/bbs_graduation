@@ -34,10 +34,11 @@ public class DefaultViewCache implements ViewCache {
      *
      * @param pid
      */
+    @Override
     public void removeLike(int pid) {
         CACHE.forEachKey(3, k -> {
             if (k.endsWith(":" + pid)) {
-                CACHE.remove(pid);
+                CACHE.remove(k);
             }
         });
     }

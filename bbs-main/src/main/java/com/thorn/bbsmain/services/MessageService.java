@@ -12,11 +12,11 @@ public class MessageService {
         this.messageMapper = messageMapper;
     }
 
-    public void checkMessage(int id) {
+    void checkMessage(int id) {
         messageMapper.checkMessage(id);
     }
 
-    public void addMessage(Message message) {
+    void addMessage(Message message) {
         messageMapper.addMessage(message);
     }
 }

@@ -3,6 +3,8 @@ package com.thorn.bbsmain.utils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
+import java.util.Optional;
+
 public class MysqlJdbc {
     static JdbcTemplate jdbcTemplate = getTemplate();
 
@@ -21,10 +23,8 @@ public class MysqlJdbc {
     }
 
     public static int getUncheckedMessage(int uid) {
-        Integer messageNum =
-                jdbcTemplate.queryForObject("select count(*) from message where owner=" + uid +
-                        " and isCheck=false ", Integer.class);
-        return messageNum;
+        return Optional.ofNullable(jdbcTemplate.queryForObject("select count(*) from message where owner=" + uid +
+                " and isCheck=false ", Integer.class)).orElse(0);
     }
 
     public static Integer getUID(String email) {

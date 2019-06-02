@@ -27,7 +27,7 @@
                 <div class="layui-tab-item layui-show">
                     <div class="layui-form layui-form-pane">
                         <form action="/user/login" method="post">
-                            <input name="uri" th:value="${uri}" type="hidden">
+                            <input name="uri" th:value="${uri==null?param.uri:uri}" type="hidden">
                             <span th:text="${#request.getParameter('errorMsg')}"/>
                             <div class="layui-form-item">
                                 <label class="layui-form-label" for="L_email">用户名</label>

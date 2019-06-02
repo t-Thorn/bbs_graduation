@@ -39,7 +39,6 @@ public class JWTUtil {
             verifier.verify(token);
             return true;
         } catch (Exception exception) {
-            //log.error(exception.getMessage());
             return false;
         }
     }

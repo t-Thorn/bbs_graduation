@@ -80,12 +80,12 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
         int minute;
         int second;
         if (t.length == 3) {
-            hour = Integer.valueOf(t[0]);
-            minute = Integer.valueOf(t[1]);
-            second = Integer.valueOf(t[2]);
+            hour = Integer.parseInt(t[0]);
+            minute = Integer.parseInt(t[1]);
+            second = Integer.parseInt(t[2]);
         } else {
             //spring @value机制有问题//大于12点自动转换为毫秒
-            int timeInt = Integer.valueOf(t[0]);
+            int timeInt = Integer.parseInt(t[0]);
             hour = timeInt / 60 / 60;
             minute = timeInt % 3600 / 60;
             second = timeInt % 60;
@@ -108,17 +108,20 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
         return hotPointCache.get(pid);
     }
 
-    protected void computeViewNum(int pid, Object object) {
+    @Override
+    protected void computeViewNum(int pid) {
         if (viewCache.putIfAbsent((String) viewCounter.getID(pid, fetcher), 1) == null) {
             //需要计算浏览量
             updateTopPost(pid, hotPointCache.createOrUpdate(pid, 1L));
         }
     }
 
+    @Override
     protected void addReplyNum(int pid) {
-        updateTopPost(pid, hotPointCache.createOrUpdate(pid, 4l));
+        updateTopPost(pid, hotPointCache.createOrUpdate(pid, 4L));
     }
 
+    @Override
     protected void process(JoinPoint point) {
         Object[] args = point.getArgs();
         MethodSignature ms = (MethodSignature) point.getSignature();
@@ -150,10 +153,9 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
         }
         if (pid != -1) {
             log.info("准备计算热度：type：{} pid:{}", type, pid);
-//            changeLock.readLock().lock();
             switch (type) {
                 case "view":
-                    computeViewNum(pid, null);
+                    computeViewNum(pid);
                     checkUpdate(pid);
                     break;
                 case "reply":
@@ -165,8 +167,9 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
                 case "delReply":
                     delReply(pid);
                     break;
+                default:
+                    break;
             }
-//            changeLock.readLock().unlock();
         }
 
     }
@@ -193,10 +196,12 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
     }
 
     /**
+     * 删除帖子后的处理
      * 判断pid是否影响了热帖排行，并且删除对应缓存
      *
      * @param pid
      */
+    @Override
     protected void del(int pid) {
         lock.writeLock().lock();
         topPost.remove(pid);
@@ -212,6 +217,7 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
      * @param pid
      * @param hotpoint
      */
+    @Override
     protected void updateTopPost(int pid, long hotpoint) {
         //实时淘汰
         if (getMinHotPointOfLock() < hotpoint || index.size() < 10) {
@@ -300,6 +306,7 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
         return (long) obj[0];
     }
 
+    @Override
     public List<E> getTopPost() {
         List<E> list = new ArrayList<>(topPost.values());
         return list;
@@ -311,6 +318,7 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
         return index;
     }
 
+    @Override
     public void addRefreshTask(int period) {
         addSaveTaskThread();
         long oneDay = 24 * 60 * 60 * 1000;
@@ -320,7 +328,7 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
         scheduledExecutorService.scheduleAtFixedRate(new DefaultRefresh(), initDelay, period, TimeUnit.MILLISECONDS);
     }
 
-
+    @Override
     public void addCycleSaveTaskForReload(int period, TimeUnit unit, String path) {
         if (path == null) {
             return;
@@ -411,10 +419,7 @@ public class DefaultHotPostHandler<E> extends AbstractHotPostHandler<E> {
                         entity = taskQueue.poll();
                         continue;
                     }
-//                    changeLock.writeLock().lock();
                     dataSaver.save(entity.getPid(), hotPointCache.get(entity.getPid()));
-                    //hotPointCache.remove(entity.getPid());
-//                    changeLock.writeLock().unlock();
                     entity = taskQueue.poll();
                 }
                 try {

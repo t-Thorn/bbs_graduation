@@ -39,7 +39,6 @@
                         <img th:each="cookie :${#httpServletRequest.getCookies()}"
                              th:if="${cookie.getName().equals('img')}"
                              th:src="${cookie.getValue()}">
-
                     </a>
                     <dl class="layui-nav-child">
                         <dd><a href="/info/setting"><i class="layui-icon">&#xe620;</i>基本设置</a></dd>
