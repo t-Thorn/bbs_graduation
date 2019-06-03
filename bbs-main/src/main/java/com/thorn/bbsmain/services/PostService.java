@@ -284,6 +284,7 @@ public class PostService {
     }
 
 
+    @RefreshHotPost(HotPointManager.DELPOST)
     @Transactional
     /**
      * 用户删除帖子接口

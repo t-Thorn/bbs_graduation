@@ -24,7 +24,7 @@ public class PostOAService implements OAService<Post> {
     }
 
     public Post getPostInfo(int pid) {
-        return postMapper.getPost(pid);
+        return postMapper.getPostOfAdmin(pid);
     }
 
     @Override

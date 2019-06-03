@@ -96,8 +96,12 @@ public interface PostMapper {
     Post getPostForHotPost(int pid);
 
     @Select("select p.*,img,nickname from (select * from post where pid=#{pid})p left join user " +
-            "on user.uid=p.uid limit 1")
+            "on user.uid=p.uid where p.available=true limit 1")
     Post getPost(int pid);
+
+    @Select("select p.*,img,nickname from (select * from post where pid=#{pid})p left join user " +
+            "on user.uid=p.uid limit 1")
+    Post getPostOfAdmin(int pid);
     /**
      * 更新浏览量和回复数
      *
