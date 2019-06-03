@@ -73,20 +73,6 @@ public class UserController {
     }
 
 
-    @RequiresGuest
-    @GetMapping("forget")
-    public String turnToForget() {
-
-        return "user/forget";
-    }
-
-    @RequiresGuest
-    @PostMapping("forget")
-    public String forget() {
-
-        return "user/forget";
-    }
-
     @RequiresUser
     @GetMapping("logout")
     public String logout(HttpServletRequest request, HttpServletResponse response) {

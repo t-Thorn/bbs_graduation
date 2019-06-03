@@ -253,7 +253,6 @@ function submitReply() {
         layer.msg("请输入回复内容");
         return false;
     }
-    alert(editor.txt.text() == "");
     $("#content").val(editor.txt.text() == "" ? "" : editor.txt.text());
     $("#content_show").val(editor.txt.html());
     $("#addReply").submit();

@@ -14,7 +14,6 @@ import org.springframework.web.servlet.ModelAndView;
 @Controller
 public class BasicController {
 
-
     private PostService postService;
 
     /**

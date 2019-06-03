@@ -31,6 +31,9 @@ import java.util.List;
 @ControllerAdvice
 public class GlobalDefaultExceptionHandler {
 
+    public static final String GUEST_OPERATION = "guest-only";
+    public static final String USER_OPERATION = "The current Subject is not a user";
+    public static final String UNATHORIZATION_STRING = "Subject does not have permission";
     /**
      * 禁止用户访问的uri
      */
@@ -73,31 +76,50 @@ public class GlobalDefaultExceptionHandler {
 
         String uri = MyUtil.getReferer(request);
         MsgBuilder builder = new MsgBuilder();
-        builder.addData("errorMsg", msg.getMessage());
+
         if (msg instanceof AuthorizationException) {
             //用户访问只有游客才能访问的页面时则返回主页面，并且不提示
-                builder.addData("errorMsg", "权限不足");
             if (!isAjax(request)) {
-                if (msg.getMessage().contains("The current Subject is not a user")) {
+                if (msg.getMessage().contains(GUEST_OPERATION)) {
+                    return builder.getMsg("redirect:" + uri);
+                } else if (msg.getMessage().contains(USER_OPERATION)) {
                     builder.addData("errorMsg", "请登录后再试");
                     builder.addData("uri", uri);
                     return builder.getMsg("user/login");
                 }
-                //权限不够则跳转到主页
+                getUnauthorizationMsg(msg, builder);
+                //权限不够
                 return builder.getMsg("redirect:" + uri);
             } else {
+
+                getUnauthorizationMsg(msg, builder);
                 return builder.getMsgForAjax();
             }
         } else {
+            builder.addData("errorMsg", msg.getMessage());
             //返回请求页面，并附上参数
             //用户访问只有游客才能访问的页面时则返回主页面，并且不提示
             if (!isAjax(request)) {
                 userService.delUserCookie(response);
-                return builder.getMsg("redirect:" + ("".equals(uri) ? "/" : uri));
+                return builder.getMsg("redirect:/user/login");
             } else {
                 return builder.getMsgForAjax();
             }
         }
+    }
+
+    private void getUnauthorizationMsg(Exception msg, MsgBuilder builder) {
+        String message = msg.getMessage();
+        String errorMsg = "权限不足";
+        if (message.contains(UNATHORIZATION_STRING)) {
+            message = message.substring(message.indexOf("[") + 1, message.lastIndexOf("]"));
+            if ("reply".equalsIgnoreCase(message) || "createPost".equalsIgnoreCase(message)) {
+                errorMsg = "你已经被禁言";
+            } else {
+                errorMsg = "权限不足";
+            }
+        }
+        builder.addData("errorMsg", errorMsg);
     }
 
     @ExceptionHandler({UserInfoException.class, PageException.class, UserException.class, PostException.class})
@@ -113,7 +135,7 @@ public class GlobalDefaultExceptionHandler {
         MsgBuilder builder = new MsgBuilder();
         builder.addData("errorMsg", ex.getMessage());
         //log.warn("出现异常：{}", ex.getMessage());
-        return builder.getMsg("redirect:/");
+        return builder.getMsg("forward:/error_404");
     }
 
     @ResponseBody

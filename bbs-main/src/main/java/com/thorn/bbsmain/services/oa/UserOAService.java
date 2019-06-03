@@ -1,5 +1,6 @@
 package com.thorn.bbsmain.services.oa;
 
+import com.thorn.bbsmain.confugurations.shiro.cache.CustomCache;
 import com.thorn.bbsmain.exceptions.UserInfoException;
 import com.thorn.bbsmain.mapper.UserMapper;
 import com.thorn.bbsmain.mapper.entity.User;
@@ -12,8 +13,11 @@ import java.util.List;
 public class UserOAService {
     private UserMapper userMapper;
 
+    private static CustomCache customCache = new CustomCache("authorizationCache");//初始化默认缓存实现
+
     public UserOAService(UserMapper userMapper) {
         this.userMapper = userMapper;
+
     }
 
     public User getUserInfo(int uid) {
@@ -44,7 +48,9 @@ public class UserOAService {
         }
         try {
             userMapper.updateInfoByAdmin(user);
+            //更新缓存
 
+            customCache.remove(user.getEmail());
         } catch (Exception e) {
             throw new UserInfoException("更新失败：" + e.getMessage());
         }

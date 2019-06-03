@@ -137,6 +137,8 @@
         var layer = layui.layer;
         if ("[[${errorMsg}]]" != "") {
             layer.msg("[[${errorMsg}]]");
+        } else if ("[[${param.errorMsg}]]" != "") {
+            layer.msg("[[${param.errorMsg}]]");
         }
     });
 </script>

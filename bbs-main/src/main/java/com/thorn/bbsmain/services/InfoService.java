@@ -289,7 +289,7 @@ public class InfoService {
         List<History> histories;
         MsgBuilder builder = new MsgBuilder();
         histories = userService.getHistories(uid, (page - 1) * ONE_PAGE_HISTORY_NUM, ONE_PAGE_HISTORY_NUM);
-        pageNum = userService.getHistoryNum(uid);
+        pageNum = MyUtil.getPage(userService.getHistoryNum(uid), ONE_PAGE_HISTORY_NUM);
 
         builder.addData("histories", histories);
         builder.addData("currentPage", page);

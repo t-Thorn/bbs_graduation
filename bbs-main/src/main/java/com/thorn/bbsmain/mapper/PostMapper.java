@@ -20,7 +20,7 @@ public interface PostMapper {
             "       replyNum," +
             "       img from post" +
             "       left JOIN user on post.uid = user.uid" +
-            " where grade < 2 and type!=4" +
+            " where grade != 2 and type!=4" +
             "  and post.available = true and user.available=true and pid<=(select pid from post " +
             "where available=true " +
             "order by pid desc limit #{offset},1)" +
@@ -115,13 +115,13 @@ public interface PostMapper {
     @Update("update post set replyNUm=replyNUm-1 where pid=#{pid}")
     void decreaseReplyNum(int pid);
 
-    @Select("select count(*) from post where available=1 and  grade < 2")
+    @Select("select count(*) from post where available=1 and  grade != 2 and type!=4")
     int getPostNum();
 
     @Select("select count(*) from post where available=1 and title like concat('%',#{target},'%')")
     int getPostNumOfTarget(String target);
 
-    @Select("select count(*) from post where available=1 and type != 4 and grade = 1")
+    @Select("select count(*) from post where available=1 and type != 4 and (grade = 1 or grade=3)")
     int getGoodPostNum();
 
     @Update("update post set collectionNum=collectionNum-1 where pid=#{pid}")

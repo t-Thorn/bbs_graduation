@@ -65,7 +65,7 @@ public interface UserMapper {
             "from message " +
             "       left join user on uid = fromUser " +
             "where (owner = #{uid} or owner=-1) " +
-            " order by id  desc limit #{offset},#{step}")
+            " order by isCheck,id  desc limit #{offset},#{step}")
     List<Message> getMessages(int uid, int offset, int step);
 
     @Select("select uid,nickname,regdate,gender from user where uid=#{uid} and available=true limit 1")

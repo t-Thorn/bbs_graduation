@@ -4,6 +4,7 @@ package com.thorn.bbsmain.services;
 import annotation.RefreshHotPost;
 import com.thorn.bbsmain.exceptions.DeleteReplyException;
 import com.thorn.bbsmain.exceptions.PostException;
+import com.thorn.bbsmain.exceptions.PostNotFoundException;
 import com.thorn.bbsmain.mapper.PostMapper;
 import com.thorn.bbsmain.mapper.ReplyMapper;
 import com.thorn.bbsmain.mapper.entity.Message;
@@ -162,7 +163,7 @@ public class ReplyService {
         return replyMapper.getLikesNum(pid, floor);
     }
 
-    List<Reply> getReplies(Integer pid, MsgBuilder builder, int page) {
+    List<Reply> getReplies(Integer pid, MsgBuilder builder, int page) throws PostNotFoundException {
         int replyNum;
         //减一是去掉顶楼回复
         replyNum = replyMapper.getReplyNum(pid) - 1;
@@ -171,13 +172,14 @@ public class ReplyService {
             page = MyUtil.getPage(replyNum, ONE_PAGE_REPLY_NUM);
         }
         List<Reply> replyList = getReplyByPid(pid, page - 1);
-
+        //page可以包容-1和1
+        if (replyList.size() == 0 && page != 1 && page != -1) {
+            throw new PostNotFoundException("该页面不存在该页");
+        }
         //获取帖子内容
         builder.addData("topReply", getTopReply(pid));
 
         //分页
-
-
         builder.addData("page", page);
         builder.addData("pageNum",
                 MyUtil.getPage(replyNum, ONE_PAGE_REPLY_NUM));

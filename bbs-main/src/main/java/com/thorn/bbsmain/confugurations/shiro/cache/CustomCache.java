@@ -101,6 +101,24 @@ public class CustomCache<K, V> implements Cache<K, V> {
     }
 
     /**
+     * 移除缓存
+     */
+
+    public Object remove(String email) throws CacheException {
+        try {
+            String key = PREFIX_SHIRO_CACHE_AUTHORIZATION + midName + ":" + email;
+            if (!JedisUtil.exists(key)) {
+                return null;
+            }
+            JedisUtil.delKey(key);
+        } catch (Exception e) {
+            throw new CacheException("redis移除失败:" + e.getMessage());
+        }
+
+        return null;
+    }
+
+    /**
      * 清空所有缓存
      */
     @Override

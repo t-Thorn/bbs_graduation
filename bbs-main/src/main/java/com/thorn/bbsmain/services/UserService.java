@@ -80,7 +80,7 @@ public class UserService {
         try {
             currentUser.login(new JWTToken(token));
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            throw new UserException(e.getMessage());
         }
         return token;
     }
@@ -196,21 +196,6 @@ public class UserService {
         Subject currentUser = SecurityUtils.getSubject();
         String token;
         String url = MyUtil.getReferer(request);
-
-        try {
-            token = verifyTokenByShiro(currentUser, user);
-        } catch (UserException e) {
-            builder.addData("errorMsg", "登录失败：" + e.getMessage());
-            return builder.getMsg("redirect:/user/login" + uri);
-        }
-        //向客户端cookie中加入token
-        builder.addCookie(response, "token", token);
-        builder.addCookie(response, "nickname", ((User) currentUser.getPrincipal()).getNickname());
-        builder.addCookie(response, "img",
-                ((User) currentUser.getPrincipal()).getImg());
-
-        //跳转到登录前的页面
-
         if (url.contains("/user/login") || url.contains("/user/reg")) {
             //放回之前的页面 主页或者帖子详情页
             if (!"".equals(uri)) {
@@ -232,6 +217,20 @@ public class UserService {
         } else {
             uri = url;
         }
+        try {
+            token = verifyTokenByShiro(currentUser, user);
+        } catch (UserException e) {
+            builder.addData("errorMsg", "登录失败：" + e.getMessage());
+            builder.addData("uri", uri);
+            return builder.getMsg("redirect:/user/login");
+        }
+        //向客户端cookie中加入token
+        builder.addCookie(response, "token", token);
+        builder.addCookie(response, "nickname", ((User) currentUser.getPrincipal()).getNickname());
+        builder.addCookie(response, "img",
+                ((User) currentUser.getPrincipal()).getImg());
+
+        //跳转到登录前的页面
         return builder.getMsg("redirect:" + uri);
     }
 

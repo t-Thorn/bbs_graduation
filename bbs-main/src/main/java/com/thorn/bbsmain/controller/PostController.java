@@ -13,6 +13,7 @@ import com.thorn.bbsmain.services.UserService;
 import com.thorn.bbsmain.utils.MsgBuilder;
 import impl.HotPointManager;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.apache.shiro.authz.annotation.RequiresUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -65,7 +66,8 @@ public class PostController {
                 errorMsg);
     }
 
-    @RequiresPermissions("createPost")
+
+    @RequiresUser
     @GetMapping("newPost")
     public ModelAndView newPost(@Autowired MsgBuilder builder) {
         return builder.getMsg("jie/add");
